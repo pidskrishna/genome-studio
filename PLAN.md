@@ -14,7 +14,7 @@ Checks:
 
 ## Milestone 1: genome (spec section 2, names from section 6)
 
-- [ ] Done
+- [x] Done
 
 Build: encode and decode, header, checksum, both gene tables, slider-to-bases sync, input cleaning, link sharing through the page address, specimen names, a wild-type genome per species. Wild types are provisional until milestones 3 to 5. Header codes, binned genes, the kill clamp and the bad-checksum behaviour follow clarifications 5, 6, 9 and 11.
 
