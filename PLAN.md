@@ -33,7 +33,7 @@ Checks (unit tests):
 
 ## Milestone 2: deterministic core (spec section 8)
 
-- [ ] Done
+- [x] Done
 
 Build: `src/sim/dmath.ts` (sine, cosine, atan2, exp, log, pow built from basic arithmetic), `src/sim/rng.ts` (seeded generator), a geometry hash function, the web worker shell with progress messages and cancellation (a new run supersedes one in flight).
 
