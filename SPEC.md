@@ -66,15 +66,15 @@ Implement the paper's procedure as written:
 - Branch radius uses the pipe model, from the tips toward the base: r^n = r1^n + r2^n (paper eq. 1), with every tip at the tip radius.
 - Optional post-processing as in the paper: node relocation halfway toward the basal neighbour, and curve subdivision.
 
-Lengths are in units of D, the segment length, as in the paper.
+Lengths are in units of D, the segment length, as in the paper. The one exception is the sensing range, which is set in mean spacings between attraction points (clarification 16).
 
 | Locus | Gene | Model parameter | Range | Basis |
 | --- | --- | --- | --- | --- |
 | 1 | Habit: aspect | Envelope height to width | 0.4 to 4, log | Paper (envelope is an input) |
 | 2 | Tropism | Vertical growth bias | −0.5 to +0.5 | Paper, eq. 3 |
 | 3 | Space density | N, number of attraction points | 300 to 12,000, log | Paper |
-| 4 | Sensing range | Radius of influence | 4 D to 64 D, log | Paper |
-| 5 | Clearance | Kill distance | 1 D to 20 D, never above the sensing range | Paper |
+| 4 | Sensing range | Radius of influence | 2.5 to 12 point spacings, log | Paper |
+| 5 | Clearance | Kill distance | 1 D to 20 D, never above the sensing range or a quarter of the envelope radius | Paper |
 | 6 | Segment length | D, relative to envelope height | 0.4% to 2%, log | Paper |
 | 7 | Surface seeking | Attraction points uniform (0), or crowded near the envelope (1) | 0 to 1 | Paper |
 | 8 | Habit: taper | Envelope from cone, through sphere, to inverted cone | −1 to +1 | Paper (envelope is an input) |
@@ -331,8 +331,8 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 1. **Species B maturity (section 4).** Growth stops when the total rest area of the sheet reaches a fixed multiple of its starting area. The multiple is a constant of the encoding version. Cell size (locus 15) stays "% of final size", where final size is the size at that area. 40,000 vertices is a hard cap, so the vertex count at maturity varies with cell size.
 2. **Tuning ranges and constants (section 12, last line).** If tuning needs a gene range or a growth constant to change, work stops and the exact edit to this spec is proposed. Once approved, this spec and the gene tables change together, and recorded geometry hashes are re-recorded.
 3. **Draft (section 6).** The draft is a low-resolution run of the same code with the same algorithm. For species A it uses fewer attraction points, drawn from the same seed, and a longer segment length. For species B it uses larger cells. It shares the organism's character and outline but not its fine detail, and is labelled as a draft.
-4. **Clear stem (section 3, locus 9).** While no attraction point is within the radius of influence of any node, the newest node grows one D straight up, plus tropism, until points come into range. This is common practice in implementations rather than a step of the paper, and the Methods page says so.
-5. **Kill distance (section 3, locus 5).** The decoded kill distance is the smaller of the gene's value and 0.8 × the decoded sensing range. The inspector shows the clamped value with a note that it is limited by the sensing range.
+4. **Clear stem (section 3, locus 9).** Until the organism first branches, whenever no attraction point is within the radius of influence of any node, the newest node of each stem grows one D straight up, plus tropism, until points come into range. Once the organism has branched, growth ends as in the paper when no point is within range. If a stem climbs past every point, growth ends. This is common practice in implementations rather than a step of the paper, and the Methods page says so.
+5. **Kill distance (section 3, locus 5).** The decoded kill distance is the smallest of the gene's value, 0.8 × the decoded sensing range in D, and a quarter of the envelope's largest radius, so that a stem cannot clear every point on its way up. The inspector shows the clamped value with a note saying which limit applies.
 6. **Whole-number and multiple-choice genes (section 2).** Every slider runs over the raw gene value 0 to 4,095, so sliders and bases are one-to-one. The displayed setting steps between bins. The exact number field takes the model value and writes the centre of its bin.
 7. **Species B margin (section 4).** Distance from the margin is measured once on the starting shape and carried by every vertex through splits. Ring: both edges are margins. Tube: both open ends. Closed sphere: the growth patches, as section 4 says. "% of radius" means percent of the starting radius.
 8. **Flat test (section 12).** Run with the disc body plan, the wild type, and anisotropy, patch contrast and lift at their neutral values. With margin bias at its minimum, the out-of-plane deviation stays within the starting roughness. As margin bias rises, the deviation rises.
@@ -343,3 +343,4 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 13. **Square orientation (section 9).** The side of a square export is the short edge of the chosen size, for example A4 square is 2,480 × 2,480.
 14. **Species B drawn thickness (section 4, locus 3).** The drawn thickness is the smaller of the thickness and the personal space, so the drawn sheet does not visibly pass through itself. Stretch and bending stiffness use the full thickness gene. The inspector shows the clamp.
 15. **Species A stopping (section 3).** A node whose growth direction sums to zero does not grow that step. Growth also stops after a fixed number of steps, a constant of the encoding version. Both are stated on the Methods page as additions to the paper's procedure.
+16. **Sensing range (section 3, locus 4).** Added on 4 October 2026 at the owner's request. The radius of influence is set in mean spacings between attraction points, where the mean spacing is the cube root of the envelope volume divided by the number of points. In D it is the gene's value times that spacing. With a radius fixed at 4 D to 64 D, about four in ten random genomes grew as a bare, unbranched stem, because the sparsest envelopes put points further apart than the largest radius. The inspector shows the value both in spacings and in D.

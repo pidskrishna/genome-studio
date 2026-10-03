@@ -1,4 +1,4 @@
-import { decodeGenome, valueById } from '../../genome';
+import { decodeGenome, speciesAOf, valueById } from '../../genome';
 
 /** Decoded species A parameters, in model units. Lengths are in units of D. */
 export interface SpeciesAParams {
@@ -8,9 +8,9 @@ export interface SpeciesAParams {
   tropism: number;
   /** N, the number of attraction points. */
   pointCount: number;
-  /** Radius of influence, in D. */
+  /** Radius of influence, in D: the sensing range gene (in point spacings) × the mean point spacing. */
   sensingRange: number;
-  /** Kill distance, in D, already limited to 0.8 × the sensing range. */
+  /** Kill distance, in D, already limited as in clarification 5. */
   killDistance: number;
   /** D as a fraction of envelope height. */
   segmentLength: number;
@@ -40,11 +40,12 @@ export function speciesAParams(code: string): SpeciesAParams {
   const decoded = decodeGenome(code);
   if (decoded.species !== 'A') throw new Error('Not a species A code');
   const v = (id: string) => valueById(decoded, id);
+  const derived = speciesAOf(decoded);
   return {
     aspect: v('habitAspect'),
     tropism: v('tropism'),
-    pointCount: Math.floor(v('spaceDensity') + 0.5),
-    sensingRange: v('sensingRange'),
+    pointCount: derived.pointCount,
+    sensingRange: derived.sensingRange,
     killDistance: v('clearance'),
     segmentLength: v('segmentLength'),
     surfaceSeeking: v('surfaceSeeking'),

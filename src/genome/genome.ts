@@ -2,6 +2,7 @@ import { baseToDigit, basesToValue, cleanCode, digitToBase, valueToBases } from 
 import { checksumOf, CHECKSUM_BASES } from './checksum';
 import { decodeValue, encodeValue, rawMax } from './decode';
 import { geneAt, geneTable, type SpeciesId } from './genes';
+import { speciesADerived, type SpeciesADerived } from './speciesA';
 
 export const GENOME_LENGTH = 160;
 export const GENE_COUNT = 24;
@@ -152,16 +153,25 @@ export function decodeGenome(code: string): DecodedGenome {
     values.push(decodeValue(def, r));
   }
   if (species === 'A') {
-    // Clarification 5: kill distance is never above 0.8 × the sensing range.
-    values[4] = Math.min(values[4] ?? 0, 0.8 * (values[3] ?? 0));
+    // Clarification 5: kill distance is never above 0.8 × the sensing range or a quarter of the
+    // envelope radius, both in D.
+    values[4] = speciesADerived(values).killDistance;
   }
   return { code, species, raw, values, checksumOk: hasValidChecksum(code) };
 }
 
-/** True when the decoded kill distance was reduced by the sensing-range limit (species A). */
+/** True when the decoded kill distance was reduced by one of its limits (species A). */
 export function clearanceIsLimited(decoded: DecodedGenome): boolean {
   if (decoded.species !== 'A') return false;
   return decodeValue(geneAt('A', 5), decoded.raw[4] ?? 0) > (decoded.values[4] ?? 0);
+}
+
+/** Envelope, point spacing and lengths in D for a decoded species A genome. */
+export function speciesAOf(decoded: DecodedGenome): SpeciesADerived {
+  if (decoded.species !== 'A') throw new Error('Not a species A genome');
+  const unclamped = decoded.values.slice();
+  unclamped[4] = decodeValue(geneAt('A', 5), decoded.raw[4] ?? 0);
+  return speciesADerived(unclamped);
 }
 
 /** A decoded value looked up by gene id. */

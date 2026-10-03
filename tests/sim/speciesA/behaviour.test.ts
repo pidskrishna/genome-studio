@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { decodeGenome, valueById, wildType } from '../../../src/genome';
+import { decodeGenome, speciesAOf, valueById, wildType } from '../../../src/genome';
 import { mulberry32, randomGenome } from '../../../src/genome/test-helpers';
 import { speciesA, type BranchGeometry } from '../../../src/sim/speciesA';
 import { colonise, type ColoniseConfig } from '../../../src/sim/speciesA/colonise';
 import { STEP_CAP } from '../../../src/sim/speciesA/constants';
+import { shedTwigs } from '../../../src/sim/speciesA/postprocess';
 import { assertSound, grow, runToEnd, withGenes } from './helpers';
 
 // Recorded from the wild type. If a constant of the encoding version or the wild type changes,
 // this is re-recorded (spec clarification 2).
-const WILD_TYPE_HASH = '61c8427e3677e3c9';
+const WILD_TYPE_HASH = '642a289e51e48070';
 
 function childCounts(g: BranchGeometry): Int32Array {
   const kids = new Int32Array(g.parents.length);
@@ -133,10 +134,11 @@ describe('crown shape', () => {
 
 describe('clear stem (clarification 4)', () => {
   it('with clear stem at its maximum and sensing range at its minimum, a trunk grows into the envelope and branches', () => {
-    const code = withGenes(wild, { 9: 0.5, 4: 4 });
+    const code = withGenes(wild, { 9: 0.5, 4: 2.5 });
     const d = decodeGenome(code);
     expect(valueById(d, 'clearStem')).toBe(0.5);
-    expect(valueById(d, 'sensingRange')).toBe(4);
+    expect(valueById(d, 'sensingRange')).toBe(2.5);
+    const reach = speciesAOf(d).sensingRange;
     const g = grow(code);
     assertSound(g, code);
     const kids = childCounts(g);
@@ -148,19 +150,20 @@ describe('clear stem (clarification 4)', () => {
       v = g.parents.indexOf(v);
       topOfTrunk = g.positions[v * 3 + 1] as number;
     }
-    expect(topOfTrunk).toBeGreaterThan(bottom - 4 - 1);
+    expect(topOfTrunk).toBeGreaterThan(bottom - reach - 1);
     // ...and the organism branches inside the envelope.
     const branchHeights = [...kids.keys()].filter((v) => (kids[v] as number) >= 2).map((v) => g.positions[v * 3 + 1] as number);
     expect(branchHeights.length).toBeGreaterThan(50);
-    expect(Math.min(...branchHeights)).toBeGreaterThan(bottom - 4 - 1);
+    expect(Math.min(...branchHeights)).toBeGreaterThan(bottom - reach - 1);
   });
 });
 
 describe('kill distance limited by sensing range (clarification 5)', () => {
   it('a genome whose clearance is clamped grows past its first step', () => {
-    const code = withGenes(wild, { 5: 20, 4: 4 });
+    const code = withGenes(wild, { 5: 20, 4: 2.5 });
     const d = decodeGenome(code);
-    expect(valueById(d, 'clearance')).toBeCloseTo(3.2, 12);
+    expect(speciesAOf(d).killLimitedBy).not.toBeNull();
+    expect(valueById(d, 'clearance')).toBeLessThan(20);
     const g = grow(code);
     assertSound(g, code);
     expect(g.stats.steps).toBeGreaterThan(1);
@@ -202,6 +205,18 @@ describe('stopping (clarification 15)', () => {
     expect(grown.x).toHaveLength(26);
   });
 
+  it('a stem that touches a point and passes it keeps climbing until the organism branches', () => {
+    // One point near the base, then a cluster high above: after the first point is removed, the stem
+    // climbs again (clarification 4) instead of stopping as out of range.
+    const cluster = [0.5, 40, 0.3, 5, 45, 1, -4, 47, 2, 1, 44, -6, 2, 50, 3];
+    const grown = runToEnd(colonise({ ...base, points: new Float64Array([0, 5, 0, ...cluster]) }));
+    expect(grown.pointsLeft).toBe(0);
+    const kids = new Int32Array(grown.parent.length);
+    for (const p of grown.parent) if (p >= 0) kids[p] = (kids[p] as number) + 1;
+    expect(kids.some((k) => k >= 2)).toBe(true);
+    expect(Math.max(...grown.y)).toBeGreaterThan(35);
+  });
+
   it('a trunk that passes every point stops, out of range', () => {
     const grown = runToEnd(colonise({ ...base, points: new Float64Array([50, 20, 0]) }));
     expect(grown.stopReason).toBe('out-of-range');
@@ -234,5 +249,31 @@ describe('gradient-driver attributes', () => {
       }
       expect(problems, code).toEqual([]);
     }
+  });
+});
+
+describe('twig shedding', () => {
+  it('removes short twigs, shortest first, but never the last branching point', () => {
+    // Stem 0-1-2-3-4-5 with twigs: 6 off node 1 (length 1), 7-8 off node 3 (length 2).
+    const tree = {
+      x: [0, 0, 0, 0, 0, 0, 1, 1, 2],
+      y: [0, 1, 2, 3, 4, 5, 1, 3, 3],
+      z: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      parent: [-1, 0, 1, 2, 3, 4, 1, 3, 7],
+    };
+    const branching = (t: { parent: number[] }) => {
+      const kids = new Int32Array(t.parent.length);
+      for (const p of t.parent) if (p >= 0) kids[p] = (kids[p] as number) + 1;
+      return kids.filter((k) => k >= 2).length;
+    };
+    // Threshold 1.5: only the shortest twig goes.
+    expect(shedTwigs(tree, 1.5).parent).toHaveLength(8);
+    // Threshold 10: every terminal branch is short (the stem above node 3 is 2 long), but the last
+    // removal that would leave no branching point is skipped.
+    const shed = shedTwigs(tree, 10);
+    expect(branching(shed)).toBe(1);
+    expect(shed.parent.length).toBeLessThan(9);
+    // The full stem from a starting node is never removed.
+    expect(shedTwigs({ x: [0, 0], y: [0, 1], z: [0, 0], parent: [-1, 0] }, 10).parent).toHaveLength(2);
   });
 });

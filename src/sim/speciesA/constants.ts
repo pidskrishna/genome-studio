@@ -22,5 +22,8 @@ export const UP: readonly [number, number, number] = [0, 1, 0];
 /** Rejection-sampling attempts per attraction point before it falls back to the envelope axis. */
 export const MAX_SAMPLE_ATTEMPTS = 10_000;
 
-/** Fraction of the envelope radius that surface seeking at 1 confines points to. */
+/** Thickness of the shell that surface seeking moves points into, as a fraction of the radius. */
 export const SURFACE_SHELL = 0.1;
+
+/** Share of the points moved into that shell when surface seeking is 1. */
+export const SURFACE_SHARE = 0.8;

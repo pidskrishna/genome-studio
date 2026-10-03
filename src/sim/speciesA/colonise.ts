@@ -17,7 +17,7 @@ import { D, DUPLICATE_DISTANCE, UP, ZERO_DIRECTION } from './constants';
 export type StopReason =
   /** Every attraction point was removed (paper). */
   | 'all-points-removed'
-  /** No remaining point is within range of any node (paper). */
+  /** No remaining point is within range of any node and none can come into range (paper). */
   | 'out-of-range'
   /** Points are in range but no node could grow: every direction summed to zero (clarification 15). */
   | 'stalled'
@@ -118,6 +118,11 @@ export function* colonise(config: ColoniseConfig): Generator<number, ColoniseRes
   const sumZ: number[] = [];
   const influence: number[] = [];
 
+  /** Becomes true when any node gains a second child. */
+  let branched = false;
+  /** Newest node of each starting node's stem, kept while the organism is unbranched. */
+  const stemTips: number[] = [];
+
   function addNode(nxp: number, nyp: number, nzp: number, p: number): number {
     const id = x.length;
     x.push(nxp);
@@ -131,8 +136,12 @@ export function* colonise(config: ColoniseConfig): Generator<number, ColoniseRes
     sumZ.push(0);
     influence.push(0);
     if (p >= 0) {
+      if ((firstChild[p] as number) >= 0) branched = true;
       nextSibling[id] = firstChild[p] as number;
       firstChild[p] = id;
+      // While unbranched, each starting node's line of nodes has one tip: its newest node.
+      const tip = stemTips.indexOf(p);
+      if (tip >= 0) stemTips[tip] = id;
     }
     // Update the nearest node of every point within range, and remove points within kill distance.
     const ix = Math.floor((nxp - minX) / cell);
@@ -171,9 +180,8 @@ export function* colonise(config: ColoniseConfig): Generator<number, ColoniseRes
   }
 
   const originCount = origins.length / 3;
-  let trunkTips: number[] = [];
   for (let j = 0; j < originCount; j++) {
-    trunkTips.push(addNode(origins[j * 3] as number, origins[j * 3 + 1] as number, origins[j * 3 + 2] as number, -1));
+    stemTips.push(addNode(origins[j * 3] as number, origins[j * 3 + 1] as number, origins[j * 3 + 2] as number, -1));
   }
 
   // Trunk direction while no point is in range: straight up plus tropism (clarification 4).
@@ -185,7 +193,6 @@ export function* colonise(config: ColoniseConfig): Generator<number, ColoniseRes
   const trunkY = (ty / tl) * D;
   const trunkZ = (tz / tl) * D;
 
-  let everInRange = false;
   let steps = 0;
   let stopReason: StopReason;
   let progress = 0;
@@ -216,20 +223,20 @@ export function* colonise(config: ColoniseConfig): Generator<number, ColoniseRes
     }
 
     if (touched.length === 0) {
-      if (everInRange) {
+      if (branched) {
         stopReason = 'out-of-range';
         break;
       }
-      // Clear stem: the newest nodes grow straight up until points come into range.
-      const above = trunkTips.every((t) => (y[t] as number) > maxY + ri);
+      // Clear stem: until the organism first branches, whenever no point is in range the newest
+      // node of each stem grows straight up until points come into range (clarification 4).
+      const above = stemTips.every((t) => (y[t] as number) > maxY + ri);
       if (above) {
         // The trunk has passed every point and only grows upward: none can ever come into range.
         stopReason = 'out-of-range';
         break;
       }
-      trunkTips = trunkTips.map((t) => addNode((x[t] as number) + trunkX, (y[t] as number) + trunkY, (z[t] as number) + trunkZ, t));
+      for (const t of stemTips.slice()) addNode((x[t] as number) + trunkX, (y[t] as number) + trunkY, (z[t] as number) + trunkZ, t);
     } else {
-      everInRange = true;
       touched.sort((a, b) => a - b);
       let grew = 0;
       for (const v of touched) {

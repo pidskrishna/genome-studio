@@ -1,6 +1,7 @@
+import { envelopeProfile } from '../../genome';
 import { cos, PI, sin } from '../dmath';
 import { Rng } from '../rng';
-import { MAX_SAMPLE_ATTEMPTS, ORIGIN_RING, SURFACE_SHELL } from './constants';
+import { MAX_SAMPLE_ATTEMPTS, ORIGIN_RING, SURFACE_SHARE, SURFACE_SHELL } from './constants';
 import type { SpeciesAParams } from './params';
 
 /**
@@ -25,15 +26,8 @@ export function envelopeOf(params: SpeciesAParams): Envelope {
   };
 }
 
-/**
- * Radius of the envelope at normalised height s (0 bottom, 1 top), as a fraction of its largest
- * radius. Taper −1 is a cone (wide at the bottom), 0 a sphere, +1 an inverted cone.
- */
-export function profile(taper: number, s: number): number {
-  const sphere = 2 * Math.sqrt(Math.max(0, s * (1 - s)));
-  if (taper < 0) return (1 + taper) * sphere + -taper * (1 - s);
-  return (1 - taper) * sphere + taper * s;
-}
+/** Radius of the envelope at normalised height s, as a fraction of its largest radius. */
+export const profile = envelopeProfile;
 
 /** Seeds the attraction points inside the envelope: N points as xyz triples. */
 export function samplePoints(params: SpeciesAParams, envelope: Envelope): Float64Array {
@@ -41,7 +35,6 @@ export function samplePoints(params: SpeciesAParams, envelope: Envelope): Float6
   const n = params.pointCount;
   const out = new Float64Array(n * 3);
   const { bottom, height, radius, taper } = envelope;
-  const squeeze = 1 - (1 - SURFACE_SHELL) * params.surfaceSeeking;
   for (let i = 0; i < n; i++) {
     let x = 0;
     let z = 0;
@@ -56,11 +49,12 @@ export function samplePoints(params: SpeciesAParams, envelope: Envelope): Float6
         s = cs;
         x = cx;
         z = cz;
-        // Surface seeking pushes the point outward along its radius, toward the envelope.
+        // Surface seeking moves a share of the points outward along their radius, into a thin
+        // shell just inside the envelope; the rest stay spread through it.
         const r = Math.sqrt(r2);
-        if (r > 0 && limit > 0) {
+        if (rng.next() < SURFACE_SHARE * params.surfaceSeeking && r > 0 && limit > 0) {
           const u = r / limit;
-          const pushed = 1 - (1 - u) * squeeze;
+          const pushed = 1 - (1 - u) * SURFACE_SHELL;
           x = (cx / r) * pushed * limit;
           z = (cz / r) * pushed * limit;
         }

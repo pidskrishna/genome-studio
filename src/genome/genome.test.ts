@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { basesToValue, cleanCode, valueToBases } from './bases';
 import { checksumOf } from './checksum';
 import { binCount, decodeValue, encodeValue, rawMax } from './decode';
+import { envelopeProfile, profileSquareIntegral } from './speciesA';
 import { geneTable, type SpeciesId } from './genes';
 import {
   CHECKSUM_START,
   GENOME_LENGTH,
   clearanceIsLimited,
+  speciesAOf,
   decodeGenome,
   geneBases,
   hasValidChecksum,
@@ -228,30 +230,68 @@ describe('header', () => {
 });
 
 describe('kill distance clamp', () => {
-  it('never exceeds 0.8 × sensing range, over 10,000 random codes', () => {
+  it('never exceeds 0.8 × the sensing range in D or a quarter of the envelope radius, over 10,000 random codes', () => {
     const rand = mulberry32(5);
     for (let n = 0; n < 10_000; n++) {
       const d = decodeGenome(randomGenome('A', rand));
-      expect(valueById(d, 'clearance')).toBeLessThanOrEqual(0.8 * valueById(d, 'sensingRange'));
-      expect(valueById(d, 'clearance')).toBeGreaterThanOrEqual(1);
+      const a = speciesAOf(d);
+      const kill = valueById(d, 'clearance');
+      expect(kill).toBe(a.killDistance);
+      expect(kill).toBeLessThanOrEqual(0.8 * a.sensingRange);
+      expect(kill).toBeLessThanOrEqual(0.25 * a.radius);
+      // Never below one segment length, so growth steps cannot skip past a point.
+      expect(kill).toBeGreaterThanOrEqual(1);
     }
   });
 
-  it('is limited at the largest clearance and the smallest sensing range', () => {
+  it('is limited by the sensing range at the largest clearance and the smallest sensing range', () => {
     let code = writeGene(wildType('A'), 5, 4095);
     code = writeGene(code, 4, 0);
     const d = decodeGenome(code);
-    expect(valueById(d, 'sensingRange')).toBe(4);
-    expect(valueById(d, 'clearance')).toBeCloseTo(3.2, 12);
+    const a = speciesAOf(d);
+    expect(valueById(d, 'sensingRange')).toBe(2.5);
+    expect(a.sensingRange).toBe(2.5 * a.spacing);
+    expect(valueById(d, 'clearance')).toBe(0.8 * a.sensingRange);
+    expect(a.killLimitedBy).toBe('sensing range');
     expect(clearanceIsLimited(d)).toBe(true);
   });
 
-  it('is not limited when the sensing range is generous', () => {
-    let code = writeGene(wildType('A'), 5, 0);
-    code = writeGene(code, 4, 4095);
+  it('is limited by the envelope when the envelope is narrow', () => {
+    // Shortest, narrowest envelope; generous sensing range; largest clearance.
+    const code = [[1, 4], [6, 0.02], [4, 12], [5, 20]].reduce((c, [locus, value]) => writeModelValue(c, locus!, value!), wildType('A'));
     const d = decodeGenome(code);
+    const a = speciesAOf(d);
+    expect(a.radius).toBeCloseTo(6.25, 9);
+    expect(valueById(d, 'clearance')).toBe(0.25 * a.radius);
+    expect(a.killLimitedBy).toBe('envelope');
+    expect(clearanceIsLimited(d)).toBe(true);
+  });
+
+  it('is not limited when the gene value is small', () => {
+    const d = decodeGenome(writeGene(wildType('A'), 5, 0));
     expect(valueById(d, 'clearance')).toBe(1);
+    expect(speciesAOf(d).killLimitedBy).toBeNull();
     expect(clearanceIsLimited(d)).toBe(false);
+  });
+});
+
+describe('species A derived quantities', () => {
+  it('the closed-form profile integral matches numerical integration', () => {
+    for (const taper of [-1, -0.6, -0.2, 0, 0.3, 0.75, 1]) {
+      let sum = 0;
+      const steps = 200_000;
+      for (let i = 0; i < steps; i++) sum += envelopeProfile(taper, (i + 0.5) / steps) ** 2 / steps;
+      expect(profileSquareIntegral(taper)).toBeCloseTo(sum, 6);
+    }
+  });
+
+  it('point spacing is the cube root of envelope volume per point', () => {
+    const rand = mulberry32(6);
+    for (let n = 0; n < 1000; n++) {
+      const a = speciesAOf(decodeGenome(randomGenome('A', rand)));
+      expect(Math.abs(a.spacing / Math.cbrt(a.volume / a.pointCount) - 1)).toBeLessThan(1e-12);
+      expect(Number.isFinite(a.sensingRange) && a.sensingRange > 0).toBe(true);
+    }
   });
 });
 

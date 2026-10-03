@@ -5,35 +5,49 @@ import { childLists, renumber, segmentLength, type Tree } from './tree';
 // subdivision (paper), then pipe-model radii (paper eq. 1) and the gradient-driver attributes.
 
 /**
- * Removes every terminal branch shorter than `threshold`. A terminal branch runs from a tip back to
- * the nearest node with two or more children. A branch that runs all the way to a starting node
- * is the whole stem and is never removed. One pass, on the tree as grown.
+ * Removes terminal branches shorter than `threshold`. A terminal branch runs from a tip back to the
+ * nearest node with two or more children. A branch that runs all the way to a starting node is the
+ * whole stem and is never removed. Branches are found in one pass on the tree as grown and removed
+ * shortest first (lowest tip index on a tie); a branch whose removal would leave the organism with
+ * no branching point at all is kept, so shedding never strips it to bare stems.
  */
 export function shedTwigs(tree: Tree, threshold: number): Tree {
   if (threshold <= 0) return tree;
   const n = tree.parent.length;
   const { start } = childLists(tree.parent);
-  const childCount = (v: number) => (start[v + 1] as number) - (start[v] as number);
-  const removed = new Uint8Array(n);
-  const path: number[] = [];
+  const childCount = new Int32Array(n);
+  for (let v = 0; v < n; v++) childCount[v] = (start[v + 1] as number) - (start[v] as number);
+  let branchingPoints = 0;
+  for (let v = 0; v < n; v++) if ((childCount[v] as number) >= 2) branchingPoints++;
+
+  const twigs: { tip: number; length: number; nodes: number[]; base: number }[] = [];
   for (let tip = 0; tip < n; tip++) {
-    if (childCount(tip) !== 0) continue;
-    path.length = 0;
+    if (childCount[tip] !== 0) continue;
+    const nodes: number[] = [];
     let length = 0;
     let v = tip;
-    let reachesBranch = false;
     for (;;) {
       const p = tree.parent[v] as number;
       if (p < 0) break;
       length += segmentLength(tree, v);
-      path.push(v);
-      if (childCount(p) >= 2) {
-        reachesBranch = true;
+      nodes.push(v);
+      if ((childCount[p] as number) >= 2) {
+        if (length < threshold) twigs.push({ tip, length, nodes, base: p });
         break;
       }
       v = p;
     }
-    if (reachesBranch && length < threshold) for (const u of path) removed[u] = 1;
+  }
+  twigs.sort((a, b) => a.length - b.length || a.tip - b.tip);
+
+  const removed = new Uint8Array(n);
+  for (const twig of twigs) {
+    const remaining = (childCount[twig.base] as number) - 1;
+    const lost = remaining === 1 ? 1 : 0;
+    if (branchingPoints - lost === 0) continue;
+    childCount[twig.base] = remaining;
+    branchingPoints -= lost;
+    for (const u of twig.nodes) removed[u] = 1;
   }
   return renumber(tree, (v) => removed[v] === 0);
 }

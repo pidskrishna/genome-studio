@@ -5,7 +5,7 @@ import { SimClient } from '../src/ui/sim-client';
 // geometry hash and time to maturity, for the cross-browser check and the speed benchmark.
 
 /** Recorded in Node; must match in every browser. Kept in step with tests/sim/speciesA/behaviour.test.ts. */
-const RECORDED_HASH = '61c8427e3677e3c9';
+const RECORDED_HASH = '642a289e51e48070';
 
 const out = document.getElementById('out') as HTMLDListElement;
 const again = document.getElementById('again') as HTMLButtonElement;

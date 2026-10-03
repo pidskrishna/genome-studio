@@ -5,4 +5,5 @@ export * from './genes';
 export * from './genome';
 export * from './names';
 export * from './share';
+export * from './speciesA';
 export * from './wildtype';
