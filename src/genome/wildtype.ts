@@ -3,9 +3,10 @@ import { geneTable, type SpeciesId } from './genes';
 import { makeGenome } from './genome';
 
 // Provisional wild types, written as model values. They are tuned in milestones 3 to 5.
+// Species A: dense enough that a trunk at the minimum sensing range still finds points to branch to.
 
 const A_WILD: readonly number[] = [
-  1.5, 0.1, 3000, 20, 4, 0.008, 0, 0, 0.15, 1, 2.5, 0.15, 0.5, 2, 2, //
+  1.5, 0.1, 8000, 16, 3, 0.016, 0, 0, 0.15, 1, 2.5, 0.15, 0.5, 2, 2, //
   120, 40, 0.6, 0.5, 0, 0.5, 0.5, 0.2,
 ];
 

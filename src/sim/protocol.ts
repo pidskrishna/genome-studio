@@ -1,5 +1,7 @@
 // Messages between the main thread and the simulation worker.
 
+import type { BranchGeometry, SpeciesAInput } from './speciesA';
+
 export interface ProbeInput {
   /** Seed for the generator. */
   seed: number;
@@ -11,14 +13,16 @@ export interface ProbeOutput {
   hash: string;
 }
 
-/** Input of each job the worker can run. Species jobs join this list in later milestones. */
+/** Input of each job the worker can run. Species B joins this list in milestone 4. */
 export interface JobInputs {
   probe: ProbeInput;
+  speciesA: SpeciesAInput;
 }
 
 /** Output of each job. */
 export interface JobOutputs {
   probe: ProbeOutput;
+  speciesA: BranchGeometry;
 }
 
 export type JobKind = keyof JobInputs;

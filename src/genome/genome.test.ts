@@ -311,8 +311,8 @@ describe('wild types', () => {
     expect(valueById(d, 'origins')).toBe(1);
     expect(valueById(d, 'limbSmoothing')).toBe(2);
     expect(valueById(d, 'surfaceSeeking')).toBeCloseTo(0, 3);
-    expect(valueById(d, 'spaceDensity') / 3000).toBeGreaterThan(0.99);
-    expect(valueById(d, 'spaceDensity') / 3000).toBeLessThan(1.01);
+    expect(valueById(d, 'spaceDensity') / 8000).toBeGreaterThan(0.99);
+    expect(valueById(d, 'spaceDensity') / 8000).toBeLessThan(1.01);
     const b = decodeGenome(wildType('B'));
     expect(valueById(b, 'bodyPlan')).toBe(0);
     expect(valueById(b, 'patchContrast')).toBeCloseTo(0, 3);

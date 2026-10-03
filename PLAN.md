@@ -45,7 +45,7 @@ Checks:
 
 ## Milestone 3: species A simulation (spec section 3)
 
-- [ ] Done
+- [x] Done
 
 Build: space colonisation in the worker, with a spatial grid for neighbour searches, pipe-model radii, relocation, subdivision, twig shedding, trunk growth across the clear stem, the zero-direction rule and the step cap (clarifications 4 and 15). Output is plain geometry data (nodes, parents, radii) plus the four gradient-driver attributes per node, so pigment edits never need the simulation. No rendering.
 

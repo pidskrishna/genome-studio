@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:slow": "vitest run --config vitest.slow.config.ts"
   },
   "dependencies": {
     "three": "^0.186.1"

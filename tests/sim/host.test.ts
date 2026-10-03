@@ -94,6 +94,7 @@ describe('worker host', () => {
 
   it('reports an error thrown by a job', async () => {
     const failing = {
+      ...JOBS,
       probe: function* (): Generator<number, never> {
         throw new Error('bad input');
       },

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Species A check</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body { font: 15px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 46rem; color: #111; background: #fff; }
+      h1 { font-size: 1.3rem; }
+      dt { font-weight: 600; margin-top: 0.6rem; }
+      dd { margin: 0; font-family: ui-monospace, monospace; word-break: break-all; }
+      .match { color: #0a6b2d; }
+      .mismatch { color: #b00020; }
+      button { font: inherit; margin-top: 1.2rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Species A determinism and speed check</h1>
+    <p>Grows the wild type in the simulation worker. Open this page in Safari, Chrome and Firefox and compare the geometry hash.</p>
+    <dl id="out"><dt>Status</dt><dd>Growing…</dd></dl>
+    <button id="again" type="button">Grow again</button>
+    <script type="module" src="./species-a.ts"></script>
+  </body>
+</html>
