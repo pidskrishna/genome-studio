@@ -1,5 +1,7 @@
 import { decodeGenome, valueById } from '../../genome';
-import { AREA_MULTIPLE, START_RADIUS } from './constants';
+import { PI } from '../dmath';
+import { AREA_MULTIPLE } from './constants';
+import { startArea } from './shapes';
 
 export const BODY_PLANS = ['disc', 'ring', 'tube', 'sphere'] as const;
 export type BodyPlan = (typeof BODY_PLANS)[number];
@@ -37,13 +39,16 @@ export interface SpeciesBParams {
 
 /**
  * Final size: the diameter of a disc with the final rest area, which is the area multiple times the
- * starting area. Cell size is a fraction of this (clarification 1).
+ * starting area. Cell size is a fraction of this (clarification 1), so every body plan ends with a
+ * similar number of cells.
  */
-export const FINAL_SIZE = 2 * START_RADIUS * Math.sqrt(AREA_MULTIPLE);
+export function finalSize(params: SpeciesBParams): number {
+  return 2 * Math.sqrt((AREA_MULTIPLE * startArea(params.bodyPlan)) / PI);
+}
 
 /** The edge split length, in starting radii. One cell width. */
 export function splitLength(params: SpeciesBParams): number {
-  return params.cellSize * FINAL_SIZE;
+  return params.cellSize * finalSize(params);
 }
 
 export function speciesBParams(code: string): SpeciesBParams {

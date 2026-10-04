@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "tests", "dev", "vite.config.ts", "vitest.slow.config.ts"]
+  "include": ["src", "tests", "dev", "vite.config.ts", "vitest.slow.config.ts", "vitest.slow-b.config.ts"]
 }

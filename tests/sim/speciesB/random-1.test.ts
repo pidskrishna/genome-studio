@@ -1,7 +1,8 @@
 import { it } from 'vitest';
-import { checkRandomDiscGenomes } from './random';
+import { checkRandomGenomes } from './random';
 
-// A quick sample: 24 random disc genomes in four files of 6. The full 1,000 run in npm run test:slow.
-it('6 random disc genomes grow to maturity with no error and no NaN (part 1 of 4)', () => {
-  checkRandomDiscGenomes(111, 6);
-}, 300_000);
+// A quick sample: 24 random genomes across all body plans in four files of 6. The full 1,000 run
+// in npm run test:slow, and 10,000 in npm run test:slow:b.
+it('6 random genomes grow to maturity soundly, with no degenerate triangle (part 1 of 4)', () => {
+  checkRandomGenomes(111, 6);
+}, 600_000);

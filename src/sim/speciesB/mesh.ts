@@ -1,22 +1,25 @@
-// A growing triangle mesh. Every vertex carries its position, its material coordinates (u, v) on the
-// starting shape, its distance from the margin measured on the starting shape (clarification 7) and
-// the step it was born. Every edge carries a rest length. Every triangle stores its three vertices,
-// counter-clockwise in material coordinates, and the three edges between them: edge 0 joins vertex 0
-// to 1, edge 1 joins 1 to 2, edge 2 joins 2 to 0. Capacities are fixed up front from the vertex cap.
+// A growing triangle mesh. Every vertex carries its position, its material coordinates (its position
+// on the starting shape, interpolated through splits), its distance from the margin measured on the
+// starting shape (clarification 7) and the step it was born. Every edge carries a rest length. Every
+// triangle stores its three vertices, ordered so that (b − a) × (c − a) points out of the starting
+// shape, and the three edges between them: edge 0 joins vertex 0 to 1, edge 1 joins 1 to 2, edge 2
+// joins 2 to 0. Capacities are fixed up front from the vertex cap.
 
 export class GrowingMesh {
   vertexCount = 0;
   readonly x: Float64Array;
   readonly y: Float64Array;
   readonly z: Float64Array;
-  readonly u: Float64Array;
-  readonly v: Float64Array;
+  /** Material coordinates: position on the starting shape. */
+  readonly mx: Float64Array;
+  readonly my: Float64Array;
+  readonly mz: Float64Array;
   readonly margin: Float64Array;
   readonly birth: Int32Array;
   /** Growth-patch value of each vertex, from its material coordinates. */
   readonly patch: Float64Array;
   /** Gives the growth-patch value at material coordinates; set before the first split. */
-  patchField: (u: number, v: number) => number = () => 0;
+  patchField: (mx: number, my: number, mz: number) => number = () => 0;
 
   triangleCount = 0;
   readonly tri: Int32Array;
@@ -38,8 +41,9 @@ export class GrowingMesh {
     this.x = new Float64Array(v);
     this.y = new Float64Array(v);
     this.z = new Float64Array(v);
-    this.u = new Float64Array(v);
-    this.v = new Float64Array(v);
+    this.mx = new Float64Array(v);
+    this.my = new Float64Array(v);
+    this.mz = new Float64Array(v);
     this.margin = new Float64Array(v);
     this.birth = new Int32Array(v);
     this.patch = new Float64Array(v);
@@ -53,17 +57,18 @@ export class GrowingMesh {
     this.alive = new Uint8Array(e);
   }
 
-  addVertex(x: number, y: number, z: number, u: number, v: number, margin: number, birth: number): number {
+  addVertex(x: number, y: number, z: number, mx: number, my: number, mz: number, margin: number, birth: number): number {
     const i = this.vertexCount++;
     if (i >= this.vertexCapacity) throw new Error('Vertex capacity exceeded');
     this.x[i] = x;
     this.y[i] = y;
     this.z[i] = z;
-    this.u[i] = u;
-    this.v[i] = v;
+    this.mx[i] = mx;
+    this.my[i] = my;
+    this.mz[i] = mz;
     this.margin[i] = margin;
     this.birth[i] = birth;
-    this.patch[i] = this.patchField(u, v);
+    this.patch[i] = this.patchField(mx, my, mz);
     return i;
   }
 
@@ -125,8 +130,9 @@ export class GrowingMesh {
       (this.x[i]! + this.x[j]!) / 2,
       (this.y[i]! + this.y[j]!) / 2,
       (this.z[i]! + this.z[j]!) / 2,
-      (this.u[i]! + this.u[j]!) / 2,
-      (this.v[i]! + this.v[j]!) / 2,
+      (this.mx[i]! + this.mx[j]!) / 2,
+      (this.my[i]! + this.my[j]!) / 2,
+      (this.mz[i]! + this.mz[j]!) / 2,
       (this.margin[i]! + this.margin[j]!) / 2,
       step,
     );
@@ -159,6 +165,63 @@ export class GrowingMesh {
     return m;
   }
 
+  /**
+   * The hinge on interior edge e laid flat from rest lengths: its two triangles unfolded into the
+   * plane with p at (0, 0) and q at (c, 0), the opposite corners k above and l below. Returns null
+   * for a boundary edge or a flat (degenerate) triangle.
+   */
+  unfold(e: number): { p: number; q: number; k: number; l: number; c: number; xk: number; yk: number; xl: number; yl: number } | null {
+    const t0 = this.edgeT0[e]!;
+    const t1 = this.edgeT1[e]!;
+    if (t0 < 0 || t1 < 0) return null;
+    const r0 = this.edgeSlot(t0, e);
+    const p = this.tri[3 * t0 + r0]!;
+    const q = this.tri[3 * t0 + ((r0 + 1) % 3)]!;
+    const k = this.tri[3 * t0 + ((r0 + 2) % 3)]!;
+    const qk = this.rest[this.triEdge[3 * t0 + ((r0 + 1) % 3)]!]!;
+    const kp = this.rest[this.triEdge[3 * t0 + ((r0 + 2) % 3)]!]!;
+    const r1 = this.edgeSlot(t1, e);
+    // In t1 the shared edge runs q → p.
+    const l = this.tri[3 * t1 + ((r1 + 2) % 3)]!;
+    const pl = this.rest[this.triEdge[3 * t1 + ((r1 + 1) % 3)]!]!;
+    const lq = this.rest[this.triEdge[3 * t1 + ((r1 + 2) % 3)]!]!;
+    const c = this.rest[e]!;
+    if (!(c > 0)) return null;
+    const xk = (c * c + kp * kp - qk * qk) / (2 * c);
+    const yk = Math.sqrt(Math.max(0, kp * kp - xk * xk));
+    const xl = (c * c + pl * pl - lq * lq) / (2 * c);
+    const yl = -Math.sqrt(Math.max(0, pl * pl - xl * xl));
+    if (!(yk > 0) || !(yl < 0)) return null;
+    return { p, q, k, l, c, xk, yk, xl, yl };
+  }
+
+  /**
+   * Replaces interior edge e, between triangles (p, q, k) and (q, p, l), with the other diagonal
+   * k–l, whose rest length is its length in the flat unfolding. Orientation is kept.
+   */
+  flip(e: number, restKL: number): void {
+    const t0 = this.edgeT0[e]!;
+    const t1 = this.edgeT1[e]!;
+    const r0 = this.edgeSlot(t0, e);
+    const r1 = this.edgeSlot(t1, e);
+    const p = this.tri[3 * t0 + r0]!;
+    const q = this.tri[3 * t0 + ((r0 + 1) % 3)]!;
+    const k = this.tri[3 * t0 + ((r0 + 2) % 3)]!;
+    const eQK = this.triEdge[3 * t0 + ((r0 + 1) % 3)]!;
+    const eKP = this.triEdge[3 * t0 + ((r0 + 2) % 3)]!;
+    const l = this.tri[3 * t1 + ((r1 + 2) % 3)]!;
+    const ePL = this.triEdge[3 * t1 + ((r1 + 1) % 3)]!;
+    const eLQ = this.triEdge[3 * t1 + ((r1 + 2) % 3)]!;
+    this.edgeA[e] = k;
+    this.edgeB[e] = l;
+    this.rest[e] = restKL;
+    // t0 becomes (p, l, k) and t1 becomes (l, q, k).
+    this.setTriangle(t0, p, l, k, ePL, e, eKP);
+    this.setTriangle(t1, l, q, k, eLQ, eQK, e);
+    this.replaceTriangle(ePL, t1, t0);
+    this.replaceTriangle(eQK, t0, t1);
+  }
+
   /** Rest area of triangle t from its rest lengths (Heron's formula). */
   restArea(t: number): number {
     const a = this.rest[this.triEdge[3 * t]!]!;
@@ -176,8 +239,8 @@ export class GrowingMesh {
 }
 
 /**
- * Builds the mesh from triangles given as vertex triples (counter-clockwise in material
- * coordinates). Rest lengths are the material-coordinate lengths.
+ * Builds the mesh from triangles given as vertex triples, oriented as the class describes. Rest
+ * lengths are the straight-line distances between material coordinates on the starting shape.
  */
 export function buildEdges(mesh: GrowingMesh, triangles: readonly number[]): void {
   const lookup = new Map<number, number>();
@@ -185,9 +248,10 @@ export function buildEdges(mesh: GrowingMesh, triangles: readonly number[]): voi
     const key = Math.min(a, b) * 65536 + Math.max(a, b);
     let e = lookup.get(key);
     if (e === undefined) {
-      const du = mesh.u[a]! - mesh.u[b]!;
-      const dv = mesh.v[a]! - mesh.v[b]!;
-      e = mesh.addEdge(a, b, Math.sqrt(du * du + dv * dv));
+      const dx = mesh.mx[a]! - mesh.mx[b]!;
+      const dy = mesh.my[a]! - mesh.my[b]!;
+      const dz = mesh.mz[a]! - mesh.mz[b]!;
+      e = mesh.addEdge(a, b, Math.sqrt(dx * dx + dy * dy + dz * dz));
       lookup.set(key, e);
     }
     return e;

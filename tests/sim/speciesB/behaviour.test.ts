@@ -8,7 +8,7 @@ import { assertSound, grow, outOfPlane, runToEnd, withGenes } from './helpers';
 
 // Recorded from the disc wild type. If a constant of the encoding version or the wild type changes,
 // this is re-recorded (spec clarification 2).
-const WILD_TYPE_HASH = 'b6d5491896fbba36';
+const WILD_TYPE_HASH = 'a0865f1229602174';
 
 const wild = wildType('B');
 
@@ -92,10 +92,10 @@ describe('margin distance (clarification 7)', () => {
   it('is measured on the starting disc and carried through splits as the mean of the edge ends', () => {
     const mesh = new GrowingMesh(16);
     // Two triangles on the unit square, margins as if measured on some starting shape.
-    mesh.addVertex(0, 0, 0, 0, 0, 0.1, 0);
-    mesh.addVertex(1, 0, 0, 1, 0, 0.5, 0);
-    mesh.addVertex(1, 0, 1, 1, 1, 0.3, 0);
-    mesh.addVertex(0, 0, 1, 0, 1, 0.7, 0);
+    mesh.addVertex(0, 0, 0, 0, 0, 0, 0.1, 0);
+    mesh.addVertex(1, 0, 0, 1, 0, 0, 0.5, 0);
+    mesh.addVertex(1, 0, 1, 1, 0, 1, 0.3, 0);
+    mesh.addVertex(0, 0, 1, 0, 0, 1, 0.7, 0);
     buildEdges(mesh, [0, 1, 2, 0, 2, 3]);
     const diagonal = [...Array(mesh.edgeCount).keys()].find((e) => mesh.edgeT1[e]! >= 0)!;
     const m = mesh.split(diagonal, 5);

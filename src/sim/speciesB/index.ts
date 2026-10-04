@@ -12,7 +12,7 @@ export interface SpeciesBInput {
 export interface SheetGeometry {
   /** xyz per vertex. */
   positions: Float64Array;
-  /** Three vertex indices per triangle, counter-clockwise on the starting shape. */
+  /** Three vertex indices per triangle, ordered so the normal points out of the starting shape. */
   triangles: Int32Array;
   /** Four values per vertex: distance from margin, curvature, order of growth, height. */
   drivers: Float64Array;
@@ -79,11 +79,10 @@ export function sheetDrivers(mesh: GrowingMesh): Float64Array {
     const vx = mesh.x[c]! - mesh.x[a]!;
     const vy = mesh.y[c]! - mesh.y[a]!;
     const vz = mesh.z[c]! - mesh.z[a]!;
-    // Counter-clockwise in (x, z) seen from +y means this cross product points down; flip it so the
-    // starting disc's normal is +y.
-    const cx = -(uy * vz - uz * vy);
-    const cy = -(uz * vx - ux * vz);
-    const cz = -(ux * vy - uy * vx);
+    // Triangles are ordered so this points out of the starting shape (up, for the disc and ring).
+    const cx = uy * vz - uz * vy;
+    const cy = uz * vx - ux * vz;
+    const cz = ux * vy - uy * vx;
     for (const v of [a, b, c]) {
       nx[v] = nx[v]! + cx;
       ny[v] = ny[v]! + cy;
