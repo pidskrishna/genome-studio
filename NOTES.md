@@ -30,24 +30,14 @@ Species A
 Species B (`src/sim/speciesB`)
 - The starting radius is 1. Ring inner radius 0.5; tube length 2. Material coordinates are 3D starting positions, so the tube has no seam.
 - Growth stops at 4 × the starting rest area. Final size is the diameter of a disc with the final rest area. The growth rate is the mean growth; margin bias, anisotropy and patches only redistribute it.
-- Each step, the mesh is first scaled by the mean growth. Relaxation then moves each vertex to a weighted average of full corrections:
-  - stretch 1;
-  - bending h²/12;
-  - repulsion r/(1+r) with r = repulsion ÷ stiffness, each push capped at 0.1 personal space;
-  - lift, saturating against stiffness.
-- As a result, stiffness only matters relative to repulsion and lift.
+- Each step, the mesh is first scaled by the mean growth. Relaxation then moves each vertex to a weighted average of full corrections: stretch 1, bending h²/12, repulsion r/(1+r) with r = repulsion ÷ stiffness (each push capped at 0.1 personal space), and lift, saturating against stiffness. So stiffness only matters relative to repulsion and lift.
 - Repulsion acts only between vertices at least 3 personal spaces apart in material distance (scaled by mean growth).
 - Anisotropy strength is 0.5 (a ratio of 3:1 at ±1), measured in the rest geometry.
 - Lift +1 pushes the margin up. Lift −1 pushes it outward along the sheet, as tension; it is not a plane attractor, which crushed tubes and spheres.
 - The sphere's margin is where patch noise is above 0 (or the single highest point if none is), with distance measured along the starting mesh.
 - Minimum roughness is 1e-4.
 - Triangles are oriented outward. Driver order: margin distance, signed curvature, birth step, height. `drawnThickness` = min(h, personal space) × cell width (clarification 14).
-- Mesh-quality guards:
-  - Delaunay flips in the rest geometry, never across folds sharper than 60°;
-  - a 150° cap on rest-triangle angles;
-  - a shape guard that gives any triangle under 15° a vote to return to its rest shape;
-  - 20 settle passes at maturity;
-  - re-triangulation of folded-flat caps at maturity.
+- Mesh-quality guards: Delaunay flips in rest geometry (never across folds over 60°); a 150° cap on rest angles; a shape guard voting any triangle under 15° back to its rest shape; 20 settle passes and re-triangulation of folded-flat caps at maturity.
 - Degenerate means any angle below 0.5° or zero area. That threshold is my choice.
 
 ## Known issues and shortcuts
