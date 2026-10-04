@@ -142,7 +142,7 @@ The glass cannot carry light, so the cores do.
   - 0.62 at rest.
   - 1 for the focused gene.
   - 0.16 for the rest while a gene is focused, so they dim to frosted grey.
-- **Dim colour:** `#b6babf` in plate, `#34383e` in fluorescence, `#8a8d92` in glossy.
+- **Dim colour:** `#bab5aa` in plate (warm, to sit on the renderer's paper), `#34383e` in fluorescence, `#8a8d92` in glossy.
 
 ### Ruler
 
@@ -178,7 +178,7 @@ Each entry gives the variant chosen in the lab.
 - **Trigger:** clicking a ruler segment, a rung, or a gene map row.
 - **Sequence:**
   1. 0 to 150ms: the gene's cores rise to full light while every other base dims to 0.16.
-  2. From 150ms: the helix turns and travels so the gene's middle base pair faces the viewer at mid-height, critically damped over 520ms.
+  2. From 150ms: the helix turns and travels so the gene's middle base pair faces the viewer, critically damped over 520ms. The gene settles in the upper quarter of the column (24% of its height), so the full inspector fits below it; the lab's small inspector allowed mid-height, the real one does not.
   3. At about 570ms: the inspector opens just below the gene, joined to it by a hairline leader. It fades from 0 to 1 and unblurs from 4px over 220ms.
 - **While focused:** the gene breathes (86% to 100%, 4.2 s) and the helix does not drift.
 - **Release:** clicking the focused gene again or pressing Escape returns the lights to 0.62 over 220ms and fades the inspector out. Escape first clears a selected base, then the focus, as now.

@@ -179,7 +179,7 @@ document.addEventListener('paste', (e) => {
 installCursorLight();
 installFocusBrackets();
 installButtonPress();
-new Reticle();
+helix.setReticle(new Reticle());
 applyPigmentHues(root, pigmentsOf(editor.code));
 
 showView('3d');

@@ -117,6 +117,15 @@ export function facingSpin(t: number): number {
   return -(backboneAngle('code', t) + GROOVE_ANGLE / 2);
 }
 
+/**
+ * The detent nearest a spin: the closest spin at which some base pair faces the viewer. Facing spins
+ * are one twist apart (facingSpin(t) for whole t), so a released drag settles onto one of them.
+ */
+export function detent(spin: number): number {
+  const k = Math.round((spin + GROOVE_ANGLE / 2) / TWIST);
+  return k * TWIST - GROOVE_ANGLE / 2;
+}
+
 /** The spin equal to `target` modulo a full turn that is closest to `from`, so turns take the short way. */
 export function nearestSpin(from: number, target: number): number {
   const turn = 2 * Math.PI;

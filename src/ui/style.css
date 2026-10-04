@@ -45,7 +45,7 @@ button, input, textarea, select { font: inherit; color: inherit; letter-spacing:
 .switching, .switching *, .switching *::before, .switching *::after { transition: none !important; }
 
 /* Every number and every code is set in the mono, so figures never jitter (DESIGN.md section 4). */
-input[type='number'], .value, .locus, .code, .base, .gene-head .bases, .progress span, .legend-base {
+input[type='number'], .value, .locus, .code, .base, .gene-head .bases, .progress span {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
@@ -322,50 +322,74 @@ button.gene-head:hover { background: color-mix(in srgb, var(--ink) 5%, transpare
 /* Helix editor ------------------------------------------------------------------------------------ */
 
 .helix-view { height: 100%; display: flex; flex-direction: column; }
-.helix-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 4px 16px 8px; font-size: var(--fs-label); color: var(--ink-2); }
-.legend-row { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
-.legend-base, .legend-group { display: inline-flex; align-items: center; gap: 5px; }
-.legend-base { color: var(--ink); }
-.swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; background: var(--base-colour); }
-.legend-group .swatch { width: 12px; height: 2px; border-radius: 1px; }
-.swatch.g-form { background: var(--g-form); }
-.swatch.g-pigment { background: var(--g-pigment); }
-.swatch.g-seed { background: repeating-linear-gradient(90deg, var(--g-other) 0 2px, transparent 2px 4px); }
-.swatch.g-other { background: var(--g-other); }
 .helix-area { position: relative; flex: 1; min-height: 0; overflow: hidden; outline: none; }
 .helix-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.helix-labels { position: absolute; top: 0; right: 0; height: 0; pointer-events: none; }
-.helix-label {
-  --g: var(--g-form);
+
+/* The margin ruler: one segment per gene, coloured for form and pigment genes, grey for the rest.
+   Group names are always shown; gene names fade in as the pointer approaches (helix-ruler.ts). */
+.ruler { position: absolute; left: 18px; top: 0; bottom: 0; width: 0; }
+.ruler-seg {
   position: absolute;
-  top: 0;
   left: 0;
-  max-width: 100%;
-  padding: 1px 6px 1px 6px;
+  top: 0;
+  width: 14px;
+  padding: 0;
   border: 0;
-  border-left: 2px solid var(--g);
-  border-radius: 0 3px 3px 0;
   background: transparent;
-  font-size: var(--fs-label);
-  line-height: 1.35;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: auto;
-  transition: background-color var(--t-small) var(--ease-out);
 }
-button.helix-label:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
-.helix-label .locus { color: var(--ink-3); font-size: 10px; }
-.helix-label.fixed { color: var(--ink-2); }
-.helix-label.focused { background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 500; }
-.helix-label.locked::after { content: ', locked'; color: var(--ink-2); font-weight: 400; }
-.helix-label[hidden] { display: none; }
-.helix-label[data-group='header'], .helix-label[data-group='checksum'], .helix-label[data-group='seed'] { --g: var(--g-other); }
-.helix-label[data-group='pigment'] { --g: var(--g-pigment); }
-.helix-leader { position: absolute; height: 1px; pointer-events: none; }
+.ruler-seg[hidden] { display: none; }
+.ruler-seg::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--g-other);
+  transition: width var(--t-small) var(--ease-out), left var(--t-small) var(--ease-out), opacity var(--t-medium) var(--ease-out);
+}
+.ruler-seg[data-group='form']::before { background: var(--g-form); }
+.ruler-seg[data-group='pigment']::before { background: var(--g-pigment); }
+.ruler-seg[data-group='seed']::before { background: repeating-linear-gradient(var(--g-other) 0 3px, transparent 3px 5px); }
+button.ruler-seg:hover::before, .ruler-seg.focused::before { width: 4px; left: 5px; }
+.ruler-seg.locked::before { opacity: 0.45; }
+.ruler-label {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: var(--fs-label);
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+}
+.ruler-seg.focused .ruler-label { font-weight: 500; }
+.ruler-seg.fixed .ruler-label { color: var(--ink-2); }
+.ruler-groups { position: absolute; left: 4px; top: 0; pointer-events: none; }
+.ruler-group { position: absolute; left: 0; top: 0; writing-mode: vertical-rl; font-size: 10px; color: var(--ink-3); white-space: nowrap; }
+.ruler-group[hidden] { display: none; }
+
+/* The inspector opens just below the focused gene, joined to it by a hairline. */
+.helix-leader { position: absolute; width: 1px; background: var(--hair-strong); pointer-events: none; opacity: 0; transition: opacity var(--t-medium) var(--ease-out); }
+.helix-leader.open { opacity: 1; }
 .helix-leader[hidden], .helix-inspector[hidden], .helix-tooltip[hidden] { display: none; }
-.helix-inspector { position: absolute; right: 8px; max-height: calc(100% - 20px); overflow-y: auto; z-index: 2; }
+.helix-inspector {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: min(300px, calc(100% - 16px));
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  z-index: 2;
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+  transition: opacity var(--t-medium) var(--ease-out), filter var(--t-medium) var(--ease-out);
+}
+.helix-inspector.open { opacity: 1; filter: none; pointer-events: auto; }
+[data-reduced-motion='true'] .helix-inspector { filter: none; }
 .helix-inspector .inspector { margin: 0; }
 .helix-inspector .inspector-controls { grid-template-columns: 96px minmax(0, 1fr); }
 .helix-inspector .inspector-controls input[type='range'] { grid-column: 1 / -1; }
@@ -381,10 +405,9 @@ button.helix-label:hover { background: color-mix(in srgb, var(--ink) 6%, transpa
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow), inset 0 0 0 1px var(--rim-edge);
   font-size: var(--fs-label);
-  white-space: pre-line;
   pointer-events: none;
 }
-.helix-status { margin: 0; padding: 8px 16px; font-size: var(--fs-label); color: var(--ink-3); min-height: 2.6em; }
+.helix-status { margin: 0; padding: 6px 16px; font-size: var(--fs-label); color: var(--ink-2); min-height: 2.4em; }
 
 /* Code bar --------------------------------------------------------------------------------------- */
 
