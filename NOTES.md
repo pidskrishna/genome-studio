@@ -72,6 +72,12 @@ Looks (`src/render/looks.ts`, `bloom.ts`, `exact-mesh.ts`, `colour.ts`, mileston
 - Tile check: `dev/stage-tiles.html` (filters `?look=&species=&view=&bg=`), read `tileSummary`. 4 October 2026: 64 of 64 pass; plate and fluorescence exact, glossy 1–7 pixels at 1 level, none on a seam.
 - Dev handles: `commands.setLook('plate'|'fluorescence'|'glossy')`, `setTransparent`, `setView`; read `stage.look`, `.transparent`, `.view`. Default look is glossy.
 
+Three.js skills (`.claude/skills/`)
+- Materials, shaders, lighting and postprocessing, copied from cloudai-x/threejs-skills at `b1c6230` and corrected for r186 (`72799f1`). They are generic; where they disagree with the decisions above, these notes win:
+- No tone mapping and no `OutputPass` (screen and tiles would differ). Bloom is our own `bloom.ts`, not `EffectComposer` or `UnrealBloomPass`.
+- Any material built from the skills (`ShaderMaterial`, `onBeforeCompile`) must still go through `snapVertices`, except on the helix.
+- Their examples use `Math.sin`, `Math.cos` and clocks: fine in `src/render` and `src/ui`, never in `src/sim`.
+
 ## For milestone 10
 - In dev, `window.editor`, `commands`, `studio`, `stage`, `helix`, `geneMap` are exposed. Use a separate browser-pane tab for checks (the owner may be using the pane). Pane screenshots are 800 wide of a 1024 viewport: multiply client pixels by about 0.78.
 - The top bar wraps to two lines at 1024 px. Glossy could land a 1-level pixel on a seam for some future organism; giving it exact interpolation would fix that.
