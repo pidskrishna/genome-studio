@@ -188,3 +188,34 @@ export function comparePixels(a: Pixels, b: Pixels): PixelDifference {
   }
   return { differing, maxChannel, total: a.width * a.height };
 }
+
+/**
+ * Converts drawn pixels to straight (unpremultiplied) alpha, as a PNG stores them. A render target
+ * holds colour premultiplied by alpha in linear light and then sRGB-encoded, so each channel is
+ * decoded, divided by alpha and encoded again. Opaque pixels are unchanged; fully transparent ones
+ * become transparent black.
+ */
+export function toStraightAlpha(image: Pixels): Pixels {
+  const decode = new Float64Array(256);
+  for (let v = 0; v < 256; v++) {
+    const c = v / 255;
+    decode[v] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  }
+  const encode = (l: number): number => {
+    const c = l <= 0.0031308 ? l * 12.92 : 1.055 * l ** (1 / 2.4) - 0.055;
+    return Math.round(Math.min(1, Math.max(0, c)) * 255);
+  };
+  const out: Pixels = { width: image.width, height: image.height, data: new Uint8Array(image.data.length) };
+  for (let i = 0; i < image.data.length; i += 4) {
+    const a = image.data[i + 3]!;
+    out.data[i + 3] = a;
+    if (a === 255) {
+      out.data[i] = image.data[i]!;
+      out.data[i + 1] = image.data[i + 1]!;
+      out.data[i + 2] = image.data[i + 2]!;
+    } else if (a > 0) {
+      for (let c = 0; c < 3; c++) out.data[i + c] = encode(decode[image.data[i + c]!]! / (a / 255));
+    }
+  }
+  return out;
+}

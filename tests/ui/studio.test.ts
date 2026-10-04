@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { geneTable, readGene, wildType, withChecksum, writeGene, type SpeciesId } from '../../src/genome';
+import { geneTable, pigmentsOf, readGene, wildType, withChecksum, writeGene, type Pigments, type SpeciesId } from '../../src/genome';
 import type { Organism, ViewMode } from '../../src/render/stage';
 import type { FromWorker, ToWorker } from '../../src/sim/protocol';
 import { SimClient, type Connect } from '../../src/ui/sim-client';
@@ -18,11 +18,12 @@ function setup() {
   };
   const shown: Organism[] = [];
   const views: ViewMode[] = [];
+  const pigments: Pigments[] = [];
   const progress = { visible: false, fraction: -1, history: [] as string[] };
   const notices: { message: string; tone: NoticeTone }[] = [];
   const studio = new Studio({
     sim: new SimClient(connect),
-    stage: { setOrganism: (o) => shown.push(o), setView: (v) => views.push(v) },
+    stage: { setOrganism: (o) => shown.push(o), setPigments: (p) => pigments.push(p), setView: (v) => views.push(v) },
     progress: {
       show: (f) => {
         progress.visible = true;
@@ -46,7 +47,7 @@ function setup() {
     send({ type: 'result', runId: run.runId, kind: run.job.kind, output } as FromWorker);
   };
   const report = (fraction: number) => send({ type: 'progress', runId: lastRun().runId, fraction });
-  return { studio, posted, shown, views, progress, notices, lastRun, finish, report, send };
+  return { studio, posted, shown, views, pigments, progress, notices, lastRun, finish, report, send };
 }
 
 const tick = () => new Promise<void>((r) => setTimeout(r, 0));
@@ -181,6 +182,44 @@ describe('which edits regrow', () => {
       expect(runs(t)).toBe(1);
       expect(t.progress.history).toEqual(['show 0', 'hide']);
       expect(t.shown).toHaveLength(1);
+    }
+  });
+
+  it('changing any pigment gene to any of several values does not start a run, and the stage gets the new pigments at once', async () => {
+    // Ends of the range, the middle, bin edges of the gradient driver, and spread values.
+    const values = [0, 1, 1023, 1024, 2047, 2048, 3071, 3072, 4094, 4095, 777, 3333];
+    for (const species of ['A', 'B'] as const) {
+      const t = await grown(species);
+      const pigmentLoci = geneTable(species).filter((g) => g.group === 'pigment');
+      expect(pigmentLoci.map((g) => g.locus)).toEqual([16, 17, 18, 19, 20, 21, 22, 23]);
+      expect(t.pigments.at(-1)).toEqual(pigmentsOf(wildType(species)));
+      let edits = 0;
+      for (const def of pigmentLoci) {
+        for (const v of values) {
+          const code = writeGene(t.studio.code!, def.locus, v);
+          expect(await t.studio.update(code)).toEqual({ status: 'unchanged' });
+          edits++;
+          expect(t.studio.code).toBe(code);
+          expect(t.pigments).toHaveLength(1 + edits);
+          expect(t.pigments.at(-1)).toEqual(pigmentsOf(code));
+        }
+      }
+      expect(runs(t)).toBe(1);
+      expect(t.progress.history).toEqual(['show 0', 'hide']);
+      expect(t.shown).toHaveLength(1);
+    }
+  });
+
+  it('pigment edits change what the stage is given', async () => {
+    const t = await grown('A');
+    const ids = ['hueA', 'hueB', 'saturation', 'lightness', 'driver', 'contrast', 'gloss', 'glow'] as const;
+    for (const [i, def] of geneTable('A').filter((g) => g.group === 'pigment').entries()) {
+      const before = t.pigments.at(-1)!;
+      const target = readGene(t.studio.code!, def.locus) < 2048 ? 4095 : 0;
+      await t.studio.update(writeGene(t.studio.code!, def.locus, target));
+      const after = t.pigments.at(-1)!;
+      expect(after[ids[i]!]).not.toBe(before[ids[i]!]);
+      for (const other of ids) if (other !== ids[i]) expect(after[other]).toBe(before[other]);
     }
   });
 

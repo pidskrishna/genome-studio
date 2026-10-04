@@ -7,3 +7,4 @@ export * from './names';
 export * from './share';
 export * from './speciesA';
 export * from './wildtype';
+export * from './pigments';

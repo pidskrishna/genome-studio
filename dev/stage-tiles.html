@@ -14,16 +14,16 @@
       .match { color: #0a6b2d; font-weight: 600; }
       .mismatch { color: #b00020; font-weight: 600; }
       .pair { display: flex; gap: 8px; margin-top: 8px; }
-      .pair canvas { width: 320px; border: 1px solid #ccc; }
+      .pair canvas { width: 320px; border: 1px solid #ccc; background: repeating-conic-gradient(#d9d9d9 0 25%, #f4f4f4 0 50%) 0 0 / 16px 16px; }
     </style>
   </head>
   <body>
     <h1>Stage tile check</h1>
-    <p>For each species' wild type in both views, draws an 800 × 600 frame whole and as four sub-rectangles (2 × 2), stitches the tiles and compares every pixel. The two images are shown whole (left) and stitched (right).</p>
+    <p>For each species' wild type, in both views, every look and with an opaque and a transparent background, draws an 800 × 600 frame whole and as 2 × 2 and 3 × 3 sub-rectangles, stitches the tiles and compares every pixel. The fluorescence look is also drawn with the glow gene at 1 (its widest bloom). The 2 × 2 images are shown whole (left) and stitched (right).</p>
     <p id="tolerance"></p>
     <div id="stage"></div>
     <p id="status">Growing…</p>
-    <table><thead><tr><th>Species</th><th>View</th><th>Differing pixels</th><th>Of those, on a seam</th><th>Largest channel difference</th><th>Result</th></tr></thead><tbody id="rows"></tbody></table>
+    <table><thead><tr><th>Species</th><th>View</th><th>Look</th><th>Background</th><th>Tiles</th><th>Differing pixels</th><th>Of those, on a seam</th><th>Largest channel difference</th><th>Result</th></tr></thead><tbody id="rows"></tbody></table>
     <div id="images"></div>
     <script type="module" src="./stage-tiles.ts"></script>
   </body>

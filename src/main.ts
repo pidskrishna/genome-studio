@@ -1,5 +1,5 @@
 import { parseGenome, shareLink, wildType, type SpeciesId } from './genome';
-import { Stage, type ViewMode } from './render/stage';
+import { Stage, type LookId, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
 import { GeneMap } from './ui/gene-map';
@@ -66,6 +66,8 @@ const commands = {
   redo: () => editor.redo(),
   switchSpecies: (species: SpeciesId) => editor.switchSpecies(species),
   setView: (mode: ViewMode) => showView(mode),
+  setLook: (look: LookId) => showLook(look),
+  setTransparent: (transparent: boolean) => showTransparent(transparent),
   paste: (text: string) => codeBar.acceptPaste(text),
   setEditorView: (view: EditorView) => showEditorView(view),
 };
@@ -84,6 +86,18 @@ function showEditorView(view: EditorView): void {
 function showView(mode: ViewMode): void {
   studio.setView(mode);
   for (const [m, b] of Object.entries(shell.viewButtons)) b.setAttribute('aria-pressed', String(m === mode));
+}
+
+/** Looks and the background option are outside the genome (spec section 7): they never touch the code. */
+function showLook(look: LookId): void {
+  stage.setLook(look);
+  for (const [l, b] of Object.entries(shell.lookButtons)) b.setAttribute('aria-pressed', String(l === look));
+}
+
+function showTransparent(transparent: boolean): void {
+  stage.setTransparent(transparent);
+  shell.transparentButton.setAttribute('aria-pressed', String(transparent));
+  shell.stage.classList.toggle('transparent', transparent);
 }
 
 function refreshControls(): void {
@@ -109,6 +123,8 @@ shell.editorViews.helix.addEventListener('click', () => commands.setEditorView('
 shell.editorViews.map.addEventListener('click', () => commands.setEditorView('map'));
 shell.viewButtons['3d'].addEventListener('click', () => commands.setView('3d'));
 shell.viewButtons.flat.addEventListener('click', () => commands.setView('flat'));
+for (const [look, b] of Object.entries(shell.lookButtons)) b.addEventListener('click', () => commands.setLook(look as LookId));
+shell.transparentButton.addEventListener('click', () => commands.setTransparent(!stage.transparent));
 
 // A link pasted into the address bar of this page opens its organism.
 window.addEventListener('hashchange', () => {
@@ -129,6 +145,8 @@ document.addEventListener('paste', (e) => {
 });
 
 showView('3d');
+showLook(stage.look);
+showTransparent(false);
 showEditorView('helix');
 refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));

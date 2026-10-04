@@ -1,4 +1,5 @@
 import type { SpeciesId } from '../genome';
+import { LOOK_NAMES, LOOKS, type LookId } from '../render/colour';
 import { SPECIES_NAMES } from './gene-info';
 import type { ProgressView } from './studio';
 
@@ -10,6 +11,9 @@ export interface Shell {
   root: HTMLElement;
   stage: HTMLElement;
   viewButtons: { '3d': HTMLButtonElement; flat: HTMLButtonElement };
+  lookButtons: Record<LookId, HTMLButtonElement>;
+  /** Toggles a transparent background (aria-pressed). */
+  transparentButton: HTMLButtonElement;
   speciesButtons: Record<SpeciesId, HTMLButtonElement>;
   tools: {
     randomiseAll: HTMLButtonElement;
@@ -47,19 +51,26 @@ function segmented(label: string, ...buttons: HTMLButtonElement[]): HTMLElement 
   return group;
 }
 
+/** A labelled group in the top bar; it wraps to the next line as a whole. */
+function topGroup(label: string, ...controls: HTMLElement[]): HTMLElement {
+  return el('span', { className: 'top-group' }, el('span', { className: 'top-label', textContent: label }), ...controls);
+}
+
 export function buildShell(parent: HTMLElement): Shell {
   const speciesA = button(SPECIES_NAMES.A);
   const speciesB = button(SPECIES_NAMES.B);
   const view3d = button('3D');
   const viewFlat = button('Flat');
+  const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
+  const transparentButton = button('Transparent background', { className: 'toggle', title: 'Draw the organism without a background, as a layer' });
+  transparentButton.setAttribute('aria-pressed', 'false');
   const top = el(
     'header',
     { className: 'top-bar' },
     el('h1', { textContent: 'Genome studio' }),
-    el('span', { className: 'top-label', textContent: 'Species' }),
-    segmented('Species', speciesA, speciesB),
-    el('span', { className: 'top-label', textContent: 'View' }),
-    segmented('View', view3d, viewFlat),
+    topGroup('Species', segmented('Species', speciesA, speciesB)),
+    topGroup('View', segmented('View', view3d, viewFlat)),
+    topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
   );
 
   const tools = {
@@ -114,6 +125,8 @@ export function buildShell(parent: HTMLElement): Shell {
     root,
     stage: canvasHost,
     viewButtons: { '3d': view3d, flat: viewFlat },
+    lookButtons,
+    transparentButton,
     speciesButtons: { A: speciesA, B: speciesB },
     tools,
     editorViews,

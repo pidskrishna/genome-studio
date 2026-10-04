@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- Milestones 0–4 and 6–8 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 9.
+- Milestones 0–4 and 6–9 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 10.
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
@@ -63,6 +63,15 @@ Helix (`src/ui/helix-*.ts`, milestone 8)
 - **Helix:** at narrow columns (about 340px) the inspector covers the gene labels beside it; the tooltip shows only over something pickable.
 - **Methods page (milestone 13) must state:** the duplicate-child rule, the clear stem lasting until the first branch, and all the species B designs above, marked as designed or numerical.
 
-## For milestone 9
-- In dev, `window.editor`, `window.commands`, `window.studio`, `window.stage`, `window.helix` and `window.geneMap` are exposed. The owner may be using the browser pane at the same time (their drags arrive as trusted events), so use a separate tab for checks. Pane screenshots are 800×600 of a 1024×768 viewport: multiply client pixels by about 0.78 for clicks.
-- Pigment genes must reach the stage only through the renderer; `formKey` already keeps them from regrowing.
+Looks (`src/render/looks.ts`, `bloom.ts`, `exact-mesh.ts`, `colour.ts`, milestone 9)
+- Vertices record their source node or sheet vertex; gradient drivers are scaled 0–1 between 1st and 99th percentiles; contrast narrows the blend (full range at 0, middle 5% at 1); hue blends the short way. Pigment edits only rewrite vertex colours and uniforms.
+- Plate: tone from lightness (pigment B at 0.35 ×); hue, saturation, gloss, glow ignored. Light from upper left; hatching 45°, cross-hatching −45°, vertical lines in darkest tones; 200 lines and a 1/800 short-side outline. Transparent keeps ink only.
+- Fluorescence: hue and saturation at lightness 0.5 as emitted light, additive, no depth test, rim glow, depth fade across the bounding sphere. Glow sets intensity 0.45–1.65, bloom strength 0.2–1.5, radius 0.4–2.4% of short side. Transparent: alpha is the brightest channel.
+- Glossy: HSL surface colour; gloss sets roughness 0.9→0.1, clear coat 0→1, environment 0.3→0.55; glow adds up to 0.3 self-illumination. Soft shadows on the organism only (no floor: a floor plane puts vertices behind the camera, which snapping can't handle).
+- Tile safety: shadow noise keyed to whole-image pixels inside `snapVertices`; tiles start on even pixels; plate and fluorescence interpolate exactly (`exact-mesh.ts`); bloom uses a padded margin (`stage.tileMargin`, exporter must keep tile plus margin within `maxTileSize`). Pixels are premultiplied; `toStraightAlpha` for PNG export.
+- Tile check: `dev/stage-tiles.html` (filters `?look=&species=&view=&bg=`), read `tileSummary`. 4 October 2026: 64 of 64 pass; plate and fluorescence exact, glossy 1–7 pixels at 1 level, none on a seam.
+- Dev handles: `commands.setLook('plate'|'fluorescence'|'glossy')`, `setTransparent`, `setView`; read `stage.look`, `.transparent`, `.view`. Default look is glossy.
+
+## For milestone 10
+- In dev, `window.editor`, `commands`, `studio`, `stage`, `helix`, `geneMap` are exposed. Use a separate browser-pane tab for checks (the owner may be using the pane). Pane screenshots are 800 wide of a 1024 viewport: multiply client pixels by about 0.78.
+- The top bar wraps to two lines at 1024 px. Glossy could land a 1-level pixel on a seam for some future organism; giving it exact interpolation would fix that.

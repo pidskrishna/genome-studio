@@ -124,7 +124,7 @@ Checks:
 
 ## Milestone 9: looks (spec section 7)
 
-- [ ] Done
+- [x] Done
 
 Build: the three looks on the stage (monochrome plate, fluorescence microscope, glossy render), each with a transparent background option. Pigment genes are wired to the renderer only. Every look still draws correctly as stitched sub-rectangles.
 

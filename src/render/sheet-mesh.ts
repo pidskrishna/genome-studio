@@ -71,7 +71,7 @@ export function boundaryEdges(vertexCount: number, triangles: ArrayLike<number>)
   return out;
 }
 
-/** Builds the thick sheet: outer skin, inner skin and rim, in starting radii. */
+/** Builds the thick sheet: outer skin, inner skin and rim, in starting radii. `userData.source` maps mesh to sheet vertices. */
 export function buildSheetMesh(g: Sheet): BufferGeometry {
   const P = g.positions;
   const T = g.triangles;
@@ -106,7 +106,11 @@ export function buildSheetMesh(g: Sheet): BufferGeometry {
   const vertexCount = 2 * n + 2 * rimCount;
   const pos = new Float32Array(vertexCount * 3);
   const nor = new Float32Array(vertexCount * 3);
+  // The sheet vertex each mesh vertex was built from, for the pigment gradient (colour.ts).
+  const source = new Uint32Array(vertexCount);
   for (let v = 0; v < n; v++) {
+    source[v] = v;
+    source[n + v] = v;
     for (let k = 0; k < 3; k++) {
       const p = P[v * 3 + k]!;
       const q = N[v * 3 + k]!;
@@ -124,6 +128,8 @@ export function buildSheetMesh(g: Sheet): BufferGeometry {
     const l = Math.sqrt(x * x + y * y + z * z) || 1;
     const outer = 2 * n + slot;
     const inner = 2 * n + rimCount + slot;
+    source[outer] = v;
+    source[inner] = v;
     for (let k = 0; k < 3; k++) {
       pos[outer * 3 + k] = pos[v * 3 + k]!;
       pos[inner * 3 + k] = pos[(n + v) * 3 + k]!;
@@ -169,6 +175,7 @@ export function buildSheetMesh(g: Sheet): BufferGeometry {
   geometry.setAttribute('position', new BufferAttribute(pos, 3));
   geometry.setAttribute('normal', new BufferAttribute(nor, 3));
   geometry.setIndex(new BufferAttribute(index, 1));
+  geometry.userData.source = source;
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;

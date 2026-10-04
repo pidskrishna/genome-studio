@@ -38,7 +38,10 @@ export function branchChains(g: Branch): number[][] {
   return chains;
 }
 
-/** Builds the tube mesh: positions, smooth normals and triangles, in the simulation's units (D). */
+/**
+ * Builds the tube mesh: positions, smooth normals and triangles, in the simulation's units (D).
+ * `userData.source` holds the node each vertex belongs to.
+ */
 export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
   const chains = branchChains(g);
   let ringCount = 0;
@@ -50,6 +53,7 @@ export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
   const vertexCount = ringCount * sides + capCount * (sides + 1);
   const pos = new Float32Array(vertexCount * 3);
   const nor = new Float32Array(vertexCount * 3);
+  const source = new Uint32Array(vertexCount);
   let segmentCount = 0;
   for (const chain of chains) segmentCount += chain.length - 1;
   const indexCount = segmentCount * sides * 6 + capCount * sides * 3;
@@ -58,7 +62,8 @@ export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
   const P = g.positions;
   let vo = 0;
   let io = 0;
-  const put = (x: number, y: number, z: number, nx: number, ny: number, nz: number): number => {
+  const put = (node: number, x: number, y: number, z: number, nx: number, ny: number, nz: number): number => {
+    source[vo] = node;
     pos[vo * 3] = x;
     pos[vo * 3 + 1] = y;
     pos[vo * 3 + 2] = z;
@@ -156,7 +161,7 @@ export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
         const ux = cosA[k]! * nx + sinA[k]! * bx;
         const uy = cosA[k]! * ny + sinA[k]! * by;
         const uz = cosA[k]! * nz + sinA[k]! * bz;
-        put(cx + r * ux, cy + r * uy, cz + r * uz, ux, uy, uz);
+        put(node, cx + r * ux, cy + r * uy, cz + r * uz, ux, uy, uz);
       }
     }
     for (let i = 0; i + 1 < m; i++) {
@@ -178,11 +183,11 @@ export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
       const cnx = tx[i]! * dir;
       const cny = ty[i]! * dir;
       const cnz = tz[i]! * dir;
-      const centre = put(P[node * 3]!, P[node * 3 + 1]!, P[node * 3 + 2]!, cnx, cny, cnz);
+      const centre = put(node, P[node * 3]!, P[node * 3 + 1]!, P[node * 3 + 2]!, cnx, cny, cnz);
       const first = vo;
       for (let k = 0; k < sides; k++) {
         const s = (ring + k) * 3;
-        put(pos[s]!, pos[s + 1]!, pos[s + 2]!, cnx, cny, cnz);
+        put(node, pos[s]!, pos[s + 1]!, pos[s + 2]!, cnx, cny, cnz);
       }
       for (let k = 0; k < sides; k++) {
         const k1 = (k + 1) % sides;
@@ -204,6 +209,8 @@ export function buildBranchMesh(g: Branch, sides = TUBE_SIDES): BufferGeometry {
   geometry.setAttribute('position', new BufferAttribute(pos, 3));
   geometry.setAttribute('normal', new BufferAttribute(nor, 3));
   geometry.setIndex(new BufferAttribute(index, 1));
+  // The node each vertex was built from, for the pigment gradient (colour.ts).
+  geometry.userData.source = source;
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;

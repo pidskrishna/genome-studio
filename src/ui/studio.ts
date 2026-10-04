@@ -1,14 +1,17 @@
-import { formKey, parseGenome, speciesOfHeader, type SpeciesId } from '../genome';
+import { formKey, parseGenome, pigmentsOf, speciesOfHeader, type Pigments, type SpeciesId } from '../genome';
 import type { Organism, ViewMode } from '../render/stage';
 import type { SimClient } from './sim-client';
 
 // Connects a code to the simulation and the stage. A valid code starts a regrow, with the progress
 // indicator showing until the organism is ready; a rejected code leaves the current organism in place.
 // A newer code supersedes a regrow still in flight. `update` regrows only when the part of the code the
-// simulation reads changes, so a pigment edit never starts a run (spec section 5).
+// simulation reads changes, so a pigment edit never starts a run (spec section 5). Pigment genes go
+// straight to the stage instead (spec section 8), so the picture changes at once.
 
 export interface StageView {
   setOrganism(organism: Organism): void;
+  /** Applies the pigment and surface genes to the organism on the stage, without regrowing. */
+  setPigments(pigments: Pigments): void;
   setView(mode: ViewMode): void;
 }
 
@@ -67,6 +70,7 @@ export class Studio {
     if (this.targetKey !== null && formKey(code) === this.targetKey) {
       this.target = code;
       if (this.targetKey === this.grownKey) this.code = code;
+      this.deps.stage.setPigments(pigmentsOf(code));
       return { status: 'unchanged' };
     }
     return this.grow(code);
@@ -101,6 +105,7 @@ export class Studio {
     this.deps.stage.setOrganism(organism);
     // Pigment edits made while this run was growing share its form key; keep the latest.
     this.code = this.target ?? code;
+    this.deps.stage.setPigments(pigmentsOf(this.code));
     this.species = species;
     this.hash = organism.geometry.hash;
     this.grownKey = key;
