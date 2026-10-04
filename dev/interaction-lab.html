@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interaction lab</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&family=Chivo:ital,wght@0,300;0,400;0,500;1,400&family=Chivo+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <!-- Dev only, not part of the build: variants of each core interaction for the glass interface. -->
+    <header id="lab-bar" class="glass layer-1">
+      <div class="lab-title">
+        <h1>Interaction lab</h1>
+        <p id="lab-status" role="status"></p>
+      </div>
+      <div class="lab-tools"></div>
+    </header>
+    <main id="lab-main"></main>
+    <section id="lab-summary" class="lab-section">
+      <header class="sec-head">
+        <h2>Your picks</h2>
+        <p class="sec-note">Choose with Prefer under each variant and add notes; they are kept in this browser. Copy the summary or just tell me in chat.</p>
+      </header>
+      <ol></ol>
+      <button type="button" class="btn glass">Copy summary</button>
+    </section>
+    <div id="page-exposure" aria-hidden="true"></div>
+    <script type="module" src="./lab/main.ts"></script>
+  </body>
+</html>

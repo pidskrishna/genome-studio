@@ -5,8 +5,11 @@ import { geneSummary } from './gene-map';
 import { GROUP_NAMES, SPECIES_NAMES } from './gene-info';
 import { HelixControls, type HelixPick } from './helix-controls';
 import { BACKBONE_RADIUS, bandMiddle, nearestSpin, RISE, type Band } from './helix-geometry';
-import { BAND_COLOURS, BASE_COLOURS, HelixScene, type ScreenPoint } from './helix-scene';
+import type { LookId } from '../render/colour';
+import { HelixScene, type ScreenPoint } from './helix-scene';
+import { BACKDROP_HEX } from './theme';
 import { Inspector } from './inspector';
+import { motion } from './motion';
 import { el } from './shell';
 
 // The helix editor (spec section 5): the 3D double helix with labelled gene bands, hover, click to
@@ -20,8 +23,6 @@ const TURN_MS = 650;
 const DRAG_SPIN = 0.012;
 /** Pointer travel (pixels) below which a press counts as a click, not a drag. */
 const CLICK_SLOP = 4;
-
-const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
 export interface ClientPoint {
   /** Viewport (client) pixels, for clicking. */
@@ -52,7 +53,7 @@ export class HelixView {
 
   constructor(private readonly editor: Editor) {
     this.controls = new HelixControls(editor);
-    this.view = new HelixScene(0xffffff);
+    this.view = new HelixScene(BACKDROP_HEX.glossy);
 
     this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.outputColorSpace = SRGBColorSpace;
@@ -202,7 +203,8 @@ export class HelixView {
     if (!band) return;
     const target = this.view.viewFor(bandMiddle(band));
     const to = { travel: target.travel, spin: nearestSpin(this.view.spin, target.spin) };
-    if (!this.placed) {
+    // With reduced motion the helix jumps to the gene instead of turning (DESIGN.md section 5).
+    if (!this.placed || motion.reduced) {
       this.jumpTo(to);
       return;
     }
@@ -420,7 +422,7 @@ export class HelixView {
         this.leader.style.left = `${x0}px`;
         this.leader.style.width = `${Math.max(0, left - x0)}px`;
         this.leader.style.top = `${y}px`;
-        this.leader.style.background = hex(BAND_COLOURS[band.kind]);
+        this.leader.style.background = `var(--g-${band.kind === 'form' || band.kind === 'pigment' ? band.kind : 'other'})`;
       }
     }
 
@@ -433,19 +435,23 @@ export class HelixView {
     }
   }
 
+  /** Follows the look: depth fades into the column's backdrop. */
+  setLook(look: LookId): void {
+    this.view.setBackdrop(BACKDROP_HEX[look]);
+    this.redraw();
+  }
+
   private legend(): HTMLElement {
-    const chip = (colour: number, text: string, cls: string): HTMLElement => {
-      const swatch = el('span', { className: 'swatch' });
-      swatch.style.background = hex(colour);
-      return el('span', { className: cls }, swatch, text);
-    };
-    const bases = el('div', { className: 'legend-row' }, ...BASES.split('').map((b) => chip(BASE_COLOURS[b]!, b, 'legend-base')));
+    // Swatch colours come from the stylesheet, so they follow the look.
+    const chip = (swatchClass: string, text: string, cls: string): HTMLElement =>
+      el('span', { className: cls }, el('span', { className: `swatch ${swatchClass}` }), text);
+    const bases = el('div', { className: 'legend-row' }, ...BASES.split('').map((b) => chip(`base-${b}`, b, 'legend-base')));
     bases.setAttribute('aria-label', 'Base colours');
     const groups = el('div', { className: 'legend-row' },
-      chip(BAND_COLOURS.form, 'Form', 'legend-group'),
-      chip(BAND_COLOURS.pigment, 'Pigment', 'legend-group'),
-      chip(BAND_COLOURS.seed, 'Seed', 'legend-group'),
-      chip(BAND_COLOURS.header, 'Header and checksum', 'legend-group'));
+      chip('g-form', 'Form', 'legend-group'),
+      chip('g-pigment', 'Pigment', 'legend-group'),
+      chip('g-seed', 'Seed', 'legend-group'),
+      chip('g-other', 'Header and checksum', 'legend-group'));
     groups.setAttribute('aria-label', 'Gene groups');
     return el('div', { className: 'helix-legend' }, bases, groups);
   }

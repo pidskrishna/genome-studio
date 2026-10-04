@@ -1,4 +1,10 @@
-import { parseGenome, shareLink, wildType, type SpeciesId } from './genome';
+import '@fontsource/ibm-plex-sans/latin-300.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-400-italic.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import { parseGenome, pigmentsOf, shareLink, wildType, type SpeciesId } from './genome';
 import { Stage, type LookId, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
@@ -7,6 +13,9 @@ import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
 import { SimClient } from './ui/sim-client';
 import { Studio } from './ui/studio';
+import { applyMotionTokens, motion, onReducedMotionChange } from './ui/motion';
+import { exposure, installButtonPress, installCursorLight, installFocusBrackets, Reticle } from './ui/surface';
+import { applyLook, applyPigmentHues } from './ui/theme';
 import './ui/style.css';
 
 // Entry point: builds the layout, the editor, the stage and the simulation client, and opens with the
@@ -23,6 +32,9 @@ function hashText(hash: string): string {
   }
 }
 
+const root = document.documentElement;
+applyMotionTokens();
+onReducedMotionChange(() => applyMotionTokens());
 const shell = buildShell(document.getElementById('app') as HTMLElement);
 const stage = new Stage(shell.stage);
 
@@ -88,10 +100,28 @@ function showView(mode: ViewMode): void {
   for (const [m, b] of Object.entries(shell.viewButtons)) b.setAttribute('aria-pressed', String(m === mode));
 }
 
-/** Looks and the background option are outside the genome (spec section 7): they never touch the code. */
-function showLook(look: LookId): void {
+/**
+ * Looks and the background option are outside the genome (spec section 7): they never touch the code.
+ * The look restyles the whole interface, not only the stage (spec section 6).
+ */
+function applyWholeLook(look: LookId): void {
+  // Everything switches at once, with no transitions, at the peak of the exposure change.
+  root.classList.add('switching');
   stage.setLook(look);
+  applyLook(root, look);
+  helix.setLook(look);
   for (const [l, b] of Object.entries(shell.lookButtons)) b.setAttribute('aria-pressed', String(l === look));
+  void root.offsetWidth;
+  requestAnimationFrame(() => root.classList.remove('switching'));
+}
+
+let lookChange: Promise<void> = Promise.resolve();
+function showLook(look: LookId, animate = true): void {
+  if (!animate) {
+    applyWholeLook(look);
+    return;
+  }
+  lookChange = lookChange.then(() => (look === stage.look ? undefined : exposure(shell.exposureLayer, look === 'fluorescence', () => applyWholeLook(look))));
 }
 
 function showTransparent(transparent: boolean): void {
@@ -108,6 +138,8 @@ function refreshControls(): void {
 
 editor.subscribe((change) => {
   refreshControls();
+  // The fluorescence look lights its controls in the pigment hues; they follow every pigment edit.
+  applyPigmentHues(root, pigmentsOf(editor.code));
   if (change.type !== 'code') return;
   history.replaceState(null, '', shareLink(location.href, change.code));
   void show(change.code);
@@ -144,12 +176,18 @@ document.addEventListener('paste', (e) => {
   commands.paste(text);
 });
 
+installCursorLight();
+installFocusBrackets();
+installButtonPress();
+new Reticle();
+applyPigmentHues(root, pigmentsOf(editor.code));
+
 showView('3d');
-showLook(stage.look);
+showLook(stage.look, false);
 showTransparent(false);
 showEditorView('helix');
 refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, motion, applyMotionTokens });

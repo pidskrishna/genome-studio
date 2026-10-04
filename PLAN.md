@@ -133,15 +133,43 @@ Checks:
 - Screenshots of the same organism in all three looks, in both views.
 - In every look, a frame drawn as stitched sub-rectangles matches the same frame drawn whole, within a small pixel tolerance.
 
-## Milestone 10: glass interface and look theming (spec section 6)
+## Milestone 10a: glass and look theming (spec section 6, DESIGN.md)
 
-- [ ] Done
+- [x] Done
 
-Build: the glass control-panel style, and the restyling of the whole interface with each look.
+Milestone 10 was split into 10a to 10c on 4 October 2026, with the owner's approval; DESIGN.md is the design they follow.
+
+Build: the glass control-panel style and the restyling of the whole interface with each look: the tokens for each look, IBM Plex (bundled), glass panels with rim light, light sweep and cursor light, fluorescence accents from pigments A and B, the exposure look switch, segmented controls, the button press, the reticle cursor, focus brackets, and reduced-motion support.
 
 Checks:
 - Screenshots of the same organism in all three looks, with the interface restyled in each.
 - In the fluorescence look, controls take their colours from the current pigment hues and update when a pigment gene changes.
+- With reduced motion on, nothing on screen travels or scales; changes are crossfades.
+- Unit tests for the pure parts: every look defines every token, accent hues follow the pigment genes, and springs settle without overshoot.
+
+## Milestone 10b: the borosilicate helix (spec section 5, DESIGN.md)
+
+- [ ] Done
+
+Build: the borosilicate helix material with lit cores and frosted gene boundaries, the margin ruler (names on approach, name and value on hover), focusing with light leads, drag detents, idle drift and breathing, base cycling with light meeting in the middle, and lock frost on the helix.
+
+Checks:
+- Clicking base 13 four times goes G, T, A, C, G, updating slider, number field, code bar and link each time.
+- At least 95% of frames take 16.7ms or less over 10 seconds of drift, turns and drags at 1440 × 900, in Chrome and Safari.
+- Screenshots of the helix in all three looks.
+- Unit tests for the detent and the ruler's label fading.
+
+## Milestone 10c: inspector and code bar interactions (spec sections 5 and 6, DESIGN.md)
+
+- [ ] Done
+
+Build: the lens slider with fine control and keys, linked pulses, lock frost in the inspector, the gene-by-gene randomise ripple, gene-by-gene copy and paste, and the regrow focus pull with hairline progress.
+
+Checks:
+- Randomise all changes every unlocked gene and leaves locked genes alone, with the ripple running.
+- Copy then paste reproduces the exact code.
+- Screenshots of the real app match the lab and DESIGN.md; mismatches fixed.
+- Unit tests for the fine-drag speed and the ripple schedule.
 
 ## Milestone 11: draft, tray and names (spec section 6)
 

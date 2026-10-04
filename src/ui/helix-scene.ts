@@ -47,21 +47,21 @@ import {
 // its axis and rotating spins it about the axis. Only the editor's code is read; nothing here writes
 // to the editor or to simulation state.
 
-/** The four fixed base colours (spec section 5). */
+/** The four fixed base colours (spec section 5): the genome-browser convention (DESIGN.md section 2). */
 export const BASE_COLOURS: Readonly<Record<string, number>> = {
-  A: 0xd64f7e,
-  C: 0x8758cf,
-  G: 0xe6b422,
-  T: 0x1f9fa3,
+  A: 0x1f9d4c,
+  C: 0x2d68e8,
+  G: 0xe07a12,
+  T: 0xdf3a3c,
 };
 
-/** Band colours by group, matching the gene map and code bar. */
+/** Band colours by group: only form and pigment genes have a hue (DESIGN.md section 2). */
 export const BAND_COLOURS: Readonly<Record<BandKind, number>> = {
-  header: 0x8c8c8c,
-  form: 0x2f5fb3,
-  pigment: 0xb2541a,
-  seed: 0x2e7d4f,
-  checksum: 0x5c5c5c,
+  header: 0x8c8f94,
+  form: 0x4f6a8a,
+  pigment: 0x8a5a7c,
+  seed: 0x8c8f94,
+  checksum: 0x8c8f94,
 };
 
 const FIELD_OF_VIEW = 24;
@@ -140,13 +140,16 @@ export class HelixScene {
   private hovered: Band | null = null;
   private focused: number | null = null;
 
+  private readonly fog: Fog;
+
   constructor(background = 0xffffff) {
     this.scene.add(this.helix);
     this.scene.add(new AmbientLight(0xffffff, 1.1));
     const key = new DirectionalLight(0xffffff, 1.9);
     key.position.set(0.5, 0.7, 1);
     this.scene.add(key);
-    this.scene.fog = new Fog(background, 1, 2);
+    this.fog = new Fog(background, 1, 2);
+    this.scene.fog = this.fog;
 
     const rungGeometry = new CylinderGeometry(RUNG_RADIUS, RUNG_RADIUS, 1, 10, 1);
     this.rungs = new InstancedMesh(rungGeometry, new MeshStandardMaterial({ roughness: 0.5 }), GENOME_LENGTH * 2);
@@ -169,6 +172,11 @@ export class HelixScene {
     this.helix.add(this.outline);
     this.sleeve.visible = false;
     this.helix.add(this.sleeve);
+  }
+
+  /** Depth fades into the column's backdrop, which follows the look. */
+  setBackdrop(hex: number): void {
+    this.fog.color.setHex(hex);
   }
 
   /** Shows a code: base colours, and the gene bands of its species. */

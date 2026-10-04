@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- Milestones 0–4 and 6–9 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 10.
+- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); next: 10b. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
@@ -49,7 +49,7 @@ Editor (`src/ui`, milestone 7)
 
 Helix (`src/ui/helix-*.ts`, milestone 8)
 - Pure geometry in `helix-geometry.ts` (Å: rise 3.38, 10.5 bp per turn, backbone radius 9.5; axis y, base 1 at the top, code strand 5′→3′ downwards at angle −i × twist, so right-handed). The paired strand is offset 144°, giving grooves of about 14 Å and 21 Å.
-- Gene bands are tubes on the code-strand backbone, coloured by group as in the gene map; the paired backbone is grey. Base colours: A pink, C violet, G amber, T teal. Labels are DOM to the right of the helix.
+- Gene bands are tubes on the code-strand backbone, coloured by group as in the gene map; the paired backbone is grey. Base colours (10a): the genome-browser convention, A green, C blue, G orange, T red (DESIGN.md section 2). Labels are DOM to the right of the helix.
 - Focusing turns the gene's middle base pair to face the viewer and brings it to mid-view (650 ms ease). Clicking a base cycles it, selects it for typing and focuses its gene without turning. Clicking a band or label toggles focus. Escape clears the selection, then the focus. Horizontal drag spins, the wheel travels (not over the inspector).
 - The inspector (`inspector.ts`) is shared by the helix and the gene map. The helix has its own canvas and renderer and skips `snapVertices`, since it is never exported.
 - Dev hooks: `helix.showBase(p)` / `helix.showGene(locus)` turn to face and return client `{x, y, visible}`; `basePoint`, `genePoint`, `pickAt`, `state`.
@@ -78,6 +78,19 @@ Three.js skills (`.claude/skills/`)
 - Any material built from the skills (`ShaderMaterial`, `onBeforeCompile`) must still go through `snapVertices`, except on the helix.
 - Their examples use `Math.sin`, `Math.cos` and clocks: fine in `src/render` and `src/ui`, never in `src/sim`.
 
-## For milestone 10
+Glass interface (`src/ui/theme.ts`, `motion.ts`, `surface.ts`, `style.css`, milestone 10a)
+- DESIGN.md is the design; `dev/interaction-lab.html` (modules in `dev/lab/`) is its working reference, with every variant the owner chose from. Lab picks are recorded in DESIGN.md section 7.
+- Tokens per look live in `theme.ts` (`LOOK_TOKENS`) and are written to the root as CSS custom properties by `applyLook`; tests check every look has every token, the stage token equals the renderer's background, and the helix backdrop matches. Fluorescence accents read `--hue` (pigment A) and `--hue-b` (pigment B), rewritten on every edit by `applyPigmentHues`, so pigment edits restyle controls without a regrow.
+- Plate paper and ink are the renderer's own (`#f3efe4`, `#1c1a17`); the lab's cool paper clashed with the stage and the owner chose to warm the interface rather than change exports.
+- Layout: the stage spans all three grid rows under the top bar and code bar (glass, `--fill-1`); the helix column has its own backdrop. `--top-h` and `--code-h` give the bars' heights for anything placed on the stage.
+- Look switch: `exposure()` lifts to 30% white (black into fluorescence) over 160ms, switches stage, tokens and helix at the peak with transitions off (`.switching`), and settles over 240ms. Reduced motion: an 80 + 80ms crossfade through `--bg`.
+- Motion: critically damped springs solved exactly (`Damped`, ω = 7 / settle time); `motion.reduced` follows the system setting (dev handle `motion.pref`, then `applyMotionTokens()`). With it on: no scaling or travel (buttons, segments, reticle, helix turn jump), rim sweep stopped.
+- Buttons are glass words (`button()` defaults to `btn glass`); the press is CSS `.down` added by `installButtonPress`, which also handles Space and Enter. Segmented groups get one sliding glass indicator (`glassSegments`) that watches `aria-pressed`.
+- Nested glass can't blur what lies behind its parent panel (the parent is a backdrop root), so small glass parts get their frost from their own fill.
+- Fonts: IBM Plex Sans 300/400/400 italic/500 and Plex Mono 400/500, latin subsets, from `@fontsource` (approved dependency); every number and code is mono.
+- Browser checks (4 October 2026): three looks restyle everything with the same organism (hash `642a289e51e48070`); in fluorescence, setting pigment A to 255° and B turned segment accents from green to violet and pigment marks from orange to green with no regrow; with reduced motion, all seven enabled buttons kept `transform: none` while pressed, the segment indicator landed in one frame, the look switch crossfaded through the background colour, and focusing a gene jumped.
+
+## For milestone 10b
+- The lab's borosilicate helix (`dev/lab/glass-helix.ts`, material `boro`) is the reference: physical transmission glass, cores carrying light and the meet-in-the-middle pulse (custom shader with colour management), frosted boundary rings, frosted lock sleeves. Its frame time has not been measured yet.
 - In dev, `window.editor`, `commands`, `studio`, `stage`, `helix`, `geneMap` are exposed. Use a separate browser-pane tab for checks (the owner may be using the pane). Pane screenshots are 800 wide of a 1024 viewport: multiply client pixels by about 0.78.
 - The top bar wraps to two lines at 1024 px. Glossy could land a 1-level pixel on a seam for some future organism; giving it exact interpolation would fix that.

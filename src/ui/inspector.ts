@@ -146,12 +146,12 @@ export class Inspector {
     this.lock.addEventListener('click', () => editor.toggleLock(locus));
     const actions = el('div', { className: 'inspector-actions' }, this.randomise, this.lock);
     if (options.onClose) {
-      const close = button('Close', { className: 'inspector-close', title: 'Close the inspector (Escape)' });
+      const close = button('Close', { className: 'btn glass inspector-close', title: 'Close the inspector (Escape)' });
       close.addEventListener('click', options.onClose);
       actions.append(close);
     }
 
-    this.root = el('section', { className: 'inspector' }, title, parameter, controls, baseRow, this.raw, this.notes, description, reference, tag, actions);
+    this.root = el('section', { className: 'inspector glass layer-3' }, title, parameter, controls, baseRow, this.raw, this.notes, description, reference, tag, actions);
     this.root.dataset.group = def.group;
     this.root.dataset.locus = String(locus);
     this.root.setAttribute('aria-label', `Inspector: ${def.name}`);
