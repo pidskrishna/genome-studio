@@ -113,7 +113,7 @@ Checks:
 
 ## Milestone 8: helix editor (spec section 5)
 
-- [ ] Done
+- [x] Done
 
 Build: the 3D B-form helix, gene bands, hover, click to focus with the helix turning to face the gene, the inspector attached beside it, base editing on the helix, drag to rotate, scroll to travel, and the gene map toggle.
 

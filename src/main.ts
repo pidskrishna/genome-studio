@@ -3,6 +3,7 @@ import { Stage, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
 import { GeneMap } from './ui/gene-map';
+import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
 import { SimClient } from './ui/sim-client';
 import { Studio } from './ui/studio';
@@ -32,8 +33,10 @@ const editor = new Editor({
   warning: parsed?.ok ? parsed.warning : undefined,
 });
 
+const helix = new HelixView(editor);
 const geneMap = new GeneMap(editor);
-shell.editorBody.append(geneMap.element);
+geneMap.element.hidden = true;
+shell.editorBody.append(helix.element, geneMap.element);
 const codeBar = new CodeBar(shell.codeBar, editor, {
   link: () => shareLink(location.href, editor.code),
   copy: (text) => navigator.clipboard.writeText(text),
@@ -64,7 +67,19 @@ const commands = {
   switchSpecies: (species: SpeciesId) => editor.switchSpecies(species),
   setView: (mode: ViewMode) => showView(mode),
   paste: (text: string) => codeBar.acceptPaste(text),
+  setEditorView: (view: EditorView) => showEditorView(view),
 };
+
+type EditorView = 'helix' | 'map';
+
+/** The helix is the default; the gene map sits behind the toggle (spec section 5). */
+function showEditorView(view: EditorView): void {
+  helix.element.hidden = view !== 'helix';
+  geneMap.element.hidden = view !== 'map';
+  for (const [v, b] of Object.entries(shell.editorViews)) b.setAttribute('aria-pressed', String(v === view));
+  if (view === 'helix') helix.show();
+  else geneMap.reveal();
+}
 
 function showView(mode: ViewMode): void {
   studio.setView(mode);
@@ -90,6 +105,8 @@ shell.tools.undo.addEventListener('click', commands.undo);
 shell.tools.redo.addEventListener('click', commands.redo);
 shell.speciesButtons.A.addEventListener('click', () => commands.switchSpecies('A'));
 shell.speciesButtons.B.addEventListener('click', () => commands.switchSpecies('B'));
+shell.editorViews.helix.addEventListener('click', () => commands.setEditorView('helix'));
+shell.editorViews.map.addEventListener('click', () => commands.setEditorView('map'));
 shell.viewButtons['3d'].addEventListener('click', () => commands.setView('3d'));
 shell.viewButtons.flat.addEventListener('click', () => commands.setView('flat'));
 
@@ -112,8 +129,9 @@ document.addEventListener('paste', (e) => {
 });
 
 showView('3d');
+showEditorView('helix');
 refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap });

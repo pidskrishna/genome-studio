@@ -17,6 +17,32 @@ export interface CodeBarOptions {
   readClipboard: () => Promise<string>;
 }
 
+/** One group of the code bar: the header, a gene or the checksum. */
+export interface CodeGroup {
+  group: 'header' | 'form' | 'pigment' | 'seed' | 'checksum';
+  locus: number | null;
+  text: string;
+  title: string;
+}
+
+/** The code bar's groups for a code, worked out without the DOM. */
+export function codeGroups(code: string, species: SpeciesId): CodeGroup[] {
+  const groups: CodeGroup[] = [
+    { group: 'header', locus: null, text: code.slice(0, 6), title: `${GROUP_NAMES.header}: species and encoding version (not editable)` },
+  ];
+  for (let locus = 1; locus <= GENE_COUNT; locus++) {
+    const { start, length } = geneSpan(locus);
+    groups.push({
+      group: geneAt(species, locus).group,
+      locus,
+      text: code.slice(start, start + length),
+      title: `${locus}. ${geneSummary(code, species, locus)}`,
+    });
+  }
+  groups.push({ group: 'checksum', locus: null, text: code.slice(CHECKSUM_START), title: `${GROUP_NAMES.checksum} (not editable)` });
+  return groups;
+}
+
 export class CodeBar {
   private readonly code: HTMLElement;
   private readonly notice: HTMLElement;
@@ -131,40 +157,30 @@ export class CodeBar {
 
   private build(species: SpeciesId): void {
     this.species = species;
-    const groups: { locus: number | null; node: HTMLElement }[] = [];
-    const header = el('span', { className: 'code-group', title: `${GROUP_NAMES.header}: species and encoding version (not editable)` });
-    header.dataset.group = 'header';
-    groups.push({ locus: null, node: header });
-    for (let locus = 1; locus <= GENE_COUNT; locus++) {
-      const def = geneAt(species, locus);
-      const node = button('', { className: 'code-group' });
-      node.dataset.group = def.group;
-      node.dataset.locus = String(locus);
-      node.addEventListener('click', () => this.editor.focusGene(locus));
-      groups.push({ locus, node });
-    }
-    const checksum = el('span', { className: 'code-group', title: `${GROUP_NAMES.checksum} (not editable)` });
-    checksum.dataset.group = 'checksum';
-    groups.push({ locus: null, node: checksum });
-    this.groups = groups;
-    this.code.replaceChildren(...groups.map((g) => g.node));
+    this.groups = codeGroups(this.editor.code, species).map(({ group, locus, title }) => {
+      const node = locus === null ? el('span', { className: 'code-group', title }) : button('', { className: 'code-group' });
+      node.dataset.group = group;
+      if (locus !== null) {
+        node.dataset.locus = String(locus);
+        node.addEventListener('click', () => this.editor.focusGene(locus));
+      }
+      return { locus, node };
+    });
+    this.code.replaceChildren(...this.groups.map((g) => g.node));
   }
 
   private refresh(): void {
     const { editor } = this;
     if (editor.species !== this.species) this.build(editor.species);
-    const code = editor.code;
-    for (const { locus, node } of this.groups) {
-      if (locus === null) {
-        node.textContent = node.dataset.group === 'header' ? code.slice(0, 6) : code.slice(CHECKSUM_START);
-        continue;
-      }
-      const { start, length } = geneSpan(locus);
-      node.textContent = code.slice(start, start + length);
-      node.title = `${locus}. ${geneSummary(code, editor.species, locus)}`;
+    codeGroups(editor.code, editor.species).forEach(({ locus, text, title }, i) => {
+      const node = this.groups[i]?.node;
+      if (!node) return;
+      node.textContent = text;
+      if (locus === null) return;
+      node.title = title;
       node.classList.toggle('focused', editor.focus === locus);
       node.classList.toggle('locked', editor.isLocked(locus));
-    }
+    });
     const message = editor.message ?? this.external;
     if (message) this.show(message.text, message.tone);
     else this.show(this.flash?.text ?? '', 'info');

@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- Milestones 0–4, 6 and 7 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 8.
+- Milestones 0–4 and 6–8 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 9.
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
@@ -47,13 +47,22 @@ Editor (`src/ui`, milestone 7)
 - Paste tries `navigator.clipboard.readText()`, then opens a paste field (the browser pane refuses clipboard reads); pasting outside a text field also works. Header and checksum are read-only rows in the gene map. Every action is in `commands` in `main.ts` (hook for shortcuts).
 - End-to-end check (4 October 2026): a random code per species, pasted and opened as a link in a fresh tab, gave the same hash as growing it, and as Node.
 
+Helix (`src/ui/helix-*.ts`, milestone 8)
+- Pure geometry in `helix-geometry.ts` (Å: rise 3.38, 10.5 bp per turn, backbone radius 9.5; axis y, base 1 at the top, code strand 5′→3′ downwards at angle −i × twist, so right-handed). The paired strand is offset 144°, giving grooves of about 14 Å and 21 Å.
+- Gene bands are tubes on the code-strand backbone, coloured by group as in the gene map; the paired backbone is grey. Base colours: A pink, C violet, G amber, T teal. Labels are DOM to the right of the helix.
+- Focusing turns the gene's middle base pair to face the viewer and brings it to mid-view (650 ms ease). Clicking a base cycles it, selects it for typing and focuses its gene without turning. Clicking a band or label toggles focus. Escape clears the selection, then the focus. Horizontal drag spins, the wheel travels (not over the inspector).
+- The inspector (`inspector.ts`) is shared by the helix and the gene map. The helix has its own canvas and renderer and skips `snapVertices`, since it is never exported.
+- Dev hooks: `helix.showBase(p)` / `helix.showGene(locus)` turn to face and return client `{x, y, visible}`; `basePoint`, `genePoint`, `pickAt`, `state`.
+- Browser check (4 October 2026): clicking base 13 four times went G→T→A→C→G, updating slider, number field, code bar and link each time.
+
 ## Known issues and shortcuts
 - **Neutral values aren't exactly 0:** anisotropy and lift can only reach 0.00024 (an even number of steps).
 - **Species A tropism:** its effect on centre of mass is real but tiny, so the test averages 20 seeds. The clear effect is on branch direction.
 - **Species B ruffles look modest** on stage (about 5% of the radius; the wild-type disc reads as a flat plate with a frilled rim). Not tuned yet: any range or constant change needs owner approval (clarification 2).
 - **Speed:** species B averages 2–3 s per genome, with extreme cases at 25–45 s (low growth rate, sphere, many passes). Wild types take 0.2 s (A) and about 2 s (B) in the browser. `npm test` takes about 50 s with `testTimeout` at 60 s. `test:slow` (A 10,000 + B 1,000) takes about 25 min.
+- **Helix:** at narrow columns (about 340px) the inspector covers the gene labels beside it; the tooltip shows only over something pickable.
 - **Methods page (milestone 13) must state:** the duplicate-child rule, the clear stem lasting until the first branch, and all the species B designs above, marked as designed or numerical.
 
-## For milestone 8
-- The helix becomes the default view in `.editor-body`, with the gene map behind a toggle. Drive it through `Editor` (`focusGene`, `cycleBase`, `setBase`, `Editor.isEditable`) and redraw on `subscribe`. The inspector lives in `GeneMap` (`buildInspector`/`fillInspector`); lift it out so it can sit beside the helix.
-- In dev, `window.editor`, `window.commands`, `window.studio` and `window.stage` are exposed. The owner may be using the browser pane at the same time: their drags arrive as trusted events, so use a separate tab for checks.
+## For milestone 9
+- In dev, `window.editor`, `window.commands`, `window.studio`, `window.stage`, `window.helix` and `window.geneMap` are exposed. The owner may be using the browser pane at the same time (their drags arrive as trusted events), so use a separate tab for checks. Pane screenshots are 800×600 of a 1024×768 viewport: multiply client pixels by about 0.78 for clicks.
+- Pigment genes must reach the stage only through the renderer; `formKey` already keeps them from regrowing.

@@ -52,7 +52,7 @@ button { font: inherit; color: inherit; }
 .segmented button + button { border-left: 1px solid var(--line); }
 .segmented button[aria-pressed='true'] { background: var(--ink); color: var(--panel); }
 
-/* Helix column: editor buttons, then the gene map. */
+/* Helix column: editor buttons, then the helix (or, behind the toggle, the gene map). */
 .helix-column {
   grid-area: helix;
   display: flex;
@@ -72,7 +72,14 @@ button { font: inherit; color: inherit; }
 button:disabled { color: var(--muted); cursor: default; opacity: 0.6; }
 .editor-tools button:not(:disabled):hover, .inspector-actions button:not(:disabled):hover,
 .code-actions button:hover, .paste-box button:hover { background: var(--soft); }
-.editor-body { flex: 1; min-height: 0; overflow-y: auto; }
+.editor-tools .editor-view-toggle { margin-left: auto; }
+.editor-tools .editor-view-toggle button { border: 0; border-radius: 0; padding: 4px 10px; }
+.editor-tools .editor-view-toggle button + button { border-left: 1px solid var(--line); }
+.editor-tools .editor-view-toggle button[aria-pressed='true'] { background: var(--ink); color: var(--panel); }
+.editor-body { flex: 1; min-height: 0; position: relative; }
+.editor-body > [hidden] { display: none !important; }
+.gene-map-panel { height: 100%; overflow-y: auto; }
+.gene-map-panel .inspector-title { display: none; }
 
 .gene-map-panel h2 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 12px 4px; }
 .gene-map { list-style: none; margin: 0; padding: 0 0 12px; }
@@ -122,6 +129,12 @@ button.gene-head:hover { background: var(--soft); }
   gap: 8px;
 }
 .inspector p { margin: 0; font-size: 12px; }
+.inspector-title { margin: 0; font-size: 14px; font-weight: 600; }
+.inspector-title .locus { color: var(--muted); font-weight: 400; margin-right: 2px; }
+.inspector { --g: var(--g-form); }
+.inspector[data-group='pigment'] { --g: var(--g-pigment); }
+.inspector[data-group='seed'] { --g: var(--g-seed); }
+.inspector-close { margin-left: auto; }
 .inspector .parameter { font-size: 13px; }
 .inspector-controls { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: 8px; align-items: center; }
 .inspector-controls input[type='range'] { width: 100%; accent-color: var(--g); }
@@ -143,6 +156,71 @@ button.gene-head:hover { background: var(--soft); }
 .inspector .notes { color: var(--ink); }
 .inspector .designed-tag { font-size: 11px; color: var(--g); font-weight: 600; }
 .inspector-actions { display: flex; gap: 6px; }
+
+/* Helix editor: its own canvas, with labels, tooltip and the inspector drawn over it. */
+.helix-view { height: 100%; display: flex; flex-direction: column; }
+.helix-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 6px 12px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--soft); }
+.legend-row { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.legend-base, .legend-group { display: inline-flex; align-items: center; gap: 4px; }
+.legend-base { font: 600 11px/1 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--ink); }
+.swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend-group .swatch { width: 14px; height: 4px; border-radius: 2px; }
+.helix-area { position: relative; flex: 1; min-height: 0; overflow: hidden; outline: none; }
+.helix-area:focus-visible { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+.helix-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.helix-labels { position: absolute; top: 0; right: 0; height: 0; pointer-events: none; }
+.helix-label {
+  --g: var(--g-form);
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: 100%;
+  padding: 1px 6px 1px 5px;
+  border: 0;
+  border-left: 3px solid var(--g);
+  border-radius: 0 3px 3px 0;
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+}
+button.helix-label { cursor: pointer; }
+button.helix-label:hover { background: var(--soft); }
+.helix-label .locus { color: var(--muted); font-size: 11px; }
+.helix-label.fixed { color: var(--muted); }
+.helix-label.focused { background: color-mix(in srgb, var(--g) 14%, white); font-weight: 600; }
+.helix-label.locked::after { content: ' · locked'; color: var(--muted); font-weight: 400; }
+.helix-label[hidden] { display: none; }
+.helix-label[data-group='header'] { --g: var(--g-header); }
+.helix-label[data-group='checksum'] { --g: #5c5c5c; }
+.helix-label[data-group='pigment'] { --g: var(--g-pigment); }
+.helix-label[data-group='seed'] { --g: var(--g-seed); }
+.helix-leader { position: absolute; height: 2px; margin-top: -1px; opacity: 0.7; pointer-events: none; }
+.helix-leader[hidden], .helix-inspector[hidden], .helix-tooltip[hidden] { display: none; }
+.helix-inspector { position: absolute; right: 8px; max-height: calc(100% - 20px); overflow-y: auto; z-index: 2; }
+.helix-inspector .inspector { margin: 0; box-shadow: 0 2px 10px rgb(0 0 0 / 0.12); }
+.helix-inspector .inspector-controls { grid-template-columns: 96px minmax(0, 1fr); }
+.helix-inspector .inspector-controls input[type='range'] { grid-column: 1 / -1; }
+.helix-inspector .field-unit { max-width: none; }
+.helix-inspector .inspector-actions { flex-wrap: wrap; }
+.helix-tooltip {
+  position: absolute;
+  z-index: 3;
+  max-width: 260px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  font-size: 12px;
+  white-space: pre-line;
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+}
+.helix-status { margin: 0; padding: 6px 12px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--soft); min-height: 2.6em; }
 
 .stage { grid-area: stage; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 .stage-canvas { position: absolute; inset: 0; }

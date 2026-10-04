@@ -1,25 +1,23 @@
 import {
   CHECKSUM_START,
   decodeGenome,
-  decodeValue,
   geneAt,
   geneBases,
-  geneSpan,
   geneTable,
   rawMax,
-  readGene,
   type DecodedGenome,
   type GeneDef,
   type SpeciesId,
 } from '../genome';
 import type { Editor } from './editor';
-import { fieldUnit, formatValue, geneNotes, GROUP_NAMES, referenceOf, SPECIES_NAMES } from './gene-info';
+import { formatValue, GROUP_NAMES, SPECIES_NAMES } from './gene-info';
+import { Inspector } from './inspector';
 import { button, el } from './shell';
 
 // The linear gene map (spec section 5): all 24 genes in locus order, grouped as form, pigment and
 // seed, with the header and checksum shown but not editable (clarification 10). Clicking a gene
-// focuses it and opens the inspector beneath it. Everything is drawn from the editor state and
-// updated in place, so a slider keeps working while it is dragged.
+// focuses it and opens the inspector (inspector.ts) beneath it. Everything is drawn from the editor
+// state and updated in place, so a slider keeps working while it is dragged.
 
 interface Row {
   def: GeneDef;
@@ -30,20 +28,6 @@ interface Row {
   lock: HTMLElement;
 }
 
-interface InspectorParts {
-  locus: number;
-  root: HTMLElement;
-  inUse: HTMLElement;
-  slider: HTMLInputElement;
-  field: HTMLInputElement;
-  fieldUnit: HTMLElement;
-  bases: HTMLButtonElement[];
-  raw: HTMLElement;
-  notes: HTMLElement;
-  randomise: HTMLButtonElement;
-  lock: HTMLButtonElement;
-}
-
 export class GeneMap {
   readonly element: HTMLElement;
   private readonly list: HTMLOListElement;
@@ -52,8 +36,7 @@ export class GeneMap {
   private headerNote!: HTMLElement;
   private checksumBases!: HTMLElement;
   private species: SpeciesId | null = null;
-  private inspector: InspectorParts | null = null;
-  private gesture = 0;
+  private inspector: Inspector | null = null;
 
   constructor(private readonly editor: Editor) {
     this.list = el('ol', { className: 'gene-map' });
@@ -61,6 +44,11 @@ export class GeneMap {
     this.element.setAttribute('aria-label', 'Gene map');
     editor.subscribe(() => this.refresh());
     this.refresh();
+  }
+
+  /** Scrolls the focused gene into view (when the map is shown again). */
+  reveal(): void {
+    this.inspector?.root.closest('li')?.scrollIntoView({ block: 'nearest' });
   }
 
   private refresh(): void {
@@ -142,117 +130,11 @@ export class GeneMap {
     const row = this.rows[focus - 1];
     if (!row) return;
     if (!this.inspector) {
-      this.inspector = this.buildInspector(row.def);
+      this.inspector = new Inspector(this.editor, row.def);
       row.item.append(this.inspector.root);
-      row.item.scrollIntoView({ block: 'nearest' });
+      if (this.element.isConnected && this.element.offsetParent !== null) row.item.scrollIntoView({ block: 'nearest' });
     }
-    this.fillInspector(this.inspector, row.def, decoded);
-  }
-
-  private buildInspector(def: GeneDef): InspectorParts {
-    const editor = this.editor;
-    const locus = def.locus;
-    const max = rawMax(def);
-    const id = `gene-${locus}`;
-
-    const inUse = el('strong');
-    const parameter = el('p', { className: 'parameter' }, `${def.parameter}: `, inUse);
-
-    const slider = el('input', { type: 'range', min: '0', max: String(max), step: '1', id: `${id}-slider` });
-    slider.setAttribute('aria-label', `${def.name} slider`);
-    slider.addEventListener('input', () => editor.setGene(locus, Number(slider.value), `slider-${this.gesture}`));
-    slider.addEventListener('change', () => this.gesture++);
-
-    const { scale } = fieldUnit(def);
-    const field = el('input', { type: 'number', step: 'any', id: `${id}-field` });
-    field.setAttribute('aria-label', `${def.name} exact value`);
-    if (def.kind !== 'seed') {
-      field.min = String(def.min * scale);
-      field.max = String(def.max * scale);
-    }
-    if (def.kind === 'int' || def.kind === 'choice' || def.kind === 'seed') field.step = '1';
-    const commitField = (): void => {
-      const typed = Number(field.value);
-      if (field.value.trim() === '' || !Number.isFinite(typed)) return;
-      editor.setModelValue(locus, typed / scale);
-      // A value that lands on the same gene value leaves the code unchanged; show it as stored.
-      this.fillInspector(this.inspector!, def, decodeGenome(editor.code), true);
-    };
-    field.addEventListener('change', commitField);
-    field.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') commitField();
-    });
-    const unit = el('span', { className: 'field-unit' });
-    const controls = el('div', { className: 'inspector-controls' }, slider, field, unit);
-
-    const { start, length } = geneSpan(locus);
-    const bases = Array.from({ length }, (_, i) => {
-      const position = start + i + 1;
-      const b = button('', { className: 'base' });
-      b.dataset.position = String(position);
-      b.title = `Base ${position}: click to cycle A, C, G, T, or type a letter`;
-      b.addEventListener('click', () => editor.cycleBase(position));
-      b.addEventListener('keydown', (e) => {
-        if (/^[acgt]$/i.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
-          e.preventDefault();
-          editor.setBase(position, e.key);
-          bases[Math.min(i + 1, length - 1)]?.focus();
-        } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-          e.preventDefault();
-          bases[Math.max(0, Math.min(length - 1, i + (e.key === 'ArrowRight' ? 1 : -1)))]?.focus();
-        }
-      });
-      return b;
-    });
-    const baseRow = el('div', { className: 'base-edit' }, ...bases);
-    baseRow.setAttribute('role', 'group');
-    baseRow.setAttribute('aria-label', `${def.name} bases`);
-
-    const raw = el('p', { className: 'raw' });
-    const notes = el('p', { className: 'notes' });
-    const description = el('p', { className: 'description', textContent: def.description });
-    const reference = el('p', { className: 'reference' }, el('span', { className: 'label', textContent: 'Reference: ' }), referenceOf(def));
-    const tag = def.designed ? el('p', { className: 'designed-tag', textContent: 'Designed, not from a published model' }) : '';
-
-    const randomise = button('Randomise gene');
-    randomise.addEventListener('click', () => editor.randomiseGene(locus));
-    const lock = button('Lock');
-    lock.addEventListener('click', () => editor.toggleLock(locus));
-    const actions = el('div', { className: 'inspector-actions' }, randomise, lock);
-
-    const root = el('section', { className: 'inspector' }, parameter, controls, baseRow, raw, notes, description, reference, tag, actions);
-    root.setAttribute('aria-label', `Inspector: ${def.name}`);
-    return { locus, root, inUse, slider, field, fieldUnit: unit, bases, raw, notes, randomise, lock };
-  }
-
-  private fillInspector(parts: InspectorParts, def: GeneDef, decoded: DecodedGenome, rewriteField = false): void {
-    const code = this.editor.code;
-    const raw = readGene(code, def.locus);
-    parts.inUse.textContent = formatValue(def, decoded.values[def.locus - 1] ?? 0);
-    if (parts.slider.value !== String(raw)) parts.slider.value = String(raw);
-    // Leave the number field alone while it is being typed in.
-    if (rewriteField || document.activeElement !== parts.field) {
-      const { scale } = fieldUnit(def);
-      const model = decodeValue(def, raw);
-      parts.field.value = def.kind === 'seed' || def.kind === 'int' || def.kind === 'choice' ? String(model) : String(Number((model * scale).toPrecision(6)));
-    }
-    parts.fieldUnit.textContent = def.kind === 'choice' ? formatValue(def, decodeValue(def, raw)) : fieldUnit(def).unit;
-    const { start } = geneSpan(def.locus);
-    parts.bases.forEach((b, i) => {
-      const base = code.charAt(start + i);
-      b.textContent = base;
-      b.dataset.base = base;
-    });
-    parts.raw.textContent = `Gene value ${raw.toLocaleString('en-GB')} of ${rawMax(def).toLocaleString('en-GB')}`;
-    const notes = geneNotes(decoded, def.locus);
-    parts.notes.textContent = notes.join(' ');
-    parts.notes.hidden = notes.length === 0;
-    const locked = this.editor.isLocked(def.locus);
-    parts.lock.textContent = locked ? 'Unlock' : 'Lock';
-    parts.lock.setAttribute('aria-pressed', String(locked));
-    parts.lock.title = locked ? 'Let randomise-all change this gene again' : 'Keep this gene when randomising all';
-    parts.randomise.disabled = locked;
-    parts.randomise.title = locked ? 'Unlock this gene to randomise it' : 'Give this gene a new random value';
+    this.inspector.fill(false, decoded);
   }
 }
 

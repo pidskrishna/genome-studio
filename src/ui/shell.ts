@@ -3,8 +3,8 @@ import { SPECIES_NAMES } from './gene-info';
 import type { ProgressView } from './studio';
 
 // The page layout from spec section 6, in plain styling: top bar, helix column on the left (holding
-// the editor buttons and, until the helix editor is built, the gene map), stage on the right and code
-// bar along the bottom.
+// the editor buttons, the helix and, behind a toggle, the gene map), stage on the right and code bar
+// along the bottom.
 
 export interface Shell {
   root: HTMLElement;
@@ -17,7 +17,9 @@ export interface Shell {
     undo: HTMLButtonElement;
     redo: HTMLButtonElement;
   };
-  /** Holds the gene map. */
+  /** Switches the editor between the helix (the default) and the gene map. */
+  editorViews: { helix: HTMLButtonElement; map: HTMLButtonElement };
+  /** Holds the helix and the gene map. */
   editorBody: HTMLElement;
   /** Holds the code bar. */
   codeBar: HTMLElement;
@@ -66,7 +68,13 @@ export function buildShell(parent: HTMLElement): Shell {
     undo: button('Undo'),
     redo: button('Redo'),
   };
-  const toolbar = el('div', { className: 'editor-tools' }, tools.randomiseAll, tools.wildType, tools.undo, tools.redo);
+  const editorViews = {
+    helix: button('Helix', { title: 'Edit on the double helix' }),
+    map: button('Gene map', { title: 'A flat list of all 24 genes, for precise work' }),
+  };
+  const viewToggle = segmented('Editor view', editorViews.helix, editorViews.map);
+  viewToggle.classList.add('editor-view-toggle');
+  const toolbar = el('div', { className: 'editor-tools' }, tools.randomiseAll, tools.wildType, tools.undo, tools.redo, viewToggle);
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Genome');
   const editorBody = el('div', { className: 'editor-body' });
@@ -108,6 +116,7 @@ export function buildShell(parent: HTMLElement): Shell {
     viewButtons: { '3d': view3d, flat: viewFlat },
     speciesButtons: { A: speciesA, B: speciesB },
     tools,
+    editorViews,
     editorBody,
     codeBar,
     progress,
