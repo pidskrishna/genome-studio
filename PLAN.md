@@ -63,7 +63,7 @@ Checks:
 
 ## Milestone 4: species B simulation core, disc (spec section 4)
 
-- [ ] Done
+- [x] Done
 
 Build: the growing triangle mesh in the worker for the disc body plan: grow, relax (stable under every stiffness and thickness), divide, the repulsion grid, maturity by area multiple with the 40,000-vertex cap (clarification 1), distance from margin measured on the starting shape (clarification 7), and the gradient-driver attributes per vertex. No rendering.
 
