@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { wildType, withChecksum } from '../../src/genome';
+import { geneTable, readGene, wildType, withChecksum, writeGene, type SpeciesId } from '../../src/genome';
 import type { Organism, ViewMode } from '../../src/render/stage';
 import type { FromWorker, ToWorker } from '../../src/sim/protocol';
 import { SimClient, type Connect } from '../../src/ui/sim-client';
@@ -155,5 +155,64 @@ describe('view toggle', () => {
     t.studio.setView('3d');
     expect(t.views).toEqual(['flat', '3d']);
     expect(t.studio.view).toBe('3d');
+  });
+});
+
+describe('which edits regrow', () => {
+  const runs = (t: ReturnType<typeof setup>) => t.posted.filter((p) => p.type === 'run').length;
+  const other = (code: string, locus: number) => (readGene(code, locus) + 1) % 4096;
+
+  async function grown(species: SpeciesId) {
+    const t = setup();
+    const done = t.studio.update(wildType(species));
+    t.finish(species === 'A' ? wildA() : wildB());
+    expect((await done).status).toBe('grown');
+    return t;
+  }
+
+  it('changing any pigment gene does not start a simulation run', async () => {
+    for (const species of ['A', 'B'] as const) {
+      const t = await grown(species);
+      for (const def of geneTable(species).filter((g) => g.group === 'pigment')) {
+        const code = writeGene(t.studio.code!, def.locus, other(t.studio.code!, def.locus));
+        expect(await t.studio.update(code)).toEqual({ status: 'unchanged' });
+        expect(t.studio.code).toBe(code);
+      }
+      expect(runs(t)).toBe(1);
+      expect(t.progress.history).toEqual(['show 0', 'hide']);
+      expect(t.shown).toHaveLength(1);
+    }
+  });
+
+  it('changing any form gene or the seed regrows', async () => {
+    for (const species of ['A', 'B'] as const) {
+      const t = await grown(species);
+      let expected = 1;
+      for (const def of geneTable(species).filter((g) => g.group !== 'pigment')) {
+        const max = def.kind === 'seed' ? 16_777_215 : 4095;
+        const code = writeGene(wildType(species), def.locus, (readGene(wildType(species), def.locus) + 1) % (max + 1));
+        void t.studio.update(code);
+        expected++;
+        expect(runs(t)).toBe(expected);
+        expect(t.lastRun().job.input).toEqual({ code });
+      }
+    }
+  });
+
+  it('switching species regrows', async () => {
+    const t = await grown('A');
+    void t.studio.update(wildType('B'));
+    expect(t.lastRun().job).toEqual({ kind: 'speciesB', input: { code: wildType('B') } });
+  });
+
+  it('a pigment edit made during a regrow does not restart it, and the latest code is kept', async () => {
+    const t = setup();
+    const done = t.studio.update(wildType('A'));
+    const pigmented = writeGene(wildType('A'), 16, other(wildType('A'), 16));
+    expect(await t.studio.update(pigmented)).toEqual({ status: 'unchanged' });
+    expect(runs(t)).toBe(1);
+    t.finish(wildA());
+    expect(await done).toMatchObject({ status: 'grown', code: pigmented });
+    expect(t.studio.code).toBe(pigmented);
   });
 });

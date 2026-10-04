@@ -187,3 +187,18 @@ export function writeModelValue(code: string, locus: number, model: number): str
   if (species === null) throw new Error('Code has no valid species header');
   return writeGene(code, locus, encodeValue(geneAt(species, locus), model));
 }
+
+/**
+ * The part of a code the simulation reads: the header, the form genes and the seed. Two codes with
+ * the same key grow the same geometry, so a change that keeps the key (a pigment gene, or the
+ * checksum that follows it) never needs a regrow.
+ */
+export function formKey(code: string): string {
+  const species = speciesOfHeader(code);
+  if (species === null) throw new Error('Code has no valid species header');
+  let key = code.slice(0, 6);
+  for (const def of geneTable(species)) {
+    if (def.group !== 'pigment') key += geneBases(code, def.locus);
+  }
+  return key;
+}

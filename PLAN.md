@@ -101,7 +101,7 @@ Checks:
 
 ## Milestone 7: editor state, code bar and gene map (spec section 5)
 
-- [ ] Done
+- [x] Done
 
 Build: the editor state (focus, randomise all, randomise one, lock, wild type, undo and redo, species switch), the code bar with copy and paste, the linear gene map, and the inspector as plain DOM. This replaces the temporary paste box. Layout as in spec section 6, plain styling for now.
 
