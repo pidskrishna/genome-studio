@@ -3,7 +3,7 @@
 ## Status
 - Milestones 0–4 and 6 done. Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). Next: milestone 7.
 - The owner's milestone 6 prompt put the helix in section 5 work and glass in "milestone 7"; PLAN.md has the helix in 8 and glass in 10. I followed PLAN.md.
-- Owner still to do: the cross-browser hash check on `dev/species-a.html` and `dev/species-b.html` (run `npm run dev`).
+- Cross-browser hash check: on 4 October 2026 the owner confirmed both wild-type hashes match in Safari, Chrome and Firefox on one machine. Spec section 12 also needs a second machine (milestone 13).
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`.
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
