@@ -89,7 +89,7 @@ Checks:
 
 ## Milestone 6: stage (spec sections 6 and 7)
 
-- [ ] Done
+- [x] Done
 
 Build: the Three.js stage showing species A as tubes and species B as a surface with thickness (drawn thickness as in clarification 14), in the glossy look only. Also the flat and 3D view toggle, orbit and zoom, a minimal progress indicator, and a temporary text box for pasting a code. The renderer can draw any sub-rectangle of a larger virtual image, ready for tiled export.
 

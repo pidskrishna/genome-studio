@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stage tile check</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body { font: 15px/1.5 system-ui, sans-serif; margin: 2rem; color: #111; background: #fff; }
+      h1 { font-size: 1.3rem; }
+      #stage { width: 400px; height: 300px; position: relative; }
+      table { border-collapse: collapse; margin-top: 1rem; }
+      td, th { border: 1px solid #ccc; padding: 4px 8px; text-align: left; font-variant-numeric: tabular-nums; }
+      .match { color: #0a6b2d; font-weight: 600; }
+      .mismatch { color: #b00020; font-weight: 600; }
+      .pair { display: flex; gap: 8px; margin-top: 8px; }
+      .pair canvas { width: 320px; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <h1>Stage tile check</h1>
+    <p>For each species' wild type in both views, draws an 800 × 600 frame whole and as four sub-rectangles (2 × 2), stitches the tiles and compares every pixel. The two images are shown whole (left) and stitched (right).</p>
+    <p id="tolerance"></p>
+    <div id="stage"></div>
+    <p id="status">Growing…</p>
+    <table><thead><tr><th>Species</th><th>View</th><th>Differing pixels</th><th>Of those, on a seam</th><th>Largest channel difference</th><th>Result</th></tr></thead><tbody id="rows"></tbody></table>
+    <div id="images"></div>
+    <script type="module" src="./stage-tiles.ts"></script>
+  </body>
+</html>
