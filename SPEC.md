@@ -207,9 +207,9 @@ Implement Raup's model as a sweep:
 - D sets the distance from the axis: the ratio of the curve's inner edge distance to its outer edge distance from the axis.
 - T sets the translation along the axis: the curve's centre moves along the axis by T times its distance from the axis.
 - Growth runs in fixed angular steps. Each step adds one ring of vertices around the curve, joined to the last ring by triangles. The first ring is closed with a small cap, the embryonic shell.
-- Ornament changes the curve's outline before it is placed: ribs are bulges repeated along the growth direction, cords are bulges repeated around the curve, and nodules are extra height where the two cross.
+- Ornament displaces the surface along its normal, by an amount proportional to the curve's current size (Fowler et al., section 2.5): ribs are bulges repeated along the growth direction, cords are bulges repeated around the curve, and nodules are extra height where the two cross.
 - The aperture flare widens the curve over the last part of the final whorl.
-- The edge pattern (gradient driver choice 4) is Meinhardt and Klingler's activator–inhibitor model run along the generating curve, advanced one growth step at a time, so each ring records the pattern at the moment it was laid down. Its constants are constants of the encoding version and its starting noise comes from the seed. Pattern genes are not in v0.2 (section 11).
+- The edge pattern (gradient driver choice 4) is Meinhardt's activator–substrate model (Fowler et al., eq. 8), with the constants of their figure 11, which give stable stripes along the growth direction: ρ = 0.01 ± 2.5% (the random variation per cell comes from the seed), κ = 0, ρ0 = 0.001, μ = 0.01, Da = 0.002, σ = 0.015, ν = 0, Ds = 0.4. It runs on cells evenly spaced along the generating curve by the forward Euler method, a fixed number of steps per growth step, so each ring records the pattern at the moment it was laid down. These are constants of the encoding version. Pattern genes, and the activator–inhibitor model with a global hormone that gives travelling waves (Fowler et al., eq. 9), are not in v0.2 (section 11).
 
 | Locus | Gene | Model parameter | Range | Basis |
 | --- | --- | --- | --- | --- |
@@ -219,11 +219,11 @@ Implement Raup's model as a sweep:
 | 4 | Aperture shape | S, height to width of the generating curve | 0.25 to 4, log | Raup 1966 |
 | 5 | Aperture tilt | Angle of the generating curve's plane to the axis | −60° to +60° | Fowler et al. 1992 |
 | 6 | Handedness | Coiling direction: right (dextral) or left (sinistral) | 2 choices | Raup 1966 |
-| 7 | Rib count | Ribs per turn | 0 to 40 | Designed extension |
-| 8 | Rib height | Height of each rib | 0 to 40% of the curve's radius | Designed extension |
+| 7 | Rib count | Ribs per turn | 0 to 40 | Fowler et al. 1992 |
+| 8 | Rib height | Height of each rib | 0 to 40% of the curve's radius | Fowler et al. 1992 |
 | 9 | Rib width | Width of each rib | 5% to 50% of the rib spacing | Designed extension |
-| 10 | Cord count | Cords around the curve | 0 to 32 | Designed extension |
-| 11 | Cord height | Height of each cord | 0 to 20% of the curve's radius | Designed extension |
+| 10 | Cord count | Cords around the curve | 0 to 32 | Fowler et al. 1992 |
+| 11 | Cord height | Height of each cord | 0 to 20% of the curve's radius | Fowler et al. 1992 |
 | 12 | Nodules | Extra height where ribs and cords cross | 0 to 1 | Designed extension |
 | 13 | Aperture flare | How far the lip widens over the last part of the final whorl | 0 to 1 | Designed extension |
 | 14 | Wall thickness | Drawn thickness of the shell wall | 1% to 20% of the curve's radius, log | Designed |
@@ -237,7 +237,7 @@ For locus 20, the gradient driver choices are: growth lines (the step a ring was
 
 **Overlapping whorls.** When the distance from the axis is small, each whorl wraps the one before, as in real shells, and the surface passes through itself where they meet. This is expected; species B's rule against passing through itself does not apply.
 
-**Accuracy limits.** Raup's model describes the geometry of coiling, not the biology of the mantle that builds it. Ornament and growth irregularity are designed. The edge pattern uses one fixed set of the published model's constants, so it shows the mechanism, not the range of patterns real shells have.
+**Accuracy limits.** Raup's model describes the geometry of coiling, not the biology of the mantle that builds it. Ribs and cords follow Fowler et al.; rib width, nodules, the aperture flare and growth irregularity are designed. The edge pattern uses one fixed set of the published model's constants, so it shows the mechanism, not the range of patterns real shells have.
 
 ## 5. Helix interface
 
@@ -381,8 +381,9 @@ The tool is accurate at the level of its growth models and openly a designed abs
 | Organ arrangement (v0.2) | Published model, implemented as written | Douady and Couder 1996; Snow and Snow's rule |
 | Receptacles and organ shapes (v0.2) | Designed geometry, after a published method | Prusinkiewicz and Lindenmayer 1990, chapter 4 |
 | Shell coiling (v0.2) | Published geometric model, implemented as written | Raup and Michelson 1965; Raup 1966; Fowler, Meinhardt and Prusinkiewicz 1992 |
-| Shell edge pattern (v0.2) | Published mechanism, fixed constants | Meinhardt and Klingler 1987 |
-| Shell ornament and growth irregularity (v0.2) | Designed extension | Added for visual range |
+| Shell edge pattern (v0.2) | Published mechanism, fixed constants | Meinhardt and Klingler 1987; Fowler, Meinhardt and Prusinkiewicz 1992 |
+| Shell ribs and cords (v0.2) | Published method | Fowler, Meinhardt and Prusinkiewicz 1992 |
+| Shell rib width, nodules, flare and growth irregularity (v0.2) | Designed extension | Added for visual range |
 | Helix geometry and base pairing | Textbook structure of B-form DNA | Standard molecular biology |
 | Genome to parameter mapping | Designed abstraction | Real genes do not encode model parameters directly. The code is an addressing scheme, not a model of gene expression. |
 | Genes marked "designed" in the gene tables | Designed extension | Added for visual range; labelled as such in the app |
@@ -400,7 +401,7 @@ Do not build these. Keep the listed hooks so they can be added later.
 | Breeding: mutation, crossover, selection | Every code is viable and genes sit at fixed loci. |
 | Controllable environment | The environment is a set of named constants in one place. |
 | More species | The 3-base species field allows 64; A to D use four. Two candidates are noted below. |
-| Shell pattern genes (species D) | The edge pattern's constants sit in one place. As genes they would be form genes, because the pattern is computed in the simulation. |
+| Shell pattern genes and travelling-wave patterns (species D) | The edge pattern's constants sit in one place. As genes they would be form genes, because the pattern is computed in the simulation. Travelling waves need Fowler et al.'s eq. 9, with a global hormone. |
 | Vector export and colour separations | Geometry and pigment data stay available in memory. |
 | 3D model export | Same geometry, written as a mesh file. |
 | Keyboard shortcuts | Every action is a named command. |
@@ -478,3 +479,4 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 21. **Species switch (sections 5 and 6).** The switch offers all four species. Choosing one loads its wild type.
 22. **Species C model check (section 4a).** Added on 19 October 2026 when milestone 15 checked section 4a against Douady and Couder (1996), parts I and II, and chapter 4 of The Algorithmic Beauty of Plants. Approved by the owner: organs appear one at a time at the lowest inhibition, re-evaluated at once, rather than at every local minimum; distances use the paper's cone distance with a conicity set by the body plan; locus 2 is the paper's Γ (eq. 7), range 0.1 to 2, so heads can reach sunflower-like spiral counts; locus 4 runs 3 to 17, the paper's range of stiffness; organ width and curl are marked designed; and the rule is credited to Snow and Snow as well as Hofmeister.
 23. **Species C growth over time (section 4a).** Added on 19 October 2026, approved by the owner during milestone 15. With Γ constant from the starting organs, the model mostly settles into alternating or disordered arrangements; Douady and Couder reach spirals and pairs only through a realistic history of Γ (part III). Γ therefore falls by part III's eq. 1 from Γi (2.4, or 1.8 sin(π / k) for k ≥ 2 starting organs) to the gene's value, with t1 = 6 and τ = 3, and growth runs to t = 20 instead of stopping at an outer radius.
+24. **Species D model check (section 4b).** Added on 19 October 2026 when milestone 16 checked section 4b against Fowler, Meinhardt and Prusinkiewicz (1992); Raup (1966) is not freely available, and his parameters were checked through that paper and secondary sources. Approved by the owner: the edge pattern is the activator–substrate model with Fowler et al.'s figure 11 constants, not the activator–inhibitor model; ornament displaces the surface along its normal in proportion to the curve's size; ribs and cords (loci 7, 8, 10 and 11) are credited to Fowler et al.; rib width and nodules stay designed.

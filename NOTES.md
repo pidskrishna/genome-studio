@@ -1,14 +1,14 @@
 # Session notes
 
 ## Status
-- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Milestones 14 and 15 are done; next: milestone 16. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
+- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Milestones 14 to 16 are done; next: milestone 17. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
 - v0.1: every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
 - On 19 October 2026 the owner closed four milestones without their last checks, as good enough or not critical. If any of these is ever wanted, the details are below and in PLAN.md:
   - 5: the full 10,000-genome species B run (`npm run test:slow:b`, about 3 h); 2,000 have passed since the last fixes.
   - 10b: the frame-time check. Chrome was mostly 60 Hz jitter around the 16.7 ms cut-off plus one 300 ms stall; Safari ran at about 28 fps (cause not diagnosed: a 30 fps cap such as Low Power Mode, or a heavy frame). `helix.measureFrames()` reports refresh, missed frames, per-phase p95 and the GPU to diagnose it.
   - 10c: the screenshot comparison against the lab with the pane shown, and a real clipboard copy.
   - 13: spec section 12 items 1 (hash on a second machine) and 2 (species B 10,000); both stay unticked in SPEC.md.
-- Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`; species C wild type `d4155445483dd395` (Node and Chrome, 19 October 2026). On 4 October 2026 the owner confirmed the A and B hashes match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine.
+- Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`; species C wild type `d4155445483dd395`; species D wild type `f28ebaf03093a6d5` (both Node and Chrome, 19 October 2026). On 4 October 2026 the owner confirmed the A and B hashes match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine.
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
 ## Decisions not in SPEC.md
@@ -32,6 +32,16 @@ Species C simulation (`src/sim/speciesC/`, milestone 15)
 - 1,000 random genomes (`npm run test:slow`, the ten speciesC files) all grew soundly on 19 October 2026, in 11.7 minutes with the files in parallel.
 - Timing: wild type 1.3 to 1.8 s in Node and 1.66 s in Chrome (the first run, before the hidden pane throttled later runs to 2 to 10 s). 24 random genomes averaged 2.4 s in Node (median 1.4 s, worst 12 s: a column at Γ 0.12).
 - Dev page: `dev/species-c.html` shows the hash and time and draws the organism with the species B sheet renderer; `?code=` and `?view=flat`.
+
+Species D simulation (`src/sim/speciesD/`, milestone 16)
+- Paper check (19 October 2026): section 4b was checked against Fowler, Meinhardt and Prusinkiewicz (1992); Raup (1966) is not freely available, so W, D, S and T were checked through Fowler and the New Mexico Bureau of Geology's Circular 173. The owner approved four edits (clarification 24): the activator–substrate pattern with Fowler's figure 11 constants, ornament along the surface normal, ribs and cords credited to Fowler, rib width and nodules designed. The figure 11 constants were read from garbled extracted text (ρ 0.01 ± 2.5%, κ 0, ρ0 0.001, μ 0.01, Da 0.002, σ 0.015, ν 0, Ds 0.4); they give stable stripes, as the figure shows.
+- Sweep (`index.ts`): the curve's centre starts at unit distance from the axis; half width (1 − D) / (1 + D), height S × that; scale W^(θ / 2π); centre T × its distance below the apex; the curve's plane holds the radius and the axis, tilted toward the direction of coiling. Growth to 200 × the starting size or 10 whorls. 128 points around the curve, evenly spaced by arc length (Fowler section 2.4); 120 rings per turn, at least 240, at most what the 120,000-vertex cap allows (937). Positions are scaled so the final curve's centre is at distance 1. The first ring is closed by a fan to its centre.
+- Ornament: ribs are cosine bumps of the rib width at whole numbers of ribs per turn; cords are 0.5 (1 + cos) around the curve; nodules add nodules × (rib height + cord height) × rib × cord; the sum, times the mean half axis and the ring's size, moves each point along the surface normal (central differences on the bare surface, turned away from the curve's centre). Flare widens the curve by up to 60% over the last 0.15 turn (smoothstep). Growth irregularity varies each ring's size by up to 4%, smoothed (1, 2, 1) over neighbours (seed stream 1).
+- Pattern (`pattern.ts`): cells are the 128 curve points, wrapping round; start at the steady state a = σ / μ; 8 units of time per ring, each in 4 forward Euler steps. Unit steps (as in the paper) blew up to NaN on about 3% of seeds: with ν = 0 the substrate piles up between stripes and a whole step overshoots the autocatalysis when one ignites. Half steps were already bounded on 300 of 300 seeds (13 to 19 stripes, activator below 10.5). Seed stream 2 varies ρ.
+- Left-handed shells mirror z and reverse every triangle's winding; the winding is chosen to face out of the shell at the middle ring.
+- Drivers: growth lines (ring index), position around the curve (j / 128), ornament relief (in curve radii), edge pattern (activator). Draft job (`speciesDDraft`): half the rings and half the points.
+- Results: Raup checks hold to 1e-9 (W per turn) and 1e-12 (flat coil, closed umbilicus); 1,000 random genomes all sound in 18 s; wild type 0.07 s in Chrome; hash `f28ebaf03093a6d5` in Node and Chrome.
+- Dev page: `dev/species-d.html`, with `?code=` and `?view=flat`.
 
 Genome (`src/genome`)
 - Checksum: odd-weighted sum of digits mod 256, as 4 bases, so any single-base change is caught.

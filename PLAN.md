@@ -3,7 +3,7 @@
 Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
-- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 and 15 done; next: milestone 16.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 16 done; next: milestone 17.
 
 # v0.1
 
@@ -250,7 +250,7 @@ Checks:
 
 ## Milestone 16: species D simulation (spec section 4b)
 
-- [ ] Done
+- [x] Done
 
 First: check every model statement in section 4b against Raup (1966), Fowler, Meinhardt and Prusinkiewicz (1992), and Meinhardt and Klingler (1987). Where they differ, stop and propose the spec edit (clarification 18).
 
@@ -262,7 +262,7 @@ Checks:
 - With ornament, flare and irregularity off: the generating curve's size grows by W per turn within 1e-9 relative error; a translation of 0 puts every whorl centre in one plane; distance from axis 0 closes the umbilicus.
 - The left-handed shell is the right-handed one mirrored, vertex for vertex.
 - The vertex count never exceeds 120,000 and no triangle has zero area, including at the cap and at high whorl expansion.
-- The edge pattern is not uniform on the wild type, and changes with the seed.
+- The edge pattern forms stripes along the growth direction on the wild type (it is not uniform around the curve), and changes with the seed.
 - Every vertex carries all four gradient-driver attributes, with no NaN.
 - Speed benchmark (in the browser): wild type reaches maturity in under 10 seconds.
 

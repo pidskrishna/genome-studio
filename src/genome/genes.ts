@@ -111,6 +111,7 @@ export const SPECIES_B_GENES: readonly GeneDef[] = table([
 const PL_1990 = 'Prusinkiewicz and Lindenmayer 1990';
 const DC_1996 = 'Douady and Couder 1996';
 const RAUP_1966 = 'Raup 1966';
+const FOWLER_1992 = 'Fowler et al. 1992';
 
 export const SPECIES_C_GENES: readonly GeneDef[] = table([
   { locus: 1, id: 'bodyPlan', name: 'Body plan', kind: 'choice', min: 0, max: 3, unit: '', parameter: 'Receptacle: head (a disc), dome, cone, or column', basis: `${PL_1990} (receptacle is an input)`, choices: ['Head', 'Dome', 'Cone', 'Column'], description: 'Chooses the shape of the receptacle the organs grow on.' },
@@ -139,11 +140,11 @@ export const SPECIES_D_GENES: readonly GeneDef[] = table([
   { locus: 4, id: 'apertureShape', name: 'Aperture shape', kind: 'log', min: 0.25, max: 4, unit: 'height to width', parameter: 'S, height to width of the generating curve', basis: RAUP_1966, description: 'Sets the shape of the opening, from wide and low to tall and narrow.' },
   { locus: 5, id: 'apertureTilt', name: 'Aperture tilt', kind: 'linear', min: -60, max: 60, unit: '°', parameter: 'Angle of the generating curve\'s plane to the axis', basis: 'Fowler et al. 1992', description: 'Tilts the opening against the coiling axis.' },
   { locus: 6, id: 'handedness', name: 'Handedness', kind: 'choice', min: 0, max: 1, unit: '', parameter: 'Coiling direction: right (dextral) or left (sinistral)', basis: RAUP_1966, choices: ['Right', 'Left'], description: 'Chooses whether the shell coils to the right or to the left.' },
-  { locus: 7, id: 'ribCount', name: 'Rib count', kind: 'int', min: 0, max: 40, unit: 'per turn', parameter: 'Ribs per turn', basis: 'Designed extension', description: 'Sets how many ribs cross each turn of the shell.' },
-  { locus: 8, id: 'ribHeight', name: 'Rib height', kind: 'linear', min: 0, max: 0.4, unit: 'curve radius', parameter: 'Height of each rib', basis: 'Designed extension', description: 'Sets how far each rib stands out from the shell.' },
+  { locus: 7, id: 'ribCount', name: 'Rib count', kind: 'int', min: 0, max: 40, unit: 'per turn', parameter: 'Ribs per turn', basis: FOWLER_1992, description: 'Sets how many ribs cross each turn of the shell.' },
+  { locus: 8, id: 'ribHeight', name: 'Rib height', kind: 'linear', min: 0, max: 0.4, unit: 'curve radius', parameter: 'Height of each rib', basis: FOWLER_1992, description: 'Sets how far each rib stands out from the shell.' },
   { locus: 9, id: 'ribWidth', name: 'Rib width', kind: 'linear', min: 0.05, max: 0.5, unit: 'rib spacing', parameter: 'Width of each rib', basis: 'Designed extension', description: 'Sets how wide each rib is, as a fraction of the gap between ribs.' },
-  { locus: 10, id: 'cordCount', name: 'Cord count', kind: 'int', min: 0, max: 32, unit: 'cords', parameter: 'Cords around the curve', basis: 'Designed extension', description: 'Sets how many cords run along the shell, around the opening.' },
-  { locus: 11, id: 'cordHeight', name: 'Cord height', kind: 'linear', min: 0, max: 0.2, unit: 'curve radius', parameter: 'Height of each cord', basis: 'Designed extension', description: 'Sets how far each cord stands out from the shell.' },
+  { locus: 10, id: 'cordCount', name: 'Cord count', kind: 'int', min: 0, max: 32, unit: 'cords', parameter: 'Cords around the curve', basis: FOWLER_1992, description: 'Sets how many cords run along the shell, around the opening.' },
+  { locus: 11, id: 'cordHeight', name: 'Cord height', kind: 'linear', min: 0, max: 0.2, unit: 'curve radius', parameter: 'Height of each cord', basis: FOWLER_1992, description: 'Sets how far each cord stands out from the shell.' },
   { locus: 12, id: 'nodules', name: 'Nodules', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'Extra height where ribs and cords cross', basis: 'Designed extension', description: 'Raises knobs where ribs and cords cross.' },
   { locus: 13, id: 'apertureFlare', name: 'Aperture flare', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'How far the lip widens over the last part of the final whorl', basis: 'Designed extension', description: 'Widens the lip of the opening over the end of the last whorl.' },
   { locus: 14, id: 'wallThickness', name: 'Wall thickness', kind: 'log', min: 0.01, max: 0.2, unit: 'curve radius', parameter: 'Drawn thickness of the shell wall', basis: 'Designed', description: 'Sets how thick the shell wall is drawn.' },

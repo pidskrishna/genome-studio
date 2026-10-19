@@ -3,6 +3,7 @@
 import type { BranchGeometry, SpeciesAInput } from './speciesA';
 import type { SheetGeometry, SpeciesBInput } from './speciesB';
 import type { PhylloGeometry, SpeciesCInput } from './speciesC';
+import type { ShellGeometry, SpeciesDInput } from './speciesD';
 
 export interface ProbeInput {
   /** Seed for the generator. */
@@ -21,10 +22,12 @@ export interface JobInputs {
   speciesA: SpeciesAInput;
   speciesB: SpeciesBInput;
   speciesC: SpeciesCInput;
+  speciesD: SpeciesDInput;
   /** The coarse draft shown while a form gene is dragged (clarification 3). */
   speciesADraft: SpeciesAInput;
   speciesBDraft: SpeciesBInput;
   speciesCDraft: SpeciesCInput;
+  speciesDDraft: SpeciesDInput;
 }
 
 /** Output of each job. */
@@ -33,9 +36,11 @@ export interface JobOutputs {
   speciesA: BranchGeometry;
   speciesB: SheetGeometry;
   speciesC: PhylloGeometry;
+  speciesD: ShellGeometry;
   speciesADraft: BranchGeometry;
   speciesBDraft: SheetGeometry;
   speciesCDraft: PhylloGeometry;
+  speciesDDraft: ShellGeometry;
 }
 
 export type JobKind = keyof JobInputs;
