@@ -49,6 +49,8 @@ function latin1(s: string): Uint8Array {
 export interface EncodeOptions {
   /** tEXt metadata, keyword → text. Keywords are 1 to 79 Latin-1 characters. */
   text?: Record<string, string>;
+  /** Print resolution, written as a pHYs chunk (pixels per metre), so print software sizes the page. */
+  dpi?: number;
   /** Rows per compressor write; also lets a caller report progress and yield between batches. */
   rowsPerBatch?: number;
   /** Called with 0 to 1 as rows are compressed; may return a promise to yield. */
@@ -66,6 +68,14 @@ export async function encodePng(image: Pixels, options: EncodeOptions = {}): Pro
   ihdr.set(u32(height), 4);
   ihdr.set([8, 6, 0, 0, 0], 8); // 8-bit, RGBA, deflate, adaptive filtering, no interlace
   const parts: BlobPart[] = [SIGNATURE, ...chunk('IHDR', ihdr)];
+  if (options.dpi) {
+    const ppm = Math.round(options.dpi / 0.0254);
+    const phys = new Uint8Array(9);
+    phys.set(u32(ppm), 0);
+    phys.set(u32(ppm), 4);
+    phys[8] = 1; // unit: metre
+    parts.push(...chunk('pHYs', phys));
+  }
   for (const [key, value] of Object.entries(options.text ?? {})) {
     parts.push(...chunk('tEXt', new Uint8Array([...latin1(key), 0, ...latin1(value)])));
   }
@@ -117,6 +127,8 @@ export interface PngInfo {
   height: number;
   /** tEXt metadata, keyword → text. */
   text: Record<string, string>;
+  /** Print resolution from the pHYs chunk, in dots per inch (rounded), or null. */
+  dpi: number | null;
   /** Every chunk's CRC matched. */
   crcOk: boolean;
 }
@@ -129,6 +141,7 @@ export function readPng(bytes: Uint8Array): PngInfo {
   let width = 0;
   let height = 0;
   let crcOk = true;
+  let dpi: number | null = null;
   const text: Record<string, string> = {};
   const decoder = new TextDecoder('latin1');
   while (p + 12 <= bytes.length) {
@@ -139,11 +152,13 @@ export function readPng(bytes: Uint8Array): PngInfo {
     if (type === 'IHDR') {
       width = view.getUint32(p + 8);
       height = view.getUint32(p + 12);
+    } else if (type === 'pHYs' && data[8] === 1) {
+      dpi = Math.round(view.getUint32(p + 8) * 0.0254);
     } else if (type === 'tEXt') {
       const zero = data.indexOf(0);
       text[decoder.decode(data.subarray(0, zero))] = decoder.decode(data.subarray(zero + 1));
     } else if (type === 'IEND') break;
     p += 12 + length;
   }
-  return { width, height, text, crcOk };
+  return { width, height, text, dpi, crcOk };
 }

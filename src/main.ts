@@ -15,6 +15,7 @@ import { SimClient } from './ui/sim-client';
 import { Studio } from './ui/studio';
 import { Tray } from './ui/tray';
 import { ExportDialog } from './ui/export-dialog';
+import { MethodsPage } from './ui/methods-page';
 import { applyMotionTokens, motion, onReducedMotionChange } from './ui/motion';
 import { exposure, installButtonPress, installCursorLight, installFocusBrackets, Reticle } from './ui/surface';
 import { applyLook, applyPigmentHues } from './ui/theme';
@@ -123,6 +124,10 @@ const exportDialog = new ExportDialog({
   hash: () => studio.hash,
 });
 shell.exportButton.addEventListener('click', () => exportDialog.open());
+
+// The Methods page (spec section 10), with the hash of the organism on the stage.
+const methodsPage = new MethodsPage({ current: () => (studio.code && studio.hash ? { code: studio.code, hash: studio.hash } : null) });
+shell.methodsButton.addEventListener('click', () => methodsPage.open());
 
 /** A small picture of the organism now on the stage, for the tray (the look and background as shown). */
 function thumbnail(): string {
@@ -292,4 +297,4 @@ refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, tray, exportDialog, motion, applyMotionTokens, exportReady: () => exportDialog.ready });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, tray, exportDialog, methodsPage, motion, applyMotionTokens, exportReady: () => exportDialog.ready });

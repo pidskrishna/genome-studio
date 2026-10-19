@@ -74,6 +74,7 @@ export async function exportPng(stage: Stage, r: ExportRequest, onProgress?: Pro
       Software: 'Genome studio',
       Description: `${specimenName(r.code).full}, grown from the genome code ${r.code}`,
     },
+    dpi: 300,
     rowsPerBatch: 128,
     signal,
     onProgress: async (f) => {

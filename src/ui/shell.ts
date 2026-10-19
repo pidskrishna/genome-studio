@@ -34,6 +34,8 @@ export interface Shell {
   exposureLayer: HTMLElement;
   /** Opens the export dialog (spec section 9). */
   exportButton: HTMLButtonElement;
+  /** Opens the Methods page (spec section 10). */
+  methodsButton: HTMLButtonElement;
   /** The stage region, for things placed over the organism (the tray). */
   stageArea: HTMLElement;
   /** The plate caption: the specimen name and its code (spec section 6). */
@@ -79,6 +81,7 @@ export function buildShell(parent: HTMLElement): Shell {
   const viewFlat = button('Flat');
   const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
   const exportButton = button('Export', { title: 'Save the organism as a print-size PNG' });
+  const methodsButton = button('Methods', { title: 'The models, their sources, and what is designed' });
   const transparentButton = button('Transparent background', { className: 'btn glass toggle', title: 'Draw the organism without a background, as a layer' });
   transparentButton.setAttribute('aria-pressed', 'false');
   const top = el(
@@ -88,6 +91,7 @@ export function buildShell(parent: HTMLElement): Shell {
     topGroup('Species', segmented('Species', speciesA, speciesB)),
     topGroup('View', segmented('View', view3d, viewFlat)),
     topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
+    methodsButton,
     exportButton,
   );
 
@@ -167,6 +171,7 @@ export function buildShell(parent: HTMLElement): Shell {
     progress,
     exposureLayer,
     exportButton,
+    methodsButton,
     stageArea: stage,
     caption: { name: captionName, code: captionCode },
     draftLabel,

@@ -58,11 +58,13 @@ describe('PNG writer', () => {
   it('writes a valid PNG whose pixels decode exactly, with the code in its metadata', async () => {
     const img = image(37, 23);
     const code = wildType('B');
-    const blob = await encodePng(img, { text: { 'Genome code': code, Title: 'Test' }, rowsPerBatch: 5 });
+    const blob = await encodePng(img, { text: { 'Genome code': code, Title: 'Test' }, rowsPerBatch: 5, dpi: 300 });
     const bytes = new Uint8Array(await blob.arrayBuffer());
     const info = readPng(bytes);
     expect(info).toMatchObject({ width: 37, height: 23, crcOk: true });
     expect(info.text['Genome code']).toBe(code);
+    // 300 dpi, recorded as 11,811 pixels per metre, so print software sizes the page.
+    expect(info.dpi).toBe(300);
     // Undo the Sub filter on the inflated rows and compare every byte.
     const idat: Uint8Array[] = [];
     const view = new DataView(bytes.buffer, bytes.byteOffset);

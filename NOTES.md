@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); Milestones 11 and 12 are done. 10b and 10c are built and committed with their boxes unticked. 10b waits on the frame-time check (below); 10c waits on its visual checks with the browser pane shown and focused, and on one real clipboard copy (the unfocused pane refuses clipboard writes). Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
+- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); Milestones 11 and 12 are done. 10b, 10c and 13 are built and committed with their boxes unticked (13 waits on the species B 10,000 run and the owner's second-machine hash check; see ACCEPTANCE.md). 10b waits on the frame-time check (below); 10c waits on its visual checks with the browser pane shown and focused, and on one real clipboard copy (the unfocused pane refuses clipboard writes). Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
@@ -78,6 +78,11 @@ Export (`src/export/`, `ui/export-dialog.ts`, milestone 12)
 - Tried and rejected: aligning tile edges to multiples of 32 px. It fixed that random organism but dropped `dev/stage-tiles.html` from 64 to 58 of 64, so the differences only moved. Removed.
 - Owner's decision (19 October 2026): export seams may differ by at most 1 level (invisible); the rest of `TILE_TOLERANCE` stands. With that, the sweep passes 24 of 24. Not done, and the route if exactness is ever needed: exact interpolation in glossy's physical shader, and depth written from the exact interpolation in every look, so depth ties resolve identically in tiles.
 - Known, rare: a single interior pixel can flip at a depth tie where a sheet folds against itself (14 levels once, in an earlier random set; not on a seam).
+
+Methods page and acceptance (`methods-content.ts`, `methods-page.ts`, `ACCEPTANCE.md`, milestone 13)
+- Methods is a modal sheet from the top bar, so it can show the current organism (name, species, version, hash, code). Content is plain data in `methods-content.ts`, with numbers taken from the code's constants: the published/designed table (spec section 10), each species' procedure, equations, additions (each marked Designed, Designed extension or Numerical choice: clarifications 4, 5, 15 and 16, the duplicate-child rule, species B's designs), limits, references, encoding, draft and determinism notes, and both gene tables with range, scale and status.
+- PNG exports now record 300 dpi in a pHYs chunk (11,811 px/m), read back by `readPng`.
+- `ACCEPTANCE.md` gives evidence for each spec section 12 item; items 3 to 12 are ticked in SPEC.md. Fresh browser checks on 19 October 2026: pasted codes and links reproduce hashes (`67d2f6837c13705a`, `daadf677c643ecc1`); A2 transparent export (4,961 × 7,016, 300 dpi, zero-alpha corners, code in metadata). Item 8's visual part (the paper's character) is my judgement and the owner may want to confirm it.
 
 Frame-time check (10b), owner's runs on 4 to 5 October 2026
 - Chrome: 548 frames, within 0.728, p95 16.8 ms, worst 300 ms (1454 × 779). Mostly 60 Hz jitter around the 16.7 ms cut-off, plus one 300 ms stall; our own script per step is 2 to 4 ms, so the stall is GPU or compositing (first shader compile, or the frosted inspector re-blurring the moving canvas).

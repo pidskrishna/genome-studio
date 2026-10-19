@@ -307,20 +307,20 @@ Also out: image upload, typography, accounts, galleries and any server.
 
 ## 12. Acceptance tests
 
-The build is done when all of these pass.
+The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 
 - [ ] The same code gives the same geometry hash in three browsers on two different machines.
 - [ ] 10,000 random genomes per species all grow to maturity with no failure and no invalid numbers.
-- [ ] Moving any slider and reading back its bases, then typing those bases, returns the same slider value.
-- [ ] A pasted code and a shared link both reproduce the organism they came from.
-- [ ] A code with one mistyped letter loads with a typo warning.
-- [ ] Randomise-all changes every unlocked gene and no locked gene.
-- [ ] Changing a pigment gene does not regrow the organism.
-- [ ] Species A with uniform points, no tropism and default distances matches the character of the paper's figures, and measured branch radii satisfy the pipe formula.
-- [ ] Species B with margin bias at its minimum stays flat, and ruffles more as margin bias rises.
-- [ ] The helix is right-handed and every rung is a correct base pair.
-- [ ] An A2 PNG at 300 dpi exports with a transparent background and carries its code in the metadata.
-- [ ] The Methods page states which parts are published models and which are designed.
+- [x] Moving any slider and reading back its bases, then typing those bases, returns the same slider value.
+- [x] A pasted code and a shared link both reproduce the organism they came from.
+- [x] A code with one mistyped letter loads with a typo warning.
+- [x] Randomise-all changes every unlocked gene and no locked gene.
+- [x] Changing a pigment gene does not regrow the organism.
+- [x] Species A with uniform points, no tropism and default distances matches the character of the paper's figures, and measured branch radii satisfy the pipe formula.
+- [x] Species B with margin bias at its minimum stays flat, and ruffles more as margin bias rises.
+- [x] The helix is right-handed and every rung is a correct base pair.
+- [x] An A2 PNG at 300 dpi exports with a transparent background and carries its code in the metadata.
+- [x] The Methods page states which parts are published models and which are designed.
 
 Left to the implementer: the random number generator, the mesh data structure, the shading technique for the monochrome plate, the syllable tables, the wild-type genomes, and final tuning of gene ranges so the whole range of every gene is stable and visibly different.
 

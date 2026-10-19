@@ -334,6 +334,37 @@ html.reticle-on input[type='text'], html.reticle-on input[type='number'], html.r
 .export-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .export-go:not(:disabled) { background-color: var(--fill-3); color: var(--accent); box-shadow: var(--shadow), inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
 
+/* Methods page (spec section 10): a document on a glass sheet. */
+.methods-page {
+  width: min(980px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  overflow: auto;
+}
+.methods-page::backdrop { background: color-mix(in srgb, var(--bg) 55%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.methods-body { padding: 24px 32px 40px; font-size: var(--fs-body); line-height: 1.55; }
+.methods-head { display: flex; align-items: baseline; justify-content: space-between; position: sticky; top: -24px; padding: 24px 0 8px; margin-top: -24px; background: var(--fill-3); z-index: 1; }
+.methods-head h2 { margin: 0; font-size: 15px; font-weight: 500; }
+.methods-lede { max-width: 68ch; color: var(--ink-2); margin: 4px 0 8px; }
+.methods-section { padding: 16px 0 8px; border-top: 1px solid var(--hair); }
+.methods-section h3 { margin: 0 0 8px; font-size: var(--fs-title); font-weight: 500; }
+.methods-section h4 { margin: 14px 0 4px; font-size: var(--fs-label); font-weight: 500; color: var(--ink-2); }
+.methods-section p, .methods-section li { max-width: 72ch; }
+.methods-section ol, .methods-section ul { margin: 0; padding-left: 1.3em; }
+.methods-equations li { font-family: var(--mono); font-size: var(--fs-label); }
+.methods-refs li { color: var(--ink-2); overflow-wrap: anywhere; }
+.methods-organism { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 4px 12px; margin: 0; }
+.methods-organism dt { color: var(--ink-2); }
+.methods-organism dd { margin: 0; }
+.methods-organism dd.mono { font-family: var(--mono); font-size: var(--fs-label); overflow-wrap: anywhere; }
+.methods-table { width: 100%; border-collapse: collapse; font-size: var(--fs-label); }
+.methods-table th { text-align: left; font-weight: 500; color: var(--ink-2); padding: 4px 8px 4px 0; border-bottom: 1px solid var(--hair-strong); }
+.methods-table td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
+.methods-genes td:first-child, .methods-genes td:nth-child(4) { font-family: var(--mono); }
+.methods-notes td:last-child { white-space: nowrap; color: var(--ink-2); }
+
 /* Gene map --------------------------------------------------------------------------------------- */
 
 .gene-map-panel { height: 100%; overflow-y: auto; }
