@@ -19,6 +19,9 @@ export interface JobInputs {
   probe: ProbeInput;
   speciesA: SpeciesAInput;
   speciesB: SpeciesBInput;
+  /** The coarse draft shown while a form gene is dragged (clarification 3). */
+  speciesADraft: SpeciesAInput;
+  speciesBDraft: SpeciesBInput;
 }
 
 /** Output of each job. */
@@ -26,6 +29,8 @@ export interface JobOutputs {
   probe: ProbeOutput;
   speciesA: BranchGeometry;
   speciesB: SheetGeometry;
+  speciesADraft: BranchGeometry;
+  speciesBDraft: SheetGeometry;
 }
 
 export type JobKind = keyof JobInputs;

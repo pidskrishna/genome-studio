@@ -7,6 +7,10 @@ import type { SimClient } from './sim-client';
 // A newer code supersedes a regrow still in flight. `update` regrows only when the part of the code the
 // simulation reads changes, so a pigment edit never starts a run (spec section 5). Pigment genes go
 // straight to the stage instead (spec section 8), so the picture changes at once.
+//
+// While a form gene's slider is dragged, `draft` grows a coarse draft of the same code instead
+// (clarification 3). A draft is held under its own key, so the update on release always regrows the
+// organism itself, and its hash is never taken for the organism's.
 
 export interface StageView {
   setOrganism(organism: Organism): void;
@@ -27,11 +31,14 @@ export interface StudioDeps {
   stage: StageView;
   progress: ProgressView;
   notice: (message: string, tone: NoticeTone) => void;
+  /** Told whether the organism on the stage is a draft (true) or the organism itself (false). */
+  drafted?: (isDraft: boolean) => void;
 }
 
 export type LoadOutcome =
   | { status: 'grown'; code: string; species: SpeciesId; hash: string }
   | { status: 'rejected'; message: string }
+  | { status: 'drafted'; code: string; species: SpeciesId }
   | { status: 'superseded' }
   | { status: 'failed'; message: string };
 
@@ -76,19 +83,34 @@ export class Studio {
     return this.grow(code);
   }
 
-  /** Regrows the organism from a valid code. */
-  private async grow(code: string): Promise<LoadOutcome> {
+  /**
+   * Shows a coarse draft of a valid code while a slider is dragged. A code whose form genes and seed
+   * match what is on the stage (or growing) only updates the pigments, as `update` does.
+   */
+  async draft(code: string): Promise<UpdateOutcome> {
+    const key = formKey(code);
+    if (this.targetKey !== null && (key === this.targetKey || draftKey(key) === this.targetKey)) {
+      this.target = code;
+      if (this.targetKey === this.grownKey) this.code = code;
+      this.deps.stage.setPigments(pigmentsOf(code));
+      return { status: 'unchanged' };
+    }
+    return this.grow(code, true);
+  }
+
+  /** Regrows the organism (or, for a draft, a coarse run of the same code) from a valid code. */
+  private async grow(code: string, draft = false): Promise<LoadOutcome> {
     const species = speciesOfHeader(code);
     if (species === null) throw new Error('Code has no valid species header');
-    const key = formKey(code);
+    const key = draft ? draftKey(formKey(code)) : formKey(code);
     this.target = code;
     this.targetKey = key;
     this.deps.progress.show(0);
     const onProgress = (f: number): void => this.deps.progress.show(f);
     const outcome =
       species === 'A'
-        ? await this.deps.sim.run('speciesA', { code }, onProgress)
-        : await this.deps.sim.run('speciesB', { code }, onProgress);
+        ? await this.deps.sim.run(draft ? 'speciesADraft' : 'speciesA', { code }, onProgress)
+        : await this.deps.sim.run(draft ? 'speciesBDraft' : 'speciesB', { code }, onProgress);
     // A superseded run leaves the indicator to the run that replaced it.
     if (outcome.status === 'superseded') return { status: 'superseded' };
     this.deps.progress.hide();
@@ -104,11 +126,14 @@ export class Studio {
         : { species, geometry: outcome.output as Extract<Organism, { species: 'B' }>['geometry'] };
     this.deps.stage.setOrganism(organism);
     // Pigment edits made while this run was growing share its form key; keep the latest.
-    this.code = this.target ?? code;
-    this.deps.stage.setPigments(pigmentsOf(this.code));
+    const shown = this.target ?? code;
+    this.deps.stage.setPigments(pigmentsOf(shown));
+    this.grownKey = key;
+    this.deps.drafted?.(draft);
+    if (draft) return { status: 'drafted', code: shown, species };
+    this.code = shown;
     this.species = species;
     this.hash = organism.geometry.hash;
-    this.grownKey = key;
     return { status: 'grown', code: this.code, species, hash: this.hash };
   }
 
@@ -116,4 +141,9 @@ export class Studio {
     this.view = mode;
     this.deps.stage.setView(mode);
   }
+}
+
+/** The key a draft is held under: never equal to any organism's form key. */
+function draftKey(key: string): string {
+  return `draft:${key}`;
 }

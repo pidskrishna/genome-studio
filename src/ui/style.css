@@ -238,6 +238,60 @@ html.reticle-on input[type='text'], html.reticle-on input[type='number'], html.r
 .stage-canvas.defocus { filter: blur(6px); transition: filter 180ms var(--ease-out); }
 .stage-canvas.refocus { filter: blur(0); transition: filter 320ms var(--ease-out); }
 
+/* Draft label, plate caption and specimen tray (milestone 11). */
+.draft-label {
+  position: absolute;
+  left: 16px;
+  top: calc(var(--top-h, 56px) + 30px);
+  z-index: 2;
+  padding: 1px 6px 2px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--hair-strong);
+}
+.draft-label[hidden] { display: none; }
+.caption {
+  position: absolute;
+  left: 16px;
+  bottom: calc(var(--code-h, 80px) + 14px);
+  z-index: 2;
+  max-width: min(46%, 520px);
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  pointer-events: none;
+}
+.caption-name { font-size: var(--fs-title); color: var(--ink); }
+.caption-code { font-family: var(--mono); font-size: 9.5px; line-height: 1.35; letter-spacing: 0.04em; color: var(--ink-3); word-break: break-all; }
+.tray {
+  position: absolute;
+  right: 16px;
+  bottom: calc(var(--code-h, 80px) + 14px);
+  z-index: 2;
+  max-width: calc(54% - 32px);
+  padding: 6px;
+  overflow-x: auto;
+}
+.tray[hidden] { display: none; }
+.tray-list { display: flex; gap: 6px; }
+.tray-item {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-control);
+  overflow: hidden;
+  background: var(--stage);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  transition: box-shadow var(--t-small) var(--ease-out), opacity var(--t-small) var(--ease-out);
+}
+.tray-item img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tray-item:hover { box-shadow: inset 0 0 0 1px var(--hair-strong); }
+.tray-item[aria-current='true'] { box-shadow: inset 0 0 0 1px var(--accent); }
+
 /* Gene map --------------------------------------------------------------------------------------- */
 
 .gene-map-panel { height: 100%; overflow-y: auto; }

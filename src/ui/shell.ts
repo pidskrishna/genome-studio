@@ -32,6 +32,12 @@ export interface Shell {
   progress: ProgressView;
   /** Full-window layer for the exposure change when the look switches. */
   exposureLayer: HTMLElement;
+  /** The stage region, for things placed over the organism (the tray). */
+  stageArea: HTMLElement;
+  /** The plate caption: the specimen name and its code (spec section 6). */
+  caption: { name: HTMLElement; code: HTMLElement };
+  /** Shown while the organism on the stage is a draft. */
+  draftLabel: HTMLElement;
 }
 
 export function el<K extends keyof HTMLElementTagNameMap>(
@@ -110,7 +116,12 @@ export function buildShell(parent: HTMLElement): Shell {
   progressBox.setAttribute('aria-label', 'Growing');
   progressBox.setAttribute('aria-valuemin', '0');
   progressBox.setAttribute('aria-valuemax', '100');
-  const stage = el('main', { className: 'stage' }, canvasHost, progressBox);
+  const draftLabel = el('span', { className: 'draft-label', hidden: true, textContent: 'Draft' });
+  draftLabel.setAttribute('role', 'status');
+  const captionName = el('em', { className: 'caption-name' });
+  const captionCode = el('span', { className: 'caption-code' });
+  const caption = el('figcaption', { className: 'caption' }, captionName, captionCode);
+  const stage = el('main', { className: 'stage' }, canvasHost, progressBox, draftLabel, caption);
 
   const codeBar = el('footer', { className: 'code-bar glass layer-1' });
   codeBar.setAttribute('aria-label', 'Genome code');
@@ -151,5 +162,8 @@ export function buildShell(parent: HTMLElement): Shell {
     codeBar,
     progress,
     exposureLayer,
+    stageArea: stage,
+    caption: { name: captionName, code: captionCode },
+    draftLabel,
   };
 }

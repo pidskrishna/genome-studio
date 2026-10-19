@@ -173,7 +173,7 @@ Checks:
 
 ## Milestone 11: draft, tray and names (spec section 6)
 
-- [ ] Done
+- [x] Done
 
 Build: draft-then-refine while dragging (clarification 3), the specimen tray, the name caption.
 

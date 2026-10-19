@@ -4,7 +4,7 @@ import '@fontsource/ibm-plex-sans/latin-400-italic.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
-import { parseGenome, pigmentsOf, shareLink, wildType, type Pigments, type SpeciesId } from './genome';
+import { parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigments, type SpeciesId } from './genome';
 import { Stage, type LookId, type Organism, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
@@ -13,6 +13,7 @@ import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
 import { SimClient } from './ui/sim-client';
 import { Studio } from './ui/studio';
+import { Tray } from './ui/tray';
 import { applyMotionTokens, motion, onReducedMotionChange } from './ui/motion';
 import { exposure, installButtonPress, installCursorLight, installFocusBrackets, Reticle } from './ui/surface';
 import { applyLook, applyPigmentHues } from './ui/theme';
@@ -63,13 +64,18 @@ if (parsed && !parsed.ok) codeBar.say(`The link’s code could not be read. ${pa
  * any with reduced motion on, arrive with a short crossfade instead.
  */
 let organismShown = false;
+/** While a gene slider is dragged, form-gene edits grow a coarse draft (clarification 3). */
+let dragging = false;
 let pullTimer = 0;
 const stageView = {
   setOrganism(organism: Organism): void {
     const host = shell.stage;
     window.clearTimeout(pullTimer);
-    if (!organismShown) {
+    // Drafts arrive one after another while a slider is dragged: they swap in directly. The focus pull
+    // is for the organism itself, when the slider is released.
+    if (!organismShown || dragging) {
       organismShown = true;
+      host.classList.remove('defocus', 'refocus');
       stage.setOrganism(organism);
       return;
     }
@@ -95,11 +101,57 @@ const studio = new Studio({
   stage: stageView,
   progress: shell.progress,
   notice: (message, tone) => codeBar.say(message, tone),
+  drafted: (isDraft) => (shell.draftLabel.hidden = !isDraft),
+});
+
+// The specimen tray: recent organisms of this session; a click loads that exact code again.
+const tray = new Tray((code) => {
+  if (code !== editor.code) editor.paste(code);
+});
+shell.stageArea.append(tray.element);
+
+/** A small picture of the organism now on the stage, for the tray (the look and background as shown). */
+function thumbnail(): string {
+  const px = stage.renderImage(112, 112);
+  const canvas = document.createElement('canvas');
+  canvas.width = px.width;
+  canvas.height = px.height;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  const img = ctx.createImageData(px.width, px.height);
+  // Pixels are premultiplied; with an opaque background alpha is 255, so they can be used as they are.
+  img.data.set(px.data);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
+/** The plate caption follows the code: the name changes only when the organism visibly does. */
+function showCaption(code: string): void {
+  shell.caption.name.textContent = specimenName(code).full;
+  shell.caption.code.textContent = code;
+}
+
+document.addEventListener('slidergesture', (e) => {
+  dragging = (e as CustomEvent<{ active: boolean }>).detail.active;
+  // On release the organism itself regrows from the final code.
+  if (!dragging) void show(editor.code);
 });
 
 async function show(code: string): Promise<void> {
+  if (dragging) {
+    await studio.draft(code);
+    return;
+  }
   const outcome = await studio.update(code);
-  if (outcome.status === 'grown') shell.stage.dataset.hash = outcome.hash;
+  if (outcome.status === 'grown') {
+    shell.stage.dataset.hash = outcome.hash;
+    const grownCode = outcome.code;
+    tray.add(grownCode);
+    // The organism reaches the stage after the focus pull's first half; then draw its thumbnail.
+    window.setTimeout(() => {
+      if (studio.code === grownCode) tray.setImage(grownCode, thumbnail());
+    }, 450);
+  }
+  if (outcome.status === 'grown' || outcome.status === 'unchanged') tray.setCurrent(studio.code ?? code);
 }
 
 /** Every editor action as a named command (the hook for keyboard shortcuts, spec section 11). */
@@ -174,6 +226,7 @@ editor.subscribe((change) => {
   refreshControls();
   // The fluorescence look lights its controls in the pigment hues; they follow every pigment edit.
   applyPigmentHues(root, pigmentsOf(editor.code));
+  showCaption(editor.code);
   if (change.type !== 'code') return;
   history.replaceState(null, '', shareLink(location.href, change.code));
   void show(change.code);
@@ -215,6 +268,7 @@ installFocusBrackets();
 installButtonPress();
 helix.setReticle(new Reticle());
 applyPigmentHues(root, pigmentsOf(editor.code));
+showCaption(editor.code);
 
 showView('3d');
 showLook(stage.look, false);
@@ -224,4 +278,4 @@ refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, motion, applyMotionTokens });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, tray, motion, applyMotionTokens });

@@ -255,3 +255,81 @@ describe('which edits regrow', () => {
     expect(t.studio.code).toBe(pigmented);
   });
 });
+
+describe('drafting while a slider is dragged (milestone 11)', () => {
+  async function grown() {
+    const t = setup();
+    const done = t.studio.update(wildType('A'));
+    t.finish(wildA());
+    expect((await done).status).toBe('grown');
+    return { t };
+  }
+
+  it('a form-gene change grows a draft job, and the draft is never taken for the organism', async () => {
+    const { t } = await grown();
+    const code = writeGene(wildType('A'), 1, (readGene(wildType('A'), 1) + 300) % 4096);
+    const pending = t.studio.draft(code);
+    expect(t.lastRun().job).toEqual({ kind: 'speciesADraft', input: { code } });
+    t.finish({ ...wildA(), hash: 'draft' });
+    const outcome = await pending;
+    expect(outcome.status).toBe('drafted');
+    expect(t.shown).toHaveLength(2);
+    // The organism's hash and code are still the last full run's.
+    expect(t.studio.hash).toBe(wildA().hash);
+    expect(t.studio.code).toBe(wildType('A'));
+  });
+
+  it('releasing (an update with the same code) regrows the organism itself', async () => {
+    const { t } = await grown();
+    const code = writeGene(wildType('A'), 1, (readGene(wildType('A'), 1) + 300) % 4096);
+    const draft = t.studio.draft(code);
+    t.finish({ ...wildA(), hash: 'draft' });
+    await draft;
+    const release = t.studio.update(code);
+    expect(t.lastRun().job).toEqual({ kind: 'speciesA', input: { code } });
+    t.finish({ ...wildA(), hash: 'full' });
+    const outcome = await release;
+    expect(outcome.status).toBe('grown');
+    expect(t.studio.hash).toBe('full');
+    expect(t.studio.code).toBe(code);
+  });
+
+  it('a pigment change while dragging starts no run', async () => {
+    const { t } = await grown();
+    const runs = t.posted.filter((p) => p.type === 'run').length;
+    const code = writeGene(wildType('A'), 16, (readGene(wildType('A'), 16) + 100) % 4096);
+    expect((await t.studio.draft(code)).status).toBe('unchanged');
+    expect(t.posted.filter((p) => p.type === 'run')).toHaveLength(runs);
+    expect(t.pigments.at(-1)).toEqual(pigmentsOf(code));
+  });
+
+  it('tells the stage when a draft is shown and when the organism replaces it', async () => {
+    const posted: ToWorker[] = [];
+    let send: (m: FromWorker) => void = () => {};
+    const connect: Connect = (onMessage) => {
+      send = onMessage;
+      return { post: (m) => posted.push(m), terminate: () => {} };
+    };
+    const flags: boolean[] = [];
+    const studio = new Studio({
+      sim: new SimClient(connect),
+      stage: { setOrganism: () => {}, setPigments: () => {}, setView: () => {} },
+      progress: { show: () => {}, hide: () => {} },
+      notice: () => {},
+      drafted: (d) => flags.push(d),
+    });
+    const finish = (output: unknown) => {
+      const run = posted.filter((p) => p.type === 'run').at(-1)!;
+      if (run.type !== 'run') throw new Error('No run');
+      send({ type: 'result', runId: run.runId, kind: run.job.kind, output } as FromWorker);
+    };
+    const code = writeGene(wildType('A'), 2, (readGene(wildType('A'), 2) + 500) % 4096);
+    const d = studio.draft(code);
+    finish({ ...wildA(), hash: 'draft' });
+    await d;
+    const u = studio.update(code);
+    finish(wildA());
+    await u;
+    expect(flags).toEqual([true, false]);
+  });
+});

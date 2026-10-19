@@ -113,6 +113,8 @@ export class LensSlider {
         this.emit(this.exact);
       }
       this.grabbing = true;
+      // Announces the drag, so the organism can be drafted while it lasts (milestone 11).
+      el.dispatchEvent(new CustomEvent('slidergesture', { bubbles: true, detail: { active: true } }));
       hold(this.o.link, true);
       el.classList.add('grabbing');
       lastX = e.clientX;
@@ -147,6 +149,7 @@ export class LensSlider {
       this.lift.setSettle(dur('medium'));
       this.lift.target = 0;
       this.o.onGestureEnd();
+      el.dispatchEvent(new CustomEvent('slidergesture', { bubbles: true, detail: { active: false } }));
       this.run();
     };
     el.addEventListener('pointerup', end);
