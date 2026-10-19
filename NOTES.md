@@ -1,8 +1,13 @@
 # Session notes
 
 ## Status
-- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); Milestones 11 and 12 are done. 10b, 10c and 13 are built and committed with their boxes unticked (13 waits on the species B 10,000 run and the owner's second-machine hash check; see ACCEPTANCE.md). 10b waits on the frame-time check (below); 10c waits on its visual checks with the browser pane shown and focused, and on one real clipboard copy (the unfocused pane refuses clipboard writes). Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
-- Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
+- Done (box ticked): milestones 0–4, 6–9, 10a, 11 and 12. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
+- Built and committed, box unticked until the owner can act:
+  - 5 (species B, all body plans): only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000, about 3 h at about 45 genomes/min; ask the owner before starting it.
+  - 10b (borosilicate helix): the frame-time check needs the owner's runs in Chrome and Safari, and their decision on counting "on time" as not missing a display refresh (details below).
+  - 10c (inspector and code bar): visual checks need the browser pane shown and focused, and one real clipboard copy.
+  - 13 (Methods page): needs item 2 of spec section 12 (the species B run above) and the owner's second-machine hash check. Evidence for every item is in ACCEPTANCE.md.
+- Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine.
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
 ## Decisions not in SPEC.md
@@ -93,7 +98,8 @@ Frame-time check (10b), owner's runs on 4 to 5 October 2026
 - **Species A tropism:** its effect on centre of mass is real but tiny, so the test averages 20 seeds. The clear effect is on branch direction.
 - **Species B ruffles look modest** on stage (about 5% of the radius; the wild-type disc reads as a flat plate with a frilled rim). Not tuned yet: any range or constant change needs owner approval (clarification 2).
 - **Speed:** species B averages 2–3 s per genome, with extreme cases at 25–45 s (low growth rate, sphere, many passes). Wild types take 0.2 s (A) and about 2 s (B) in the browser. `npm test` takes about 50 s with `testTimeout` at 60 s. `test:slow` (A 10,000 + B 1,000) takes about 25 min.
-- **Helix:** at narrow columns (about 340px) the inspector covers the gene labels beside it; the tooltip shows only over something pickable.
+- **Helix:** in a short column the full inspector, opened below the focused gene, covers much of the helix beneath it (the gene itself stays visible at 24% of the height). The base tooltip shows only over something pickable.
+- **Top bar** wraps to two lines at about 1024 px.
 - **Methods page (milestone 13) must state:** the duplicate-child rule, the clear stem lasting until the first branch, and all the species B designs above, marked as designed or numerical.
 
 Looks (`src/render/looks.ts`, `bloom.ts`, `exact-mesh.ts`, `colour.ts`, milestone 9)
@@ -130,5 +136,8 @@ Borosilicate helix (`src/ui/helix-scene.ts`, `helix-view.ts`, `helix-ruler.ts`, 
 - The ruler replaces the right-hand labels and the colour legend; the status line shows only while a base is selected. `bandPoint` samples clear of a band's open tube ends (a ray at the very end could pass into the tube).
 - Dev hooks: `helix.measureFrames(ms)` (frame intervals over a scripted drift, two turns, a drag and a detent) and `helix.renderCost(n)` (draw time per frame with the GPU synchronised).
 - Checks (4 October 2026): four real clicks on base 13 went G, T, A, C, G, with slider 2457, 3481, 409, 1433, 2457 and number field, code bar and link following. The browser pane throttles animation frames to 2 per second when it lacks focus, so `measureFrames` there is meaningless; `renderCost` at 1440 × 900 (helix canvas 480 × 696 at 2×) gave a mean of 3 to 4 ms and a 95th percentile of 4.2 to 7.5 ms in all three looks. The real frame-time check must be run by the owner in Chrome and Safari.
-- In dev, `window.editor`, `commands`, `studio`, `stage`, `helix`, `geneMap` are exposed. Use a separate browser-pane tab for checks (the owner may be using the pane). Pane screenshots are 800 wide of a 1024 viewport: multiply client pixels by about 0.78.
-- The top bar wraps to two lines at 1024 px. Glossy could land a 1-level pixel on a seam for some future organism; giving it exact interpolation would fix that.
+
+## Working notes
+- In dev these are on `window`: `editor`, `commands`, `studio`, `stage`, `helix`, `geneMap`, `codeBar`, `tray`, `exportDialog`, `methodsPage`, `motion`, `applyMotionTokens`, `exportReady()`.
+- The Claude browser pane: when hidden the page does not draw (screenshots can be stale); when unfocused it limits animation frames to about 2 per second and refuses clipboard writes. Simulation workers and render-to-image keep full speed. Use a separate tab for checks; screenshot pixels scale with the pane's size (read `innerWidth` to convert).
+- `dev/interaction-lab.html` is the design reference for DESIGN.md; `dev/stage-tiles.html` is milestone 9's 64-case tile check (`window.tileSummary`).

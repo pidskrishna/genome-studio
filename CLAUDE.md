@@ -4,10 +4,12 @@ A browser tool that grows 3D organisms from a 160-base ATGC code, edited on a 3D
 
 - `SPEC.md` is the source of truth for what to build. Do not change its decisions; if something in it is impossible or contradictory, stop and ask.
 - `PLAN.md` lists the milestones in order, each with the checks that prove it is done.
+- `DESIGN.md` is the agreed interface design (looks, glass, motion, every interaction); `dev/interaction-lab.html` is its working reference.
+- `NOTES.md` records decisions not in the spec, checks run and what is outstanding; `ACCEPTANCE.md` gives the evidence for spec section 12.
 
 ## Stack
 
-TypeScript, Vite, Three.js, Vitest. Static site, no server, no accounts. Desktop browsers only.
+TypeScript, Vite, Three.js, Vitest, and IBM Plex from `@fontsource` (approved 4 October 2026). Static site, no server, no accounts, no third-party requests. Desktop browsers only.
 
 ## Commands
 

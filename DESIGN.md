@@ -279,13 +279,13 @@ These are species, look, flat or 3D, and helix or gene map.
 - **Brackets:** four 5px corners in 1px `--hair-strong`, 4px outside the focused control.
 - **Movement:** one set of brackets glides between focused controls over 160ms and fades over 120ms. The browser's outline is replaced only where the brackets show (`:focus-visible`).
 
-### Regrow: focus pull and progress (not yet in the lab)
+### Regrow: focus pull and progress (built in 10c, not tried in the lab)
 
 - **Progress:** while growing, a 1px `--accent` hairline fills across the top of the stage. Beside it is a mono readout such as "Growing 63%".
 - **When ready:** the stage blurs from 0 to 6px over 180ms, the organism swaps at the peak, and the blur clears over 320ms, like refocusing a microscope.
 - **Scope:** this is a CSS filter on the stage canvas only. It never touches the render or the export.
 - **Reduced motion:** a 160ms crossfade instead.
-- **Before shipping:** these values are proposals. They are shown to the owner in the app during the build, and agreed there before they are final.
+- **Before shipping:** these values are proposals, built in milestone 10c; the owner has not yet reviewed them in the app. Drafts (milestone 11) swap in directly, without the focus pull.
 
 ## 8. Performance and accessibility
 
