@@ -388,7 +388,7 @@ describe('wild types', () => {
     expect(valueById(c, 'organForm')).toBe(0);
     expect(valueById(c, 'startingOrgans')).toBe(1);
     expect(valueById(c, 'organAngle')).toBeCloseTo(60, 1);
-    expect(valueById(c, 'inhibitionRange') / 0.5).toBeCloseTo(1, 2);
+    expect(valueById(c, 'inhibitionRange') / 0.3).toBeCloseTo(1, 2);
     const shell = decodeGenome(wildType('D'));
     expect(valueById(shell, 'whorlExpansion') / 2.5).toBeCloseTo(1, 2);
     expect(valueById(shell, 'handedness')).toBe(0);

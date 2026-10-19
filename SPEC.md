@@ -152,16 +152,18 @@ A closed sphere has no margin; for that body plan, "margin" means the growth pat
 
 ## 4a. Species C: phyllotaxis (v0.2)
 
-The arrangement of leaves, scales and florets around a growing tip. New organs (primordia) appear one at a time at the edge of the tip's central zone, where inhibition from the organs already there is weakest, and the tip's growth carries older organs outward. Hofmeister stated the rule in 1868. Douady and Couder showed that this alone produces the golden angle and Fibonacci spirals and, as its parameters change, alternate, opposite (decussate) and whorled arrangements: Douady, S. and Couder, Y. (1996), "Phyllotaxis as a dynamical self organizing process", parts I to III, Journal of Theoretical Biology 178:255–312. Placing organs on a receptacle and giving them shape follows Prusinkiewicz and Lindenmayer (1990), The Algorithmic Beauty of Plants, chapter 4, http://algorithmicbotany.org/papers/abop/abop.pdf. Vogel (1979), "A better way to construct the sunflower head", Mathematical Biosciences 44:179–189, is the reference for the golden-angle pattern.
+The arrangement of leaves, scales and florets around a growing tip. New organs (primordia) appear one at a time at the edge of the tip's central zone, where inhibition from the organs already there is weakest, and the tip's growth carries older organs outward. Hofmeister (1868) stated the first form of the rule, and Snow and Snow (1952) the form used here: a new organ forms when and where there is enough room. Douady and Couder showed that this alone produces the golden angle and Fibonacci spirals and, as its parameters change, alternate, opposite (decussate) and whorled arrangements: Douady, S. and Couder, Y. (1996), "Phyllotaxis as a dynamical self organizing process", parts I to III, Journal of Theoretical Biology 178:255–312. Placing organs on a receptacle and giving them shape follows Prusinkiewicz and Lindenmayer (1990), The Algorithmic Beauty of Plants, chapter 4, http://algorithmicbotany.org/papers/abop/abop.pdf. Vogel (1979), "A better way to construct the sunflower head", Mathematical Biosciences 44:179–189, is the reference for the golden-angle pattern.
 
 Implement the threshold model of Douady and Couder (part II):
 
-- The tip is modelled in a plane around its centre. The central zone is a circle of radius R0.
-- Every organ drifts outward with the tip's growth: its distance from the centre grows exponentially with time.
-- Each organ inhibits new organs near it. The inhibition from one organ falls with distance d as (λ / d)^η, and the total inhibition at a point is the sum over all organs.
-- Time advances in fixed small steps. After each step, wherever the total inhibition on the edge of the central zone is at a local minimum below 1, a new organ appears there. Several may appear in one step; that is how whorls form.
+- The tip is modelled in a plane around its centre, as a projection of a cone. The central zone is a circle of radius R0.
+- Every organ drifts outward with the tip's growth, at a speed proportional to its distance from the centre (part I), so that distance grows exponentially with time.
+- Distances between two points use the paper's cone distance (part II, eq. 6): d² = (r0 − r1)² / N + 2N r0 r1 (1 − cos(θ0 − θ1)), where the conicity 1/N is set by the body plan: head 1, dome 2, cone 3, column 6. A conicity of 1 is the flat plane. Conicity changes which arrangements win: opposite pairs at right angles (decussate) are stable over a wide range only on the more conical receptacles.
+- Each organ inhibits new organs near it. The inhibition from one organ falls with distance d as (d0 / d)^η, where d0 is the size a new organ needs, and the total inhibition at a point is the sum over all organs. d0 = Γ √N R0, where Γ (locus 2) is the width of a new organ relative to the central zone (part II, eq. 7).
+- Time advances in small fixed steps. When the lowest total inhibition on the edge of the central zone falls below 1, a new organ appears at that point, and the inhibition is evaluated again at once. Several organs can so appear at almost the same moment; that is how whorls form (part II, section 3.2).
 - At the start, the starting organs (locus 5) sit evenly spaced just outside the central zone.
-- Because every rate in the model is the drift, the arrangement depends only on λ / R0 and η, not on the drift speed.
+- **Growth over time (part III, eq. 1).** Γ falls over the organism's life, as the apex grows from a seedling's: Γ(t) = (Γi + Γf) / 2 − (Γi − Γf) / 2 · tanh((t − t1) / τ), with t in units of R0 / V0, t1 = 6 and τ = 3. Γf is the gene's value (locus 2). With one starting organ Γi = 2.4, as in a seedling; with k ≥ 2 starting organs Γi = 1.8 sin(π / k), so the starting symmetry can carry on as pairs or whorls (a designed choice, after part III's initial conditions). Γi is never below Γf. The oldest organs, at the rim of a head or the base of a shoot, keep the seedling's arrangement.
+- Because every rate in the model is the drift, the arrangement depends only on Γ(t), η and the conicity, not on the drift speed.
 
 Then each organ is placed on the receptacle and given a shape:
 
@@ -171,15 +173,15 @@ Then each organ is placed on the receptacle and given a shape:
 | Locus | Gene | Model parameter | Range | Basis |
 | --- | --- | --- | --- | --- |
 | 1 | Body plan | Receptacle: head (a disc), dome, cone, or column | 4 choices | Prusinkiewicz and Lindenmayer 1990 (receptacle is an input) |
-| 2 | Inhibition range | λ / R0: how far inhibition reaches, relative to the central zone | 0.2 to 2, log | Douady and Couder 1996 |
+| 2 | Inhibition range | Γ = d0 / (√N R0): the width of a new organ relative to the central zone | 0.1 to 2, log | Douady and Couder 1996 |
 | 3 | Organ form | Organ shape: floret, scale, leaf, or spine | 4 choices | Prusinkiewicz and Lindenmayer 1990 (organ shape is an input) |
-| 4 | Inhibition falloff | η, how sharply inhibition falls with distance | 1 to 8 | Douady and Couder 1996 |
+| 4 | Inhibition falloff | η, how sharply inhibition falls with distance | 3 to 17 | Douady and Couder 1996 |
 | 5 | Starting organs | Organs present at the start | 1 to 4 | Douady and Couder 1996 (initial conditions) |
 | 6 | Receptacle aspect | Height to radius; for the head, how domed the disc is | 0.1 to 4, log | Prusinkiewicz and Lindenmayer 1990 (receptacle is an input) |
 | 7 | Organ length | Length in spacings between neighbouring organs | 0.5 to 4, log | Prusinkiewicz and Lindenmayer 1990 |
-| 8 | Organ width | Width to length | 0.1 to 1 | Prusinkiewicz and Lindenmayer 1990 |
+| 8 | Organ width | Width to length | 0.1 to 1 | Designed |
 | 9 | Organ angle | Angle between organ and receptacle surface | 0° to 90° | Prusinkiewicz and Lindenmayer 1990 |
-| 10 | Organ curl | Bend along the organ's length | −90° to +90° | Prusinkiewicz and Lindenmayer 1990 |
+| 10 | Organ curl | Bend along the organ's length | −90° to +90° | Designed |
 | 11 | Organ cupping | Curve across the organ's width, from flat to a half tube | 0 to 1 | Designed |
 | 12 | Maturation | Distance from the centre at which an organ reaches full size | 5% to 100% of the final radius | Prusinkiewicz and Lindenmayer 1990 |
 | 13 | Organ thickness | Drawn thickness of each organ | 2% to 30% of organ length, log | Designed |
@@ -190,7 +192,7 @@ Then each organ is placed on the receptacle and given a shape:
 
 For locus 20, the gradient driver choices are: order of appearance, distance from the apex, position along the organ (base to tip), or height.
 
-**Maturity.** Growth stops when the oldest organ reaches a fixed outer radius, a multiple of R0 that is a constant of the encoding version. The number of organs is not a gene: it follows from the inhibition genes, from a handful in an alternate arrangement to hundreds in a sunflower head. Hard caps of 2,000 organs and 120,000 vertices apply, to be tuned for speed; organs get fewer vertices before the organ cap is reached.
+**Maturity.** Growth runs for a fixed time, t = 20 in units of R0 / V0, a constant of the encoding version; by then the first organ has drifted e^20 central-zone radii out. The number of organs is not a gene: it follows from the inhibition genes, from a handful in an alternate arrangement to hundreds in a sunflower head. Hard caps of 2,000 organs and 120,000 vertices apply, to be tuned for speed; organs get fewer vertices before the organ cap is reached.
 
 **Accuracy limits.** The model says where organs appear, from inhibition and growth alone, and reproduces the observed arrangements and the transitions between them. It does not model the chemistry behind the inhibition. Receptacle shapes, organ shapes and organ growth are designed geometry, not a model of how organs develop.
 
@@ -376,7 +378,7 @@ The tool is accurate at the level of its growth models and openly a designed abs
 | Branching growth | Published model, implemented as written | Runions, Lane and Prusinkiewicz 2007; Runions et al. 2005 |
 | Branch thickness | Published rule | Pipe model, as used in the 2007 paper, exponent usually between 2 and 3 |
 | Ruffling from marginal growth | Published mechanism, approximate simulation | Nath et al. 2003; Sharon and Efrati 2010 |
-| Organ arrangement (v0.2) | Published model, implemented as written | Douady and Couder 1996; Hofmeister's rule |
+| Organ arrangement (v0.2) | Published model, implemented as written | Douady and Couder 1996; Snow and Snow's rule |
 | Receptacles and organ shapes (v0.2) | Designed geometry, after a published method | Prusinkiewicz and Lindenmayer 1990, chapter 4 |
 | Shell coiling (v0.2) | Published geometric model, implemented as written | Raup and Michelson 1965; Raup 1966; Fowler, Meinhardt and Prusinkiewicz 1992 |
 | Shell edge pattern (v0.2) | Published mechanism, fixed constants | Meinhardt and Klingler 1987 |
@@ -438,7 +440,7 @@ The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 - [ ] 10,000 random genomes each of species C and D all grow to maturity with no failure and no invalid numbers.
 - [ ] The same species C and D code gives the same geometry hash in three browsers on two different machines.
 - [ ] Species C in a spiral arrangement: the mean angle between successive organs is within 1° of the golden angle, 137.5°, and the spirals visible in the head come in consecutive Fibonacci numbers.
-- [ ] Species C: raising the inhibition range moves the arrangement from spiral toward alternate (180° between successive organs), as Douady and Couder report.
+- [ ] Species C: raising the inhibition range moves the arrangement from spiral toward alternate (180° between successive organs), as Douady and Couder report; on the cone body plan with stiff falloff, two starting organs give opposite pairs at right angles over a range of the inhibition range.
 - [ ] Species D with ornament off: the generating curve grows by W per turn, a translation of 0 gives a flat coil with every whorl in one plane, and the left-handed shell is the mirror image of the right-handed one.
 - [ ] Changing a pigment gene of species C or D does not regrow the organism.
 - [ ] Species C and D draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
@@ -474,3 +476,5 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 19. **Geometry (sections 4a and 4b).** Species C and D each produce one triangle mesh with a drawn thickness and four gradient-driver attributes per vertex, in the same form as species B, so the existing sheet drawing, looks and tiled export draw them. Species C's drawn thickness is the organ thickness gene; species D's is the wall thickness gene. Organs may overlap and whorls may pass through each other; no triangle may have zero area.
 20. **Drafts (section 6).** Species C's draft uses the same organ positions with fewer vertices per organ. Species D's draft uses larger angular steps and fewer points around the generating curve. Both use the same seed and are labelled as drafts, as in clarification 3.
 21. **Species switch (sections 5 and 6).** The switch offers all four species. Choosing one loads its wild type.
+22. **Species C model check (section 4a).** Added on 19 October 2026 when milestone 15 checked section 4a against Douady and Couder (1996), parts I and II, and chapter 4 of The Algorithmic Beauty of Plants. Approved by the owner: organs appear one at a time at the lowest inhibition, re-evaluated at once, rather than at every local minimum; distances use the paper's cone distance with a conicity set by the body plan; locus 2 is the paper's Γ (eq. 7), range 0.1 to 2, so heads can reach sunflower-like spiral counts; locus 4 runs 3 to 17, the paper's range of stiffness; organ width and curl are marked designed; and the rule is credited to Snow and Snow as well as Hofmeister.
+23. **Species C growth over time (section 4a).** Added on 19 October 2026, approved by the owner during milestone 15. With Γ constant from the starting organs, the model mostly settles into alternating or disordered arrangements; Douady and Couder reach spirals and pairs only through a realistic history of Γ (part III). Γ therefore falls by part III's eq. 1 from Γi (2.4, or 1.8 sin(π / k) for k ≥ 2 starting organs) to the gene's value, with t1 = 6 and τ = 3, and growth runs to t = 20 instead of stopping at an outer radius.

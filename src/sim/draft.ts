@@ -4,6 +4,8 @@ import { growSpeciesA, type BranchGeometry, type SpeciesAInput } from './species
 import { speciesAParams, type SpeciesAParams } from './speciesA/params';
 import { growSpeciesB, type SheetGeometry, type SpeciesBInput } from './speciesB';
 import { speciesBParams, type SpeciesBParams } from './speciesB/params';
+import { growSpeciesC, type PhylloGeometry, type SpeciesCInput } from './speciesC';
+import { speciesCParams } from './speciesC/params';
 
 // The draft (spec section 6, clarification 3): a low-resolution run of the same code with the same
 // algorithm, shown while a form gene's slider is dragged. It shares the organism's character and
@@ -18,6 +20,9 @@ import { speciesBParams, type SpeciesBParams } from './speciesB/params';
 // is applied to the smaller envelope.
 //
 // Species B: twice the cell size, so about a quarter of the cells, with every rule unchanged.
+//
+// Species C (clarification 20): the same organ positions, with the coarsest organs and half the
+// receptacle's rings and segments.
 
 /** How much longer a draft's growth step (species A) or cells (species B) are than the organism's. */
 export const DRAFT_SCALE = 2;
@@ -55,6 +60,15 @@ export function* speciesADraft(input: SpeciesAInput): Generator<number, JobDone<
 /** Worker job: a species B draft. */
 export function* speciesBDraft(input: SpeciesBInput): Generator<number, JobDone<SheetGeometry>> {
   const geometry = yield* growSpeciesB(draftParamsB(speciesBParams(input.code)));
+  return {
+    output: geometry,
+    transfer: [geometry.positions.buffer, geometry.triangles.buffer, geometry.drivers.buffer],
+  };
+}
+
+/** Worker job: a species C draft. */
+export function* speciesCDraft(input: SpeciesCInput): Generator<number, JobDone<PhylloGeometry>> {
+  const geometry = yield* growSpeciesC(speciesCParams(input.code), { draft: true });
   return {
     output: geometry,
     transfer: [geometry.positions.buffer, geometry.triangles.buffer, geometry.drivers.buffer],

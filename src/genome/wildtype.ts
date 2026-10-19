@@ -19,7 +19,7 @@ const B_WILD: readonly number[] = [
 // spiral; D a turreted shell with ribs and cords, coloured by its edge pattern.
 
 const C_WILD: readonly number[] = [
-  0, 0.5, 0, 3, 1, 0.3, 1.2, 0.6, 60, 0, 0.3, 0.3, 0.1, 0.05, 0.5, //
+  0, 0.3, 0, 5, 1, 1, 1.2, 0.6, 60, 0, 0.3, 0.3, 0.1, 0.05, 0.5, //
   45, 20, 0.7, 0.5, 1, 0.5, 0.4, 0.2,
 ];
 

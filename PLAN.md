@@ -3,7 +3,7 @@
 Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
-- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestone 14 done; next: milestone 15.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 and 15 done; next: milestone 16.
 
 # v0.1
 
@@ -232,17 +232,17 @@ Checks (unit tests):
 
 ## Milestone 15: species C simulation (spec section 4a)
 
-- [ ] Done
+- [x] Done
 
 First: check every model statement in section 4a against Douady and Couder (1996), parts I to III, and against chapter 4 of The Algorithmic Beauty of Plants. Where they differ, stop and propose the spec edit (clarification 18).
 
-Build: the threshold model in the worker on the plane (organ drift, inhibition sum with a spatial grid, initiation at local minima below threshold, starting organs), the map onto the four receptacles, organ meshes for the four organ forms, maturation, size variation, initiation noise, the caps, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 19). No rendering.
+Build: the threshold model in the worker on the plane (organ drift, cone distance, inhibition sum, initiation at the lowest inhibition below threshold, starting organs, Γ falling over time by part III's eq. 1), the map onto the four receptacles, organ meshes for the four organ forms, maturation, size variation, initiation noise, the caps, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 19). No rendering.
 
 Checks:
 - 1,000 random genomes grow to maturity with no error and no NaN (a slower script runs 10,000).
 - Same code, same geometry hash; wild-type hash recorded.
-- With initiation noise at 0 and a spiral arrangement, the mean angle between successive organs is within 1° of 137.5°, and the parastichy counts in the head are consecutive Fibonacci numbers.
-- Raising the inhibition range moves the mean angle toward 180° (alternate); with two starting organs and a suitable range, organs come in opposite pairs at right angles (decussate).
+- With initiation noise at 0, a soft falloff and a spiral arrangement, the mean angle between the last organs is within 1° of 137.5°, and the parastichy counts near the apex are consecutive Fibonacci numbers.
+- Raising the inhibition range moves the mean angle toward 180° (alternate); on the cone body plan with stiff falloff, two starting organs give opposite pairs at right angles (decussate) over a range of the inhibition range (Douady and Couder part II, figure 4).
 - The organ count never exceeds 2,000, the vertex count never exceeds 120,000, and no triangle has zero area.
 - The angle around the centre is kept by the receptacle map, and on the column the spirals become helices of constant pitch.
 - Every vertex carries all four gradient-driver attributes, with no NaN.
