@@ -2,6 +2,7 @@
 
 A browser tool that grows 3D organisms from a 160-base ATGC code, edited on a 3D double helix.
 
+- Current version: **v0.2**, adding species C (phyllotaxis) and D (seashell); milestones 14 to 18. v0.1 (species A and B, milestones 0 to 13) is closed and tagged `v0.1`.
 - `SPEC.md` is the source of truth for what to build. Do not change its decisions; if something in it is impossible or contradictory, stop and ask.
 - `PLAN.md` lists the milestones in order, each with the checks that prove it is done.
 - `DESIGN.md` is the agreed interface design (looks, glass, motion, every interaction); `dev/interaction-lab.html` is its working reference.
@@ -28,6 +29,7 @@ IMPORTANT: the same genome code must produce bit-identical geometry on every mac
 - Rendering code never writes back into simulation state.
 - Every possible 160-base code with a valid header must decode to an organism that grows without errors or NaN. Clamp ranges to guarantee it.
 - Gene tables in `src/genome/` must match `SPEC.md` exactly: locus order, names, ranges, scales.
+- v0.2 must not change species A or B: every code that grew in v0.1 grows the same geometry, with the same hash.
 - Never name a gene after a real biological gene.
 - Pigment genes must never trigger a regrow.
 

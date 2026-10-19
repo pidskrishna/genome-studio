@@ -1,10 +1,19 @@
-# Genome-driven growth studio: v1 specification
+# Genome-driven growth studio: v0.2 specification
 
 The tool grows procedural 3D organisms from a 160-letter ATGC code, edited on a 3D double helix, and exports them as print-size artwork. It serves two readers at once: a graphic designer who needs usable layers, and a biologist who needs the models to be real.
 
 The flow is four steps: edit genes on the helix, a published growth model runs from them, the organism renders in one of three looks, and a PNG is exported. The same code always grows the same organism, on any machine.
 
-Version 1 ships two species, each with its own genome: branching and venation, and differential growth. The tool has no name yet.
+Each species has its own genome. The tool has no name yet.
+
+**Versions.**
+
+| Version | Status | Species | Scope |
+| --- | --- | --- | --- |
+| v0.1 | Closed 19 October 2026 (PLAN.md milestones 0 to 13) | A: branching and venation; B: differential growth | Everything in sections 1 to 13 except sections 4a and 4b and the clarifications from 17 on |
+| v0.2 | Started 19 October 2026 | Adds C: phyllotaxis (section 4a); D: seashell (section 4b) | The two new species through the whole tool: editor, stage, looks, draft, tray, export and Methods page |
+
+v0.2 must not change species A or B: their gene tables stay as they are, and every code that grew in v0.1 grows the same geometry, with the same hash. Earlier copies of this spec called v0.1 "v1".
 
 ## 1. Decisions
 
@@ -14,7 +23,7 @@ These are fixed. Do not change them.
 | --- | --- |
 | Input | Nothing is uploaded. Every artwork is generated from a genome. |
 | Typography | Out. The tool makes organisms only. |
-| Species in v1 | Branching and venation; differential growth. |
+| Species | v0.1: branching and venation; differential growth. v0.2 adds phyllotaxis and seashell. |
 | Genome per species | Each species has its own genome and its own gene map. |
 | Genome size | 24 genes per species: 23 parameter genes and 1 seed gene. |
 | Genome form | One ATGC string. Sliders and bases stay in sync: moving one rewrites the other. |
@@ -51,7 +60,7 @@ Rules:
 - **Second strand.** The complementary strand (A with T, C with G) is derived for display and never stored.
 - **Fixed loci.** Gene order is fixed per species and version.
 - **Link sharing.** The code also travels in the page address after a # sign, so a link opens the same organism.
-- **Maturity.** Growth stops at a fixed point per species (sections 3 and 4). It is a constant of the encoding version, not a gene.
+- **Maturity.** Growth stops at a fixed point per species (sections 3, 4, 4a and 4b). It is a constant of the encoding version, not a gene.
 
 ## 3. Species A: branching and venation
 
@@ -99,7 +108,7 @@ Lengths are in units of D, the segment length, as in the paper. The one exceptio
 
 **Fixed environment.** One organism, vertical axis up, no neighbours, no obstacles, no changing light.
 
-The paper covers open branching only. Closed, looping venation is not in v1.
+The paper covers open branching only. Closed, looping venation is not in v0.1 or v0.2 (section 11).
 
 ## 4. Species B: differential growth
 
@@ -139,7 +148,94 @@ A closed sphere has no margin; for that body plan, "margin" means the growth pat
 
 **Accuracy limits.** This is a spring-mesh approximation of thin-sheet elasticity. It reproduces buckling and ruffling qualitatively, and its parameters are dimensionless. It must not be presented as a quantitative model of any tissue.
 
-**Naming rule for both species.** Gene names describe the model parameter. Never borrow the name of a real gene.
+**Naming rule for every species.** Gene names describe the model parameter. Never borrow the name of a real gene.
+
+## 4a. Species C: phyllotaxis (v0.2)
+
+The arrangement of leaves, scales and florets around a growing tip. New organs (primordia) appear one at a time at the edge of the tip's central zone, where inhibition from the organs already there is weakest, and the tip's growth carries older organs outward. Hofmeister stated the rule in 1868. Douady and Couder showed that this alone produces the golden angle and Fibonacci spirals and, as its parameters change, alternate, opposite (decussate) and whorled arrangements: Douady, S. and Couder, Y. (1996), "Phyllotaxis as a dynamical self organizing process", parts I to III, Journal of Theoretical Biology 178:255–312. Placing organs on a receptacle and giving them shape follows Prusinkiewicz and Lindenmayer (1990), The Algorithmic Beauty of Plants, chapter 4, http://algorithmicbotany.org/papers/abop/abop.pdf. Vogel (1979), "A better way to construct the sunflower head", Mathematical Biosciences 44:179–189, is the reference for the golden-angle pattern.
+
+Implement the threshold model of Douady and Couder (part II):
+
+- The tip is modelled in a plane around its centre. The central zone is a circle of radius R0.
+- Every organ drifts outward with the tip's growth: its distance from the centre grows exponentially with time.
+- Each organ inhibits new organs near it. The inhibition from one organ falls with distance d as (λ / d)^η, and the total inhibition at a point is the sum over all organs.
+- Time advances in fixed small steps. After each step, wherever the total inhibition on the edge of the central zone is at a local minimum below 1, a new organ appears there. Several may appear in one step; that is how whorls form.
+- At the start, the starting organs (locus 5) sit evenly spaced just outside the central zone.
+- Because every rate in the model is the drift, the arrangement depends only on λ / R0 and η, not on the drift speed.
+
+Then each organ is placed on the receptacle and given a shape:
+
+- **Receptacle.** The plane maps onto the receptacle surface: angle around the centre is kept, and distance from the centre becomes distance from the apex along the surface, in the same order. For the column the map is logarithmic, which turns the plane's logarithmic spirals into the straight helices of a stem or cactus.
+- **Organs.** Each organ is a thin, shaped sheet attached to the receptacle at its position, facing outward. Its size follows its distance from the centre up to the maturation distance (locus 12), then stays at full size. Length is measured in spacings between neighbouring organs at its position, so organs can touch or overlap, like the scales of a pine cone.
+
+| Locus | Gene | Model parameter | Range | Basis |
+| --- | --- | --- | --- | --- |
+| 1 | Body plan | Receptacle: head (a disc), dome, cone, or column | 4 choices | Prusinkiewicz and Lindenmayer 1990 (receptacle is an input) |
+| 2 | Inhibition range | λ / R0: how far inhibition reaches, relative to the central zone | 0.2 to 2, log | Douady and Couder 1996 |
+| 3 | Organ form | Organ shape: floret, scale, leaf, or spine | 4 choices | Prusinkiewicz and Lindenmayer 1990 (organ shape is an input) |
+| 4 | Inhibition falloff | η, how sharply inhibition falls with distance | 1 to 8 | Douady and Couder 1996 |
+| 5 | Starting organs | Organs present at the start | 1 to 4 | Douady and Couder 1996 (initial conditions) |
+| 6 | Receptacle aspect | Height to radius; for the head, how domed the disc is | 0.1 to 4, log | Prusinkiewicz and Lindenmayer 1990 (receptacle is an input) |
+| 7 | Organ length | Length in spacings between neighbouring organs | 0.5 to 4, log | Prusinkiewicz and Lindenmayer 1990 |
+| 8 | Organ width | Width to length | 0.1 to 1 | Prusinkiewicz and Lindenmayer 1990 |
+| 9 | Organ angle | Angle between organ and receptacle surface | 0° to 90° | Prusinkiewicz and Lindenmayer 1990 |
+| 10 | Organ curl | Bend along the organ's length | −90° to +90° | Prusinkiewicz and Lindenmayer 1990 |
+| 11 | Organ cupping | Curve across the organ's width, from flat to a half tube | 0 to 1 | Designed |
+| 12 | Maturation | Distance from the centre at which an organ reaches full size | 5% to 100% of the final radius | Prusinkiewicz and Lindenmayer 1990 |
+| 13 | Organ thickness | Drawn thickness of each organ | 2% to 30% of organ length, log | Designed |
+| 14 | Size variation | Random variation in each organ's size and angle | 0 to 30% | Designed extension |
+| 15 | Initiation noise | Random jitter in the angle at which each organ appears | 0° to 5° | Designed extension |
+| 16 to 23 | Pigment and surface | Same eight genes as species A, loci 16 to 23 | As species A | Appearance |
+| 24 | Seed | Random seed for size variation and initiation noise | 16.7 million values | Encoding |
+
+For locus 20, the gradient driver choices are: order of appearance, distance from the apex, position along the organ (base to tip), or height.
+
+**Maturity.** Growth stops when the oldest organ reaches a fixed outer radius, a multiple of R0 that is a constant of the encoding version. The number of organs is not a gene: it follows from the inhibition genes, from a handful in an alternate arrangement to hundreds in a sunflower head. Hard caps of 2,000 organs and 120,000 vertices apply, to be tuned for speed; organs get fewer vertices before the organ cap is reached.
+
+**Accuracy limits.** The model says where organs appear, from inhibition and growth alone, and reproduces the observed arrangements and the transitions between them. It does not model the chemistry behind the inhibition. Receptacle shapes, organ shapes and organ growth are designed geometry, not a model of how organs develop.
+
+## 4b. Species D: seashell (v0.2)
+
+A mollusc shell grows only at its opening, adding material along the edge of the aperture, so the shell is the trace the aperture leaves as it grows and turns. Raup showed that most coiled shells follow from a few numbers: an aperture outline, the generating curve, that grows geometrically while it coils around a fixed axis. Raup, D. M. and Michelson, A. (1965), "Theoretical morphology of the coiled shell", Science 147:1294–1295; Raup, D. M. (1966), "Geometric analysis of shell coiling: general problems", Journal of Paleontology 40:1178–1190. Fowler, Meinhardt and Prusinkiewicz (1992), "Modeling seashells", Computer Graphics 26(2):379–387 (SIGGRAPH '92), build the shell surface from that sweep and add pigment patterns from Meinhardt and Klingler (1987), "A model for pattern formation on the shells of molluscs", Journal of Theoretical Biology 126:63–89.
+
+Implement Raup's model as a sweep:
+
+- The generating curve is an ellipse with height to width ratio S, in a plane through the coiling axis, tilted by the aperture tilt (locus 5).
+- For every turn of growth, every length in the curve and its distance from the axis multiply by W, the whorl expansion rate. Between whole turns the scaling is geometric, W^(θ / 2π) for an angle θ.
+- D sets the distance from the axis: the ratio of the curve's inner edge distance to its outer edge distance from the axis.
+- T sets the translation along the axis: the curve's centre moves along the axis by T times its distance from the axis.
+- Growth runs in fixed angular steps. Each step adds one ring of vertices around the curve, joined to the last ring by triangles. The first ring is closed with a small cap, the embryonic shell.
+- Ornament changes the curve's outline before it is placed: ribs are bulges repeated along the growth direction, cords are bulges repeated around the curve, and nodules are extra height where the two cross.
+- The aperture flare widens the curve over the last part of the final whorl.
+- The edge pattern (gradient driver choice 4) is Meinhardt and Klingler's activator–inhibitor model run along the generating curve, advanced one growth step at a time, so each ring records the pattern at the moment it was laid down. Its constants are constants of the encoding version and its starting noise comes from the seed. Pattern genes are not in v0.2 (section 11).
+
+| Locus | Gene | Model parameter | Range | Basis |
+| --- | --- | --- | --- | --- |
+| 1 | Whorl expansion | W, growth of the curve per turn | 1.3 to 1,000, log | Raup 1966 |
+| 2 | Translation | T, movement along the axis per unit distance from it | 0 to 8 | Raup 1966 |
+| 3 | Distance from axis | D, inner to outer edge distance of the curve from the axis | 0 to 0.9 | Raup 1966 |
+| 4 | Aperture shape | S, height to width of the generating curve | 0.25 to 4, log | Raup 1966 |
+| 5 | Aperture tilt | Angle of the generating curve's plane to the axis | −60° to +60° | Fowler et al. 1992 |
+| 6 | Handedness | Coiling direction: right (dextral) or left (sinistral) | 2 choices | Raup 1966 |
+| 7 | Rib count | Ribs per turn | 0 to 40 | Designed extension |
+| 8 | Rib height | Height of each rib | 0 to 40% of the curve's radius | Designed extension |
+| 9 | Rib width | Width of each rib | 5% to 50% of the rib spacing | Designed extension |
+| 10 | Cord count | Cords around the curve | 0 to 32 | Designed extension |
+| 11 | Cord height | Height of each cord | 0 to 20% of the curve's radius | Designed extension |
+| 12 | Nodules | Extra height where ribs and cords cross | 0 to 1 | Designed extension |
+| 13 | Aperture flare | How far the lip widens over the last part of the final whorl | 0 to 1 | Designed extension |
+| 14 | Wall thickness | Drawn thickness of the shell wall | 1% to 20% of the curve's radius, log | Designed |
+| 15 | Growth irregularity | Random variation in growth from step to step, leaving growth lines | 0 to 1 | Designed extension |
+| 16 to 23 | Pigment and surface | Same eight genes as species A, loci 16 to 23 | As species A | Appearance |
+| 24 | Seed | Random seed for growth irregularity and the edge pattern's starting noise | 16.7 million values | Encoding |
+
+For locus 20, the gradient driver choices are: growth lines (the step a ring was laid down), position around the curve, ornament relief, or edge pattern.
+
+**Maturity.** Growth stops when the generating curve reaches a fixed multiple of its starting size, or after a fixed number of whorls, whichever comes first; both are constants of the encoding version. The number of whorls is not a gene: a low expansion rate gives a tall spire of many whorls, a high one a single wide whorl, as in an abalone. A hard cap of 120,000 vertices applies, to be tuned for speed.
+
+**Overlapping whorls.** When the distance from the axis is small, each whorl wraps the one before, as in real shells, and the surface passes through itself where they meet. This is expected; species B's rule against passing through itself does not apply.
+
+**Accuracy limits.** Raup's model describes the geometry of coiling, not the biology of the mantle that builds it. Ornament and growth irregularity are designed. The edge pattern uses one fixed set of the published model's constants, so it shows the mechanism, not the range of patterns real shells have.
 
 ## 5. Helix interface
 
@@ -280,34 +376,48 @@ The tool is accurate at the level of its growth models and openly a designed abs
 | Branching growth | Published model, implemented as written | Runions, Lane and Prusinkiewicz 2007; Runions et al. 2005 |
 | Branch thickness | Published rule | Pipe model, as used in the 2007 paper, exponent usually between 2 and 3 |
 | Ruffling from marginal growth | Published mechanism, approximate simulation | Nath et al. 2003; Sharon and Efrati 2010 |
+| Organ arrangement (v0.2) | Published model, implemented as written | Douady and Couder 1996; Hofmeister's rule |
+| Receptacles and organ shapes (v0.2) | Designed geometry, after a published method | Prusinkiewicz and Lindenmayer 1990, chapter 4 |
+| Shell coiling (v0.2) | Published geometric model, implemented as written | Raup and Michelson 1965; Raup 1966; Fowler, Meinhardt and Prusinkiewicz 1992 |
+| Shell edge pattern (v0.2) | Published mechanism, fixed constants | Meinhardt and Klingler 1987 |
+| Shell ornament and growth irregularity (v0.2) | Designed extension | Added for visual range |
 | Helix geometry and base pairing | Textbook structure of B-form DNA | Standard molecular biology |
 | Genome to parameter mapping | Designed abstraction | Real genes do not encode model parameters directly. The code is an addressing scheme, not a model of gene expression. |
 | Genes marked "designed" in the gene tables | Designed extension | Added for visual range; labelled as such in the app |
 
 The Methods page lists each model, its equations, every gene with its range and scale, the references above, and the limits stated here. It also shows the geometry hash of the current organism, so the same code can be compared across browsers and machines.
 
-## 11. Not in v1
+## 11. Not in v0.2
 
 Do not build these. Keep the listed hooks so they can be added later.
 
-| Later feature | Hook to keep in v1 |
+| Later feature | Hook to keep |
 | --- | --- |
 | Time slider and age-mapped growth | Growth runs step by step. |
-| Animated growth | Arrives with the time slider. v1 shows only the draft and the finished organism. |
+| Animated growth | Arrives with the time slider. Until then the tool shows only the draft and the finished organism. |
 | Breeding: mutation, crossover, selection | Every code is viable and genes sit at fixed loci. |
 | Controllable environment | The environment is a set of named constants in one place. |
-| More species | The 3-base species field allows 64. |
-| Closed, looping venation | Needs its own gene. |
+| More species | The 3-base species field allows 64; A to D use four. Two candidates are noted below. |
+| Shell pattern genes (species D) | The edge pattern's constants sit in one place. As genes they would be form genes, because the pattern is computed in the simulation. |
 | Vector export and colour separations | Geometry and pigment data stay available in memory. |
 | 3D model export | Same geometry, written as a mesh file. |
 | Keyboard shortcuts | Every action is a named command. |
 | Phone and tablet layouts | The linear gene map. |
+
+**Candidate species, noted on 19 October 2026 for a later version.** Neither is designed yet; each needs its own section, gene table and milestones when chosen.
+
+| Candidate | Published basis | Form | Notes |
+| --- | --- | --- | --- |
+| Coral and sponge | Kaandorp (1994), accretive growth, in "Fractal Modelling: Growth and Form in Biology" (Springer); Witten and Sander (1981), diffusion-limited aggregation, Physical Review Letters 47:1400 | Branching, plate-like and encrusting colonies | Accretive growth makes a surface that could use the species B and C sheet renderer; aggregation makes branches that could use species A's tubes. |
+| Closed, looping venation | Runions et al. (2005), the closed variant of their venation model, the open variant of which species A uses | Leaf veins and networks with loops | Could be a new species, or species A's model with one added gene. Adding a gene to species A needs a new encoding version so v0.1 codes keep growing the same. |
 
 Also out: image upload, typography, accounts, galleries and any server.
 
 ## 12. Acceptance tests
 
 The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
+
+**v0.1.** Closed by the owner on 19 October 2026 with the first two items open.
 
 - [ ] The same code gives the same geometry hash in three browsers on two different machines.
 - [ ] 10,000 random genomes per species all grow to maturity with no failure and no invalid numbers.
@@ -322,7 +432,19 @@ The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 - [x] An A2 PNG at 300 dpi exports with a transparent background and carries its code in the metadata.
 - [x] The Methods page states which parts are published models and which are designed.
 
-Left to the implementer: the random number generator, the mesh data structure, the shading technique for the monochrome plate, the syllable tables, the wild-type genomes, and final tuning of gene ranges so the whole range of every gene is stable and visibly different.
+**v0.2.**
+
+- [ ] Every species A and B geometry hash recorded in v0.1 is unchanged.
+- [ ] 10,000 random genomes each of species C and D all grow to maturity with no failure and no invalid numbers.
+- [ ] The same species C and D code gives the same geometry hash in three browsers on two different machines.
+- [ ] Species C in a spiral arrangement: the mean angle between successive organs is within 1° of the golden angle, 137.5°, and the spirals visible in the head come in consecutive Fibonacci numbers.
+- [ ] Species C: raising the inhibition range moves the arrangement from spiral toward alternate (180° between successive organs), as Douady and Couder report.
+- [ ] Species D with ornament off: the generating curve grows by W per turn, a translation of 0 gives a flat coil with every whorl in one plane, and the left-handed shell is the mirror image of the right-handed one.
+- [ ] Changing a pigment gene of species C or D does not regrow the organism.
+- [ ] Species C and D draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
+- [ ] The Methods page states which parts of species C and D are published models and which are designed.
+
+Left to the implementer: the random number generator, the mesh data structure, the shading technique for the monochrome plate, the syllable tables, the wild-type genomes, the organ and receptacle shapes of species C, and final tuning of gene ranges so the whole range of every gene is stable and visibly different.
 
 ## 13. Clarifications
 
@@ -344,3 +466,11 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 14. **Species B drawn thickness (section 4, locus 3).** The drawn thickness is the smaller of the thickness and the personal space, so the drawn sheet does not visibly pass through itself. Stretch and bending stiffness use the full thickness gene. The inspector shows the clamp.
 15. **Species A stopping (section 3).** A node whose growth direction sums to zero does not grow that step. Growth also stops after a fixed number of steps, a constant of the encoding version. Both are stated on the Methods page as additions to the paper's procedure.
 16. **Sensing range (section 3, locus 4).** Added on 4 October 2026 at the owner's request. The radius of influence is set in mean spacings between attraction points, where the mean spacing is the cube root of the envelope volume divided by the number of points. In D it is the gene's value times that spacing. With a radius fixed at 4 D to 64 D, about four in ten random genomes grew as a bare, unbranched stem, because the sparsest envelopes put points further apart than the largest radius. The inspector shows the value both in spacings and in D.
+
+**v0.2 clarifications.** Agreed with the owner on 19 October 2026, when v0.2 started. They cover the two new species and change nothing for species A and B.
+
+17. **Header (section 2).** Species C is AAG and species D is AAT, both with encoding version AAA. Species A and B keep their headers and their gene maps.
+18. **Provisional tables (sections 4a and 4b).** The ranges in the species C and D gene tables are provisional until that species' simulation milestone. Each such milestone starts by checking every model statement in its section against the cited papers. Where a paper differs, or a range cannot be made stable, work stops and the exact edit to this spec is proposed, as in clarification 2. Once the milestone is done, the table is fixed like the others.
+19. **Geometry (sections 4a and 4b).** Species C and D each produce one triangle mesh with a drawn thickness and four gradient-driver attributes per vertex, in the same form as species B, so the existing sheet drawing, looks and tiled export draw them. Species C's drawn thickness is the organ thickness gene; species D's is the wall thickness gene. Organs may overlap and whorls may pass through each other; no triangle may have zero area.
+20. **Drafts (section 6).** Species C's draft uses the same organ positions with fewer vertices per organ. Species D's draft uses larger angular steps and fewer points around the generating curve. Both use the same seed and are labelled as drafts, as in clarification 3.
+21. **Species switch (sections 5 and 6).** The switch offers all four species. Choosing one loads its wild type.

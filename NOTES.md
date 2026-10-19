@@ -1,7 +1,8 @@
 # Session notes
 
 ## Status
-- Every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
+- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Next: milestone 14. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
+- v0.1: every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
 - On 19 October 2026 the owner closed four milestones without their last checks, as good enough or not critical. If any of these is ever wanted, the details are below and in PLAN.md:
   - 5: the full 10,000-genome species B run (`npm run test:slow:b`, about 3 h); 2,000 have passed since the last fixes.
   - 10b: the frame-time check. Chrome was mostly 60 Hz jitter around the 16.7 ms cut-off plus one 300 ms stall; Safari ran at about 28 fps (cause not diagnosed: a 30 fps cap such as Low Power Mode, or a heavy frame). `helix.measureFrames()` reports refresh, missed frames, per-phase p95 and the GPU to diagnose it.

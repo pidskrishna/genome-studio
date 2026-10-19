@@ -1,6 +1,11 @@
 # Build plan
 
-Fourteen milestones, done in order, one per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
+Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
+
+- **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Next: milestone 14.
+
+# v0.1
 
 ## Milestone 0: project setup
 
@@ -205,3 +210,84 @@ Build: the Methods page, including the geometry hash of the current organism and
 Checks:
 - Every item in spec section 12 is ticked, with evidence, except the cross-browser item.
 - Cross-browser item, done by the owner: open the same code in Safari, Chrome and Firefox and compare the hash shown on the Methods page.
+
+# v0.2
+
+Species C (phyllotaxis, spec section 4a) and species D (seashell, spec section 4b), through the whole tool. v0.2 clarifications are 17 to 21. In every v0.2 milestone, species A and B must keep growing exactly as in v0.1: the full test suite passes and their recorded hashes are unchanged.
+
+## Milestone 14: genome for species C and D (spec sections 2, 4a and 4b)
+
+- [ ] Done
+
+Build: both gene tables, headers AAG and AAT (clarification 17), decoding with every clamp, wild types (provisional until milestones 15 and 16), and specimen names for the two new genera. The rest of the tool keeps offering only A and B until milestone 17.
+
+Checks (unit tests):
+- Gene tables match `SPEC.md` locus by locus for all four species.
+- 10,000 random codes per new species decode with every parameter inside its range.
+- Every gene value 0 to 4,095 survives value → bases → value; whole-number and multiple-choice genes land on their bin centres (clarification 6).
+- Species AAG and AAT with version AAA decode; any other unused species is still rejected with a message.
+- The checksum, typo warning and link sharing work for C and D codes as for A and B.
+- Names: the two new genera differ from A's and B's; the epithet rules hold as in milestone 1.
+- The species A and B wild-type hashes are unchanged.
+
+## Milestone 15: species C simulation (spec section 4a)
+
+- [ ] Done
+
+First: check every model statement in section 4a against Douady and Couder (1996), parts I to III, and against chapter 4 of The Algorithmic Beauty of Plants. Where they differ, stop and propose the spec edit (clarification 18).
+
+Build: the threshold model in the worker on the plane (organ drift, inhibition sum with a spatial grid, initiation at local minima below threshold, starting organs), the map onto the four receptacles, organ meshes for the four organ forms, maturation, size variation, initiation noise, the caps, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 19). No rendering.
+
+Checks:
+- 1,000 random genomes grow to maturity with no error and no NaN (a slower script runs 10,000).
+- Same code, same geometry hash; wild-type hash recorded.
+- With initiation noise at 0 and a spiral arrangement, the mean angle between successive organs is within 1° of 137.5°, and the parastichy counts in the head are consecutive Fibonacci numbers.
+- Raising the inhibition range moves the mean angle toward 180° (alternate); with two starting organs and a suitable range, organs come in opposite pairs at right angles (decussate).
+- The organ count never exceeds 2,000, the vertex count never exceeds 120,000, and no triangle has zero area.
+- The angle around the centre is kept by the receptacle map, and on the column the spirals become helices of constant pitch.
+- Every vertex carries all four gradient-driver attributes, with no NaN.
+- Speed benchmark (in the browser): wild type reaches maturity in under 10 seconds.
+
+## Milestone 16: species D simulation (spec section 4b)
+
+- [ ] Done
+
+First: check every model statement in section 4b against Raup (1966), Fowler, Meinhardt and Prusinkiewicz (1992), and Meinhardt and Klingler (1987). Where they differ, stop and propose the spec edit (clarification 18).
+
+Build: Raup's sweep in the worker (generating curve, expansion, distance from axis, translation, tilt, handedness), the embryonic cap, ribs, cords, nodules, aperture flare, growth irregularity, the edge pattern, the stopping rules and vertex cap, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 19). No rendering.
+
+Checks:
+- 1,000 random genomes grow to maturity with no error and no NaN (a slower script runs 10,000).
+- Same code, same geometry hash; wild-type hash recorded.
+- With ornament, flare and irregularity off: the generating curve's size grows by W per turn within 1e-9 relative error; a translation of 0 puts every whorl centre in one plane; distance from axis 0 closes the umbilicus.
+- The left-handed shell is the right-handed one mirrored, vertex for vertex.
+- The vertex count never exceeds 120,000 and no triangle has zero area, including at the cap and at high whorl expansion.
+- The edge pattern is not uniform on the wild type, and changes with the seed.
+- Every vertex carries all four gradient-driver attributes, with no NaN.
+- Speed benchmark (in the browser): wild type reaches maturity in under 10 seconds.
+
+## Milestone 17: species C and D in the app (spec sections 5 to 9)
+
+- [ ] Done
+
+Build: the species switch with four species (clarification 21, as a segmented control per DESIGN.md), drawing C and D on the stage in all three looks and both views, the editor, helix, gene map and inspector for the new genes, drafts (clarification 20), the tray, export and methods file.
+
+Checks:
+- Screenshots of each new species' wild type in all three looks, in both views, centred and fully in frame.
+- In every look, a C and a D frame drawn as stitched sub-rectangles matches the same frame drawn whole, within `TILE_TOLERANCE`.
+- Test: changing any pigment gene of C or D does not start a simulation run.
+- A draft appears in under one second for each new wild type while dragging a form gene, labelled as a draft; on release the hash equals growing that code from scratch.
+- End to end in the browser pane: a pasted code and a shared link of each new species reproduce the organism (same hash); switching species loads each wild type.
+- An A4 export of each new species has the right size and carries its code in the metadata; the methods file lists all 24 decoded values.
+- Screenshot of the switch with four species, in each look.
+
+## Milestone 18: Methods page and v0.2 acceptance (spec sections 10 and 12)
+
+- [ ] Done
+
+Build: Methods page content for species C and D (models, equations, every gene with range and scale, references, limits, which parts are published and which designed), and v0.2 evidence in ACCEPTANCE.md.
+
+Checks:
+- Every v0.2 item in spec section 12 is ticked, with evidence, except the cross-browser item.
+- The 10,000-genome runs for C and D: ask the owner before starting any run over about 20 minutes, and offer a smaller sample with its bound.
+- Cross-browser item, done by the owner: open a C and a D code in Safari, Chrome and Firefox, on two machines, and compare the hash on the Methods page.
