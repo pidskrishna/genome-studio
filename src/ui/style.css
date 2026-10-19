@@ -292,6 +292,48 @@ html.reticle-on input[type='text'], html.reticle-on input[type='number'], html.r
 .tray-item:hover { box-shadow: inset 0 0 0 1px var(--hair-strong); }
 .tray-item[aria-current='true'] { box-shadow: inset 0 0 0 1px var(--accent); }
 
+/* Export dialog (spec section 9): preview on one side, the choices read top to bottom. */
+.export-dialog {
+  width: min(860px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  overflow: auto;
+}
+.export-dialog[open] { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); }
+.export-dialog::backdrop { background: color-mix(in srgb, var(--bg) 55%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.export-preview { display: grid; place-items: center; padding: 24px; background: var(--stage); border-radius: var(--r-panel) 0 0 var(--r-panel); }
+.export-preview-img { max-width: 100%; max-height: 380px; box-shadow: var(--shadow), 0 0 0 1px var(--hair); }
+.export-preview-img.transparent { background: repeating-conic-gradient(color-mix(in srgb, var(--ink) 12%, var(--stage)) 0 25%, var(--stage) 0 50%) 0 0 / 12px 12px; }
+.export-form { display: grid; gap: 12px; padding: 20px 24px; align-content: start; }
+.export-title { margin: 0 0 4px; font-size: var(--fs-title); font-weight: 500; }
+.export-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.export-label { color: var(--ink-2); font-size: var(--fs-label); }
+.export-field { display: grid; gap: 6px; justify-items: start; }
+.export-note { color: var(--ink-2); font-size: var(--fs-label); font-family: var(--mono); }
+.export-custom { display: flex; align-items: baseline; gap: 6px; }
+.export-custom[hidden] { display: none; }
+.export-custom input, .export-file input {
+  width: 6.5em;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 3px;
+  font-family: var(--mono);
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--hair-strong);
+}
+.export-file { display: flex; align-items: baseline; gap: 4px; width: 100%; }
+.export-file input { flex: 1; min-width: 0; width: auto; }
+.export-custom input:focus, .export-file input:focus { box-shadow: inset 0 -1px 0 var(--accent); }
+.export-check { display: inline-flex; gap: 6px; align-items: center; }
+.export-check input { accent-color: var(--accent); }
+.export-bar { height: 1px; background: var(--hair); margin-top: 4px; }
+.export-bar-fill { height: 100%; width: 0; background: var(--accent); transition: width var(--t-small) linear; }
+.export-status { margin: 0; min-height: 1.4em; font-size: var(--fs-label); color: var(--ink-2); font-family: var(--mono); }
+.export-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.export-go:not(:disabled) { background-color: var(--fill-3); color: var(--accent); box-shadow: var(--shadow), inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+
 /* Gene map --------------------------------------------------------------------------------------- */
 
 .gene-map-panel { height: 100%; overflow-y: auto; }

@@ -34,13 +34,22 @@ export function directionOf(view: ViewDirection): Vector3 {
 
 /** Places a perspective camera so the sphere fits the frame at the camera's aspect. */
 export function frame3D(camera: PerspectiveCamera, sphere: Sphere, view: ViewDirection): void {
+  frame3DAlong(camera, sphere, directionOf(view));
+}
+
+/**
+ * Places a perspective camera on a given direction (unit vector from the sphere's centre toward the
+ * camera) so the sphere fits the frame at the camera's aspect, with the margin. Export's "fit to the
+ * page" uses it with the stage camera's own direction.
+ */
+export function frame3DAlong(camera: PerspectiveCamera, sphere: Sphere, direction: Vector3): void {
   const r = Math.max(sphere.radius, 1e-6);
   const vHalf = (camera.fov * Math.PI) / 360;
   const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
   const half = Math.min(vHalf, hHalf);
   // The sphere's tangent cone must fit inside the narrower half-angle, shrunk by the margin.
   const distance = r / Math.sin(Math.atan(Math.tan(half) * (1 - FRAME_MARGIN)));
-  camera.position.copy(sphere.center).addScaledVector(directionOf(view), distance);
+  camera.position.copy(sphere.center).addScaledVector(direction, distance);
   camera.up.set(0, 1, 0);
   camera.lookAt(sphere.center);
   camera.near = Math.max(distance - r * 1.5, distance * 0.01);

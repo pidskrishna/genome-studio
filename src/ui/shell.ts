@@ -32,6 +32,8 @@ export interface Shell {
   progress: ProgressView;
   /** Full-window layer for the exposure change when the look switches. */
   exposureLayer: HTMLElement;
+  /** Opens the export dialog (spec section 9). */
+  exportButton: HTMLButtonElement;
   /** The stage region, for things placed over the organism (the tray). */
   stageArea: HTMLElement;
   /** The plate caption: the specimen name and its code (spec section 6). */
@@ -76,6 +78,7 @@ export function buildShell(parent: HTMLElement): Shell {
   const view3d = button('3D');
   const viewFlat = button('Flat');
   const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
+  const exportButton = button('Export', { title: 'Save the organism as a print-size PNG' });
   const transparentButton = button('Transparent background', { className: 'btn glass toggle', title: 'Draw the organism without a background, as a layer' });
   transparentButton.setAttribute('aria-pressed', 'false');
   const top = el(
@@ -85,6 +88,7 @@ export function buildShell(parent: HTMLElement): Shell {
     topGroup('Species', segmented('Species', speciesA, speciesB)),
     topGroup('View', segmented('View', view3d, viewFlat)),
     topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
+    exportButton,
   );
 
   const tools = {
@@ -162,6 +166,7 @@ export function buildShell(parent: HTMLElement): Shell {
     codeBar,
     progress,
     exposureLayer,
+    exportButton,
     stageArea: stage,
     caption: { name: captionName, code: captionCode },
     draftLabel,

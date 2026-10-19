@@ -14,6 +14,7 @@ import { buildShell } from './ui/shell';
 import { SimClient } from './ui/sim-client';
 import { Studio } from './ui/studio';
 import { Tray } from './ui/tray';
+import { ExportDialog } from './ui/export-dialog';
 import { applyMotionTokens, motion, onReducedMotionChange } from './ui/motion';
 import { exposure, installButtonPress, installCursorLight, installFocusBrackets, Reticle } from './ui/surface';
 import { applyLook, applyPigmentHues } from './ui/theme';
@@ -64,6 +65,8 @@ if (parsed && !parsed.ok) codeBar.say(`The link’s code could not be read. ${pa
  * any with reduced motion on, arrive with a short crossfade instead.
  */
 let organismShown = false;
+/** True between a regrow finishing and its organism reaching the stage (the focus pull's first half). */
+let swapPending = false;
 /** While a gene slider is dragged, form-gene edits grow a coarse draft (clarification 3). */
 let dragging = false;
 let pullTimer = 0;
@@ -71,6 +74,7 @@ const stageView = {
   setOrganism(organism: Organism): void {
     const host = shell.stage;
     window.clearTimeout(pullTimer);
+    swapPending = false;
     // Drafts arrive one after another while a slider is dragged: they swap in directly. The focus pull
     // is for the organism itself, when the slider is released.
     if (!organismShown || dragging) {
@@ -86,7 +90,9 @@ const stageView = {
     }
     host.classList.remove('refocus');
     host.classList.add('defocus');
+    swapPending = true;
     pullTimer = window.setTimeout(() => {
+      swapPending = false;
       stage.setOrganism(organism);
       host.classList.replace('defocus', 'refocus');
       pullTimer = window.setTimeout(() => host.classList.remove('refocus'), 340);
@@ -109,6 +115,14 @@ const tray = new Tray((code) => {
   if (code !== editor.code) editor.paste(code);
 });
 shell.stageArea.append(tray.element);
+
+// Export (spec section 9): only the organism itself is exported, never a draft or a regrow in flight.
+const exportDialog = new ExportDialog({
+  stage,
+  readyCode: () => (shell.draftLabel.hidden && !swapPending && studio.code === editor.code ? studio.code : null),
+  hash: () => studio.hash,
+});
+shell.exportButton.addEventListener('click', () => exportDialog.open());
 
 /** A small picture of the organism now on the stage, for the tray (the look and background as shown). */
 function thumbnail(): string {
@@ -278,4 +292,4 @@ refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, tray, motion, applyMotionTokens });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, tray, exportDialog, motion, applyMotionTokens, exportReady: () => exportDialog.ready });

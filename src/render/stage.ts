@@ -28,7 +28,7 @@ import { bloomKernel, BloomPass, paddedRect } from './bloom';
 import { buildBranchMesh } from './branch-mesh';
 import { buildExactMesh, disposeExactMesh, setExactColours, type ExactMesh } from './exact-mesh';
 import { nodeColours, normaliseDrivers, vertexColours, type LookId } from './colour';
-import { FIELD_OF_VIEW, frame3D, frameFlat, START_VIEW } from './framing';
+import { FIELD_OF_VIEW, frame3D, frame3DAlong, frameFlat, START_VIEW } from './framing';
 import { BACKGROUNDS, LookMaterials } from './looks';
 import { buildSheetMesh } from './sheet-mesh';
 import { snapViewport, wholeImage } from './snap';
@@ -40,6 +40,8 @@ import { flipRows, imageTiles, planRegion, stitch, type Pixels, type Rect } from
 // resize), not every frame. A pigment edit rewrites the vertex colours and material settings only.
 
 export type ViewMode = '3d' | 'flat';
+/** Export framing: as the stage is framed now, or the organism fitted to the page with a margin. */
+export type Framing = 'stage' | 'fit';
 export type { LookId } from './colour';
 
 export type Organism = { species: 'A'; geometry: BranchGeometry } | { species: 'B'; geometry: SheetGeometry };
@@ -256,9 +258,9 @@ export class Stage {
    * them). With an opaque background alpha is 255 everywhere; for a transparent one, convert with
    * `toStraightAlpha` (tiles.ts) before writing a PNG.
    */
-  renderRegion(fullWidth: number, fullHeight: number, rect: Rect): Pixels {
+  renderRegion(fullWidth: number, fullHeight: number, rect: Rect, framing: Framing = 'stage'): Pixels {
     const plan = planRegion(fullWidth, fullHeight, rect, this.maxViewport);
-    const camera = this.cameraFor(fullWidth / fullHeight);
+    const camera = this.cameraFor(fullWidth / fullHeight, framing);
     if (!plan.whole) {
       const w = plan.window;
       camera.setViewOffset(fullWidth, fullHeight, w.x, w.y, w.width, w.height);
@@ -299,13 +301,18 @@ export class Stage {
   }
 
   /** Draws a virtual image as (at least) cols × rows tiles and stitches them. */
-  renderImage(width: number, height: number, cols = 1, rows = 1): Pixels {
+  renderImage(width: number, height: number, cols = 1, rows = 1, framing: Framing = 'stage'): Pixels {
     const rects = imageTiles(width, height, cols, rows, this.maxViewport);
     try {
-      return stitch(width, height, rects, (rect) => this.renderRegion(width, height, rect));
+      return stitch(width, height, rects, (rect) => this.renderRegion(width, height, rect, framing));
     } finally {
-      this.bloom.release();
+      this.finishRegions();
     }
+  }
+
+  /** Frees what drawing regions keeps between tiles (the bloom's targets); call after an export. */
+  finishRegions(): void {
+    this.bloom.release();
   }
 
   /** Largest side of a viewport, and so of one window of a tiled image. */
@@ -450,11 +457,17 @@ export class Stage {
     return this.mode === '3d' ? this.perspective : this.orthographic;
   }
 
-  /** A copy of the current camera for an image of the given aspect. */
-  private cameraFor(aspect: number): PerspectiveCamera | OrthographicCamera {
+  /** A copy of the current camera for an image of the given aspect (refitted for 'fit'). */
+  private cameraFor(aspect: number, framing: Framing = 'stage'): PerspectiveCamera | OrthographicCamera {
     if (this.mode === '3d') {
       const camera = this.perspective.clone();
       camera.aspect = aspect;
+      const b = this.bounds();
+      if (framing === 'fit' && b) {
+        // Same viewing direction as the stage, distance set so the organism fits the page.
+        const direction = camera.position.clone().sub(this.controls.target).normalize();
+        frame3DAlong(camera, b.sphere, direction);
+      }
       camera.updateProjectionMatrix();
       return camera;
     }
