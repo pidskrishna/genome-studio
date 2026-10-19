@@ -8,6 +8,7 @@ import { GROUP_NAMES } from './gene-info';
 import { HelixControls, type HelixPick } from './helix-controls';
 import { bandMiddle, detent, facingSpin, nearestSpin, RISE, type Band } from './helix-geometry';
 import { labelOpacity } from './helix-ruler';
+import { rippleSchedule } from './interaction';
 import { HelixScene, type ScreenPoint } from './helix-scene';
 import { Inspector } from './inspector';
 import { Damped, dur, loop, motion } from './motion';
@@ -55,12 +56,20 @@ interface RulerSegment {
 
 export interface FrameReport {
   frames: number;
-  /** Share of frame intervals at or under 16.7 ms. */
+  /** Share of frame intervals at or under 16.7 ms (the milestone 10b pass mark, unchanged). */
   within: number;
   p95: number;
   worst: number;
   width: number;
   height: number;
+  /** Diagnosis only: the display's refresh interval (median frame interval), in ms. */
+  refresh: number;
+  /** Diagnosis only: share of frames that missed a refresh (interval over 1.5 × refresh). */
+  missed: number;
+  /** Diagnosis only: 95th-percentile interval in each phase of the script, in ms. */
+  phases: { drift: number; turns: number; drag: number };
+  /** Diagnosis only: the browser's own report of what the GPU is, where it gives one. */
+  gpu: string;
 }
 
 export class HelixView {
@@ -201,10 +210,13 @@ export class HelixView {
    */
   async measureFrames(ms = 10_000): Promise<FrameReport> {
     const intervals: number[] = [];
-    let last = performance.now();
+    const stamps: number[] = [];
+    const begin = performance.now();
+    let last = begin;
     let running = true;
     const record = (now: number): void => {
       intervals.push(now - last);
+      stamps.push(now - begin);
       last = now;
       if (running) requestAnimationFrame(record);
     };
@@ -236,13 +248,28 @@ export class HelixView {
     running = false;
     const sorted = intervals.slice(1).sort((a, b) => a - b);
     const within = sorted.filter((d) => d <= 16.7).length / Math.max(1, sorted.length);
+    const round = (n: number, k = 10): number => Math.round(n * k) / k;
+    const refresh = sorted[Math.floor(sorted.length / 2)] ?? 0;
+    const missed = sorted.filter((d) => d > refresh * 1.5).length / Math.max(1, sorted.length);
+    const p95Of = (from: number, to: number): number => {
+      const scale = ms / 10_000;
+      const part = intervals.filter((_, i) => i > 0 && stamps[i]! >= from * scale && stamps[i]! < to * scale).sort((a, b) => a - b);
+      return round(part[Math.floor(part.length * 0.95)] ?? 0);
+    };
+    const gl = this.renderer.getContext();
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const gpu = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
     return {
       frames: sorted.length,
-      within: Math.round(within * 1000) / 1000,
-      p95: Math.round((sorted[Math.floor(sorted.length * 0.95)] ?? 0) * 10) / 10,
-      worst: Math.round((sorted[sorted.length - 1] ?? 0) * 10) / 10,
+      within: round(within, 1000),
+      p95: round(sorted[Math.floor(sorted.length * 0.95)] ?? 0),
+      worst: round(sorted[sorted.length - 1] ?? 0),
       width: window.innerWidth,
       height: window.innerHeight,
+      refresh: round(refresh, 100),
+      missed: round(missed, 1000),
+      phases: { drift: p95Of(0, 2000), turns: p95Of(2000, 6000), drag: p95Of(6000, 10_000) },
+      gpu,
     };
   }
 
@@ -294,6 +321,8 @@ export class HelixView {
         if (changed.length === 1 && !motion.reduced) {
           const i = changed[0]!;
           this.view.pulseBase(i, previous.charAt(i), dur('medium') + 35, performance.now());
+        } else if (change.cause === 'randomise-all' && !motion.reduced) {
+          this.ripple(previous);
         }
       }
     }
@@ -333,6 +362,23 @@ export class HelixView {
     this.tooltip.hidden = true;
     this.refreshRuler();
     this.wake();
+  }
+
+  /**
+   * The randomise ripple on the helix: gene by gene, 26 ms apart, each gene's rungs light and every
+   * changed base runs the meet-in-the-middle pulse on the gene's turn. Locked genes stay still.
+   */
+  private ripple(previous: string): void {
+    const now = performance.now();
+    const bands = this.view.bands;
+    const locked = new Set(bands.filter((b) => b.locus !== null && this.editor.isLocked(b.locus)).map((b) => b.locus!));
+    for (const { group, delayMs } of rippleSchedule(bands.map((b) => ({ locus: b.locus, kind: b.kind })), locked)) {
+      const band = bands[group]!;
+      for (let i = band.start; i < band.start + band.length; i++) {
+        this.view.flashBase(i, 0.45, now + delayMs);
+        if (previous[i] !== this.editor.code[i]) this.view.pulseBase(i, previous.charAt(i), dur('medium') * 0.8, now + delayMs);
+      }
+    }
   }
 
   /** Light leads: the gene lights where it is, then the helix turns to face it, then the inspector opens. */

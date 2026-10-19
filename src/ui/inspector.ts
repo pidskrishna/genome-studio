@@ -1,13 +1,18 @@
-import { decodeGenome, decodeValue, geneSpan, rawMax, readGene, type DecodedGenome, type GeneDef } from '../genome';
+import { binCount, decodeGenome, decodeValue, geneSpan, rawMax, readGene, type DecodedGenome, type GeneDef } from '../genome';
 import type { Editor } from './editor';
 import { fieldUnit, formatValue, geneNotes, referenceOf } from './gene-info';
+import { LensSlider } from './lens-slider';
+import { Damped, dur, loop, motion } from './motion';
 import { button, el } from './shell';
+import { pulse } from './surface';
 
 // The gene inspector (spec section 5): the gene's slider, an exact number field, its bases as
 // editable letters, the model parameter with its unit, one sentence on what it does and its
 // reference, with randomise and lock. It sits beside the focused gene on the helix and under the
 // focused row in the gene map. What it shows is worked out by `inspectorValues`, a plain function, so
-// the sync between bases and slider can be tested without a DOM.
+// the sync between bases and slider can be tested without a DOM. The slider is the lens slider; the
+// slider, number field, bases and the gene's code-bar group share one linked pulse; a locked gene's
+// controls frost over (DESIGN.md section 7).
 
 /** Everything the inspector shows for a gene, worked out from the code alone. */
 export interface InspectorValues {
@@ -55,7 +60,13 @@ export class Inspector {
   readonly root: HTMLElement;
   readonly locus: number;
   private readonly inUse: HTMLElement;
-  private readonly slider: HTMLInputElement;
+  private readonly slider: LensSlider;
+  private readonly lockable: HTMLElement;
+  private readonly frost: HTMLElement;
+  private readonly frostAmount = new Damped(0, dur('large'));
+  private frostLoop: (() => void) | null = null;
+  private lastRaw: string | null = null;
+  private lastLocked: boolean | null = null;
   private readonly field: HTMLInputElement;
   private readonly unit: HTMLElement;
   private readonly baseButtons: HTMLButtonElement[];
@@ -81,14 +92,22 @@ export class Inspector {
     this.inUse = el('strong');
     const parameter = el('p', { className: 'parameter' }, `${def.parameter}: `, this.inUse);
 
-    const slider = el('input', { type: 'range', min: '0', max: String(max), step: '1', id: `${id}-slider` });
-    slider.setAttribute('aria-label', `${def.name} slider`);
-    slider.addEventListener('input', () => editor.setGene(locus, Number(slider.value), `slider-${this.gesture}`));
-    slider.addEventListener('change', () => (this.gesture = gestures++));
+    const link = `gene-${locus}`;
+    const whole = def.kind === 'int' || def.kind === 'choice';
+    const slider = new LensSlider({
+      max,
+      bin: whole ? (max + 1) / binCount(def) : 1,
+      label: `${def.name} slider`,
+      link,
+      onInput: (raw) => editor.setGene(locus, raw, `slider-${this.gesture}`),
+      onGestureEnd: () => (this.gesture = gestures++),
+    });
+    slider.el.id = `${id}-slider`;
     this.slider = slider;
 
     const { scale } = fieldUnit(def);
     const field = el('input', { type: 'number', step: 'any', id: `${id}-field` });
+    field.dataset.link = link;
     field.setAttribute('aria-label', `${def.name} exact value`);
     if (def.kind !== 'seed') {
       field.min = String(def.min * scale);
@@ -108,13 +127,14 @@ export class Inspector {
     });
     this.field = field;
     this.unit = el('span', { className: 'field-unit' });
-    const controls = el('div', { className: 'inspector-controls' }, slider, field, this.unit);
+    const controls = el('div', { className: 'inspector-controls' }, slider.el, field, this.unit);
 
     const { start, length } = geneSpan(locus);
     const bases = Array.from({ length }, (_, i) => {
       const position = start + i + 1;
       const b = button('', { className: 'base' });
       b.dataset.position = String(position);
+      b.dataset.link = link;
       b.title = `Base ${position}: click to cycle A, C, G, T, or type a letter`;
       b.addEventListener('click', () => editor.cycleBase(position));
       b.addEventListener('keydown', (e) => {
@@ -151,7 +171,10 @@ export class Inspector {
       actions.append(close);
     }
 
-    this.root = el('section', { className: 'inspector glass layer-3' }, title, parameter, controls, baseRow, this.raw, this.notes, description, reference, tag, actions);
+    // The editable part frosts over while the gene is locked: condensation from the edges inward.
+    this.frost = el('div', { className: 'frost' }, el('span', { className: 'frost-note', textContent: 'Locked. Randomise all leaves this gene alone.' }));
+    this.lockable = el('div', { className: 'lockable' }, parameter, controls, baseRow, this.raw, this.frost);
+    this.root = el('section', { className: 'inspector glass layer-3' }, title, this.lockable, this.notes, description, reference, tag, actions);
     this.root.dataset.group = def.group;
     this.root.dataset.locus = String(locus);
     this.root.setAttribute('aria-label', `Inspector: ${def.name}`);
@@ -162,7 +185,10 @@ export class Inspector {
     const code = this.editor.code;
     const v = inspectorValues(code, this.def, decoded ?? decodeGenome(code));
     this.inUse.textContent = v.inUse;
-    if (this.slider.value !== v.slider) this.slider.value = v.slider;
+    this.slider.set(Number(v.slider), v.inUse);
+    // A changed value lights every place that shows it, together (held while the slider is dragged).
+    if (this.lastRaw !== null && this.lastRaw !== v.slider) pulse(`gene-${this.locus}`);
+    this.lastRaw = v.slider;
     if (rewriteField || document.activeElement !== this.field) this.field.value = v.field;
     this.unit.textContent = v.fieldUnit;
     this.baseButtons.forEach((b, i) => {
@@ -179,5 +205,34 @@ export class Inspector {
     this.lock.title = locked ? 'Let randomise-all change this gene again' : 'Keep this gene when randomising all';
     this.randomise.disabled = locked;
     this.randomise.title = locked ? 'Unlock this gene to randomise it' : 'Give this gene a new random value';
+    this.slider.setDisabled(locked);
+    this.lockable.inert = locked;
+    this.lockable.classList.toggle('is-locked', locked);
+    if (locked !== this.lastLocked) {
+      const first = this.lastLocked === null;
+      this.lastLocked = locked;
+      this.condense(locked, first);
+    }
+  }
+
+  /** Frost forms from the edges inward over 520ms; unlocking clears it from the centre outward. */
+  private condense(locked: boolean, instant: boolean): void {
+    const a = this.frostAmount;
+    a.setSettle(dur('large'));
+    a.target = locked ? 1 : 0;
+    if (instant || motion.reduced) a.snap(a.target);
+    if (motion.reduced && !instant) this.frost.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 160 });
+    const paint = (): void => {
+      this.frost.style.setProperty('--a', a.value.toFixed(4));
+      this.frost.style.visibility = a.value < 0.001 ? 'hidden' : 'visible';
+    };
+    paint();
+    if (this.frostLoop) return;
+    this.frostLoop = loop((dt) => {
+      a.step(dt);
+      paint();
+      if (a.settled) this.frostLoop = null;
+      return !a.settled;
+    });
   }
 }

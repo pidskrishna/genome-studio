@@ -240,6 +240,8 @@ export class HelixScene {
   /** A brief extra light on a base (the detent's click, the end of a pulse), fading away. */
   private readonly flash = new Float32Array(GENOME_LENGTH);
   private readonly pulses = new Map<number, Pulse>();
+  /** Flashes waiting for their moment (the randomise ripple lights each gene on its turn). */
+  private readonly laterFlashes: { index: number; amount: number; at: number }[] = [];
   private readonly lockFrost = new Map<number, Damped>();
   private focusBand: Band | null = null;
   /** The focused gene breathes gently (DESIGN.md section 5); off with reduced motion. */
@@ -423,14 +425,17 @@ export class HelixScene {
     return this.focusBand;
   }
 
-  /** A brief extra light on one base, fading in about a tenth of a second. */
-  flashBase(index: number, amount: number): void {
-    if (index >= 0 && index < GENOME_LENGTH) this.flash[index] = Math.max(this.flash[index]!, amount);
+  /** A brief extra light on one base, fading in about a tenth of a second; `at` delays it. */
+  flashBase(index: number, amount: number, at?: number): void {
+    if (index < 0 || index >= GENOME_LENGTH) return;
+    if (at !== undefined) this.laterFlashes.push({ index, amount, at });
+    else this.flash[index] = Math.max(this.flash[index]!, amount);
   }
 
   /**
    * Light meets in the middle: two fronts leave both backbones and meet where the bases pair, leaving
-   * the base's current colour behind them and the previous one (`previous`) ahead.
+   * the base's current colour behind them and the previous one (`previous`) ahead. A pulse that
+   * starts later (the randomise ripple) shows the previous colour until it starts.
    */
   pulseBase(index: number, previous: string, ms: number, now: number): void {
     const prev = this.prevAttr.array as Float32Array;
@@ -487,9 +492,18 @@ export class HelixScene {
 
     const pa = this.pulseAttr.array as Float32Array;
     pa.fill(0);
+    for (let k = this.laterFlashes.length - 1; k >= 0; k--) {
+      const f = this.laterFlashes[k]!;
+      if (now >= f.at) {
+        this.flashBase(f.index, f.amount);
+        this.laterFlashes.splice(k, 1);
+      }
+      busy = true;
+    }
     for (const [index, p] of this.pulses) {
       const f = Math.min(1, (now - p.start) / p.ms);
-      const value = [f * 1.1, 1, 1 - f * 0.4];
+      // Before it starts: the front sits outside the rung, so the previous colour shows, unlit.
+      const value = f < 0 ? [-1, 1, 0.002] : [f * 1.1, 1, 1 - f * 0.4];
       pa.set(value, rungInstance(index, 'code') * 3);
       pa.set(value, rungInstance(index, 'pair') * 3);
       if (f >= 1) {

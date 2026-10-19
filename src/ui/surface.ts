@@ -298,3 +298,24 @@ export async function exposure(layer: HTMLElement, intoDark: boolean, swap: () =
   swap();
   await tween(240, (p) => (layer.style.opacity = String(0.3 * (1 - p))));
 }
+
+// Linked pulse ----------------------------------------------------------------------------------------
+
+/**
+ * Lights every element whose `data-link` names this key together, so the slider, the number, the
+ * bases and the code bar read as one value (DESIGN.md: linked pulse). Held during a drag; on release
+ * the light decays over 640ms with a retracting hairline.
+ */
+export function pulse(key: string): void {
+  if (motion.reduced) return;
+  for (const el of document.querySelectorAll(`[data-link~="${key}"]`)) {
+    if (el.classList.contains('held')) continue;
+    el.classList.remove('pulse');
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add('pulse');
+  }
+}
+
+export function hold(key: string, on: boolean): void {
+  for (const el of document.querySelectorAll(`[data-link~="${key}"]`)) el.classList.toggle('held', on);
+}

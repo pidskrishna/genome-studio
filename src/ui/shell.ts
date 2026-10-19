@@ -101,9 +101,11 @@ export function buildShell(parent: HTMLElement): Shell {
   helix.setAttribute('aria-label', 'Helix editor');
 
   const canvasHost = el('div', { className: 'stage-canvas' });
+  // Progress while growing (DESIGN.md: hairline and readout): a 1px line fills across the top of the
+  // stage, under the top bar, with a quiet readout beside it.
   const fill = el('div', { className: 'progress-fill' });
-  const label = el('span', { textContent: 'Growing…' });
-  const progressBox = el('div', { className: 'progress glass layer-2', hidden: true }, el('div', { className: 'progress-track' }, fill), label);
+  const label = el('span', { className: 'progress-readout', textContent: 'Growing 0%' });
+  const progressBox = el('div', { className: 'progress', hidden: true }, el('div', { className: 'progress-track' }, fill), label);
   progressBox.setAttribute('role', 'progressbar');
   progressBox.setAttribute('aria-label', 'Growing');
   progressBox.setAttribute('aria-valuemin', '0');
@@ -127,7 +129,7 @@ export function buildShell(parent: HTMLElement): Shell {
     show(fraction) {
       const pct = Math.round(Math.min(1, Math.max(0, fraction)) * 100);
       fill.style.width = `${pct}%`;
-      label.textContent = `Growing… ${pct}%`;
+      label.textContent = `Growing ${pct}%`;
       progressBox.setAttribute('aria-valuenow', String(pct));
       progressBox.hidden = false;
     },

@@ -4,8 +4,8 @@ import '@fontsource/ibm-plex-sans/latin-400-italic.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
-import { parseGenome, pigmentsOf, shareLink, wildType, type SpeciesId } from './genome';
-import { Stage, type LookId, type ViewMode } from './render/stage';
+import { parseGenome, pigmentsOf, shareLink, wildType, type Pigments, type SpeciesId } from './genome';
+import { Stage, type LookId, type Organism, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
 import { GeneMap } from './ui/gene-map';
@@ -56,9 +56,43 @@ const codeBar = new CodeBar(shell.codeBar, editor, {
 });
 if (parsed && !parsed.ok) codeBar.say(`The link’s code could not be read. ${parsed.message}`, 'error');
 
+/**
+ * A new organism arrives with a focus pull (DESIGN.md section 7): the stage blurs over 180ms, the
+ * organism swaps at the peak, and the blur clears over 320ms, like refocusing a microscope. It is a CSS
+ * filter on the stage's canvas only; the render and the export never see it. The first organism, and
+ * any with reduced motion on, arrive with a short crossfade instead.
+ */
+let organismShown = false;
+let pullTimer = 0;
+const stageView = {
+  setOrganism(organism: Organism): void {
+    const host = shell.stage;
+    window.clearTimeout(pullTimer);
+    if (!organismShown) {
+      organismShown = true;
+      stage.setOrganism(organism);
+      return;
+    }
+    if (motion.reduced) {
+      stage.setOrganism(organism);
+      host.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 160 });
+      return;
+    }
+    host.classList.remove('refocus');
+    host.classList.add('defocus');
+    pullTimer = window.setTimeout(() => {
+      stage.setOrganism(organism);
+      host.classList.replace('defocus', 'refocus');
+      pullTimer = window.setTimeout(() => host.classList.remove('refocus'), 340);
+    }, 180);
+  },
+  setPigments: (p: Pigments) => stage.setPigments(p),
+  setView: (mode: ViewMode) => stage.setView(mode),
+};
+
 const studio = new Studio({
   sim: new SimClient(),
-  stage,
+  stage: stageView,
   progress: shell.progress,
   notice: (message, tone) => codeBar.say(message, tone),
 });
@@ -190,4 +224,4 @@ refreshControls();
 history.replaceState(null, '', shareLink(location.href, editor.code));
 void show(editor.code);
 
-if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, motion, applyMotionTokens });
+if (import.meta.env.DEV) Object.assign(window, { studio, stage, editor, commands, helix, geneMap, codeBar, motion, applyMotionTokens });

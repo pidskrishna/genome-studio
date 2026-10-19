@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); 10b is built and committed but its box is unticked until the owner's frame-time check in Chrome and Safari (`await helix.measureFrames()` in the console, window focused, 1440 × 900). Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
+- Milestones 0–4, 6–9 and 10a done. Milestone 10 was split into 10a to 10c (owner, 4 October 2026); 10b and 10c are built and committed with their boxes unticked. 10b waits on the frame-time check (below); 10c waits on its visual checks with the browser pane shown and focused, and on one real clipboard copy (the unfocused pane refuses clipboard writes). Milestone 5 is committed (`7fd4b3b`) but its box is unticked: only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000 (about 3 h at about 45 genomes/min). 
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine (milestone 13).
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
@@ -54,6 +54,16 @@ Helix (`src/ui/helix-*.ts`, milestone 8)
 - The inspector (`inspector.ts`) is shared by the helix and the gene map. The helix has its own canvas and renderer and skips `snapVertices`, since it is never exported.
 - Dev hooks: `helix.showBase(p)` / `helix.showGene(locus)` turn to face and return client `{x, y, visible}`; `basePoint`, `genePoint`, `pickAt`, `state`.
 - Browser check (4 October 2026): clicking base 13 four times went G→T→A→C→G, updating slider, number field, code bar and link each time.
+
+Inspector and code bar (`lens-slider.ts`, `interaction.ts`, milestone 10c, checks pending)
+- The inspector's slider is the lens slider (ARIA slider over raw values; fine control from `fineSpeed`). Slider, number field, bases and the gene's code-bar group share `data-link="gene-N"`; `pulse()` lights them together, `hold()` while dragging. The editable part of the inspector is wrapped in `.lockable` with a condensation frost.
+- Randomise all: `rippleSchedule` gives each gene a 26 ms slot (header none, checksum last, locked genes keep their slot but stay still). The code bar holds old letters until each group's turn; the helix pulses and flashes on the same schedule (pulses scheduled ahead show the previous colour until they start). Any later editor event finishes a running ripple at once.
+- Copy reads the code out gene by gene (14 ms apart) and rolls the button to "Copied" (or "Copy failed"); paste writes groups in at the same rhythm. Progress is a 1px hairline under the top bar with a mono readout; a new organism arrives with a focus pull (CSS blur on the stage canvas only; first organism and reduced motion crossfade).
+- Checks so far (4 October 2026): randomise with genes 3 and 17 locked changed all 22 other genes and left 3 and 17 alone, with 23 groups held back for the ripple; copied text equalled the code and pasting it back through the paste box restored it exactly (the pane refused the real clipboard write and showed "Copy failed", as designed).
+
+Frame-time check (10b), owner's runs on 4 to 5 October 2026
+- Chrome: 548 frames, within 0.728, p95 16.8 ms, worst 300 ms (1454 × 779). Mostly 60 Hz jitter around the 16.7 ms cut-off, plus one 300 ms stall; our own script per step is 2 to 4 ms, so the stall is GPU or compositing (first shader compile, or the frosted inspector re-blurring the moving canvas).
+- Safari: 285 frames (about 28 fps), within 0.004, p95 45 ms (1454 × 813). Either a 30 fps cap (Low Power Mode) or a heavy frame; `measureFrames` now also reports refresh, missed frames, per-phase p95 and the GPU to tell which. Pending: the owner's re-run, and their decision on counting "on time" as not missing a display refresh rather than the literal 16.7 ms.
 
 ## Known issues and shortcuts
 - **Neutral values aren't exactly 0:** anisotropy and lift can only reach 0.00024 (an even number of steps).

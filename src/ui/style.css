@@ -3,6 +3,8 @@
    stage, code bar. The stage runs under the top bar and code bar, which are glass over its edge. */
 
 @property --sweep { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --a { syntax: '<number>'; inherits: false; initial-value: 0; }
 
 :root {
   --t-small: 100ms;
@@ -42,10 +44,11 @@ body {
 }
 button, input, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
 :focus-visible { outline: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .switching, .switching *, .switching *::before, .switching *::after { transition: none !important; }
 
 /* Every number and every code is set in the mono, so figures never jitter (DESIGN.md section 4). */
-input[type='number'], .value, .locus, .code, .base, .gene-head .bases, .progress span {
+input[type='number'], .value, .locus, .code, .base, .gene-head .bases {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
@@ -220,18 +223,20 @@ html.reticle-on input[type='text'], html.reticle-on input[type='number'], html.r
 
 .progress {
   position: absolute;
-  top: calc(var(--top-h, 56px) + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 12px;
-  font-size: var(--fs-label);
+  left: 0;
+  right: 0;
+  top: var(--top-h, 56px);
+  z-index: 2;
+  pointer-events: none;
 }
 .progress[hidden] { display: none; }
-.progress-track { width: 120px; height: 1px; background: var(--hair-strong); overflow: hidden; }
-.progress-fill { height: 100%; width: 0; background: var(--accent); }
+.progress-track { height: 1px; background: var(--hair); overflow: hidden; }
+.progress-readout { position: absolute; left: 16px; top: 8px; font-family: var(--mono); font-size: var(--fs-label); color: var(--ink-2); }
+.progress-fill { height: 100%; width: 0; background: var(--accent); transition: width var(--t-medium) var(--ease-out); }
+
+/* Focus pull on regrow: blur, swap at the peak, clear (a filter on the stage canvas only). */
+.stage-canvas.defocus { filter: blur(6px); transition: filter 180ms var(--ease-out); }
+.stage-canvas.refocus { filter: blur(0); transition: filter 320ms var(--ease-out); }
 
 /* Gene map --------------------------------------------------------------------------------------- */
 
@@ -283,8 +288,47 @@ button.gene-head:hover { background: color-mix(in srgb, var(--ink) 5%, transpare
 .inspector-title .locus { color: var(--ink-3); font-weight: 400; font-size: var(--fs-label); }
 .inspector-close { margin-left: auto; font-size: var(--fs-label); font-weight: 400; }
 .inspector .parameter { font-size: var(--fs-body); color: var(--ink); }
-.inspector-controls { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: 8px; align-items: center; }
-.inspector-controls input[type='range'] { width: 100%; accent-color: var(--accent); }
+.inspector-controls { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 8px; align-items: center; }
+/* Lens slider: a hairline track with ticks; the thumb is a lightly frosted lens magnifying the scale. */
+.lens-slider { position: relative; height: 40px; touch-action: none; outline: none; }
+.ls-rail { position: absolute; left: 14px; right: 14px; top: 20px; height: 1px; background: var(--hair-strong); }
+.ls-ticks {
+  position: absolute;
+  left: 0;
+  right: -1px;
+  top: 1px;
+  height: 7px;
+  background-image: linear-gradient(90deg, var(--hair-strong) 1px, transparent 1px), linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+  background-repeat: repeat-x;
+}
+.ls-thumb { position: absolute; left: 0; top: 20px; width: 0; height: 0; }
+.ls-lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 5px;
+  background-color: var(--fill-2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  backdrop-filter: blur(6px) saturate(1.1);
+}
+.ls-lens::after { animation: none; }
+.ls-mag {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 50%;
+  border-top: 1px solid var(--hair-strong);
+  background-image: linear-gradient(90deg, var(--ink-2) 1px, transparent 1px), linear-gradient(90deg, var(--hair-strong) 1px, transparent 1px), linear-gradient(90deg, transparent, transparent);
+  background-repeat: repeat-x;
+}
+.ls-mag.show-fine { background-image: linear-gradient(90deg, var(--ink-2) 1px, transparent 1px), linear-gradient(90deg, var(--hair-strong) 1px, transparent 1px), linear-gradient(90deg, var(--hair) 1px, transparent 1px); }
+.ls-hair { position: absolute; left: 50%; top: 2px; bottom: 2px; width: 1px; margin-left: -0.5px; background: var(--accent); }
+.ls-mode { position: absolute; left: 0; top: 13px; transform: translateX(-50%); font-size: 10px; color: var(--ink-2); white-space: nowrap; }
+.lens-slider[aria-disabled='true'] { pointer-events: none; }
+.inspector-controls .lens-slider { grid-column: 1 / -1; }
 .inspector-controls input[type='number'] {
   padding: 2px 4px;
   border: 0;
@@ -312,6 +356,54 @@ button.gene-head:hover { background: color-mix(in srgb, var(--ink) 5%, transpare
 .inspector .notes { color: var(--ink); }
 .inspector .designed-tag { color: var(--ink-2); }
 .inspector-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Linked pulse: the value and every copy of it light together, with a hairline that retracts. */
+[data-link] { --p: 0; }
+[data-link].pulse { animation: linked 640ms var(--ease-out); }
+[data-link].held { --p: 1; }
+@keyframes linked { from { --p: 1; } to { --p: 0; } }
+/* Code groups already carry their gene's hairline, so they take the light only. */
+.code-group[data-link] { color: color-mix(in oklab, var(--pulse) calc(var(--p) * 100%), var(--ink)); }
+input[data-link], .base[data-link] {
+  color: color-mix(in oklab, var(--pulse) calc(var(--p) * 100%), var(--ink));
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: calc(var(--p) * 100%) 1px;
+}
+.lens-slider.held .ls-hair, .lens-slider.pulse .ls-hair { background: color-mix(in oklab, var(--pulse) calc(var(--p) * 100%), var(--accent)); }
+
+/* Lock frost: condensation over the editable part, from the edges inward (--a, 0 to 1). */
+.lockable { position: relative; display: grid; gap: 8px; }
+.frost {
+  --a: 0;
+  position: absolute;
+  inset: -6px -8px;
+  border-radius: var(--r-panel);
+  pointer-events: none;
+  visibility: hidden;
+  display: grid;
+  place-items: end start;
+  padding: 6px 8px;
+  -webkit-backdrop-filter: blur(calc(var(--a) * 7px)) saturate(calc(1 - var(--a) * 0.6));
+  backdrop-filter: blur(calc(var(--a) * 7px)) saturate(calc(1 - var(--a) * 0.6));
+  background: color-mix(in srgb, var(--frost-fill) calc(var(--a) * 100%), transparent);
+  -webkit-mask: radial-gradient(farthest-corner, transparent calc((1 - var(--a)) * 120% - 20%), #000 calc((1 - var(--a)) * 120%));
+  mask: radial-gradient(farthest-corner, transparent calc((1 - var(--a)) * 120% - 20%), #000 calc((1 - var(--a)) * 120%));
+}
+.frost-note { font-size: var(--fs-label); color: var(--ink-2); opacity: 0; transition: opacity var(--t-medium) var(--ease-out); }
+.inspector:hover .is-locked .frost-note { opacity: 1; }
+
+/* Code bar: the brief light of the randomise ripple, and the read-out on copy. */
+.code-group.front { animation: front 420ms var(--ease-out); }
+@keyframes front { from { background-color: var(--wash); } to { background-color: transparent; } }
+.code-group.read { --p: 1; }
+.code-group { transition: --p 520ms var(--ease-out); }
+.roll-button { overflow: hidden; }
+.roll { display: grid; height: 1.45em; overflow: hidden; }
+.roll > span { display: block; line-height: 1.45em; text-align: center; transition: transform var(--t-medium) var(--ease-out); }
+.rolled .roll > span { transform: translateY(-100%); }
+[data-reduced-motion='true'] .roll > span { transition: none; }
 
 /* Base and group colours, for swatches and base letters. */
 .base-A, [data-base='A'] { --base-colour: var(--base-A); }
@@ -392,7 +484,6 @@ button.ruler-seg:hover::before, .ruler-seg.focused::before { width: 4px; left: 5
 [data-reduced-motion='true'] .helix-inspector { filter: none; }
 .helix-inspector .inspector { margin: 0; }
 .helix-inspector .inspector-controls { grid-template-columns: 96px minmax(0, 1fr); }
-.helix-inspector .inspector-controls input[type='range'] { grid-column: 1 / -1; }
 .helix-inspector .field-unit { max-width: none; }
 .helix-tooltip {
   position: absolute;
