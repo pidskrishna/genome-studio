@@ -77,7 +77,7 @@ Checks:
 
 ## Milestone 5: species B, all body plans (spec section 4)
 
-- [ ] Done
+- [x] Done: closed by the owner on 19 October 2026 as good enough. Not run: the full 10,000-genome species B check (2,000 of 10,000 passed since the last fixes, none failed).
 
 Build: ring, tube and closed sphere, growth patches, anisotropy and lift, with margins as in clarification 7.
 
@@ -149,7 +149,7 @@ Checks:
 
 ## Milestone 10b: the borosilicate helix (spec section 5, DESIGN.md)
 
-- [ ] Done
+- [x] Done: closed by the owner on 19 October 2026 as not critical. Not passed: the frame-time check (Chrome 72.8% of frames within 16.7 ms, p95 16.8 ms, one 300 ms stall; Safari about 28 fps). The other checks passed.
 
 Build: the borosilicate helix material with lit cores and frosted gene boundaries, the margin ruler (names on approach, name and value on hover), focusing with light leads, drag detents, idle drift and breathing, base cycling with light meeting in the middle, and lock frost on the helix.
 
@@ -161,7 +161,7 @@ Checks:
 
 ## Milestone 10c: inspector and code bar interactions (spec sections 5 and 6, DESIGN.md)
 
-- [ ] Done
+- [x] Done: closed by the owner on 19 October 2026 as not critical. Not run: the screenshot comparison against the lab with the pane shown, and a copy into the real clipboard (copied text and paste round-trip were checked).
 
 Build: the lens slider with fine control and keys, linked pulses, lock frost in the inspector, the gene-by-gene randomise ripple, gene-by-gene copy and paste, and the regrow focus pull with hairline progress.
 
@@ -198,7 +198,7 @@ Checks:
 
 ## Milestone 13: methods page and final pass (spec sections 10 and 12)
 
-- [ ] Done
+- [x] Done: closed by the owner on 19 October 2026 as not critical. Not done: spec section 12 items 1 (hash on a second machine) and 2 (species B 10,000 run); see ACCEPTANCE.md.
 
 Build: the Methods page, including the geometry hash of the current organism and the additions to the paper's procedure from clarifications 4 and 15.
 

@@ -1,12 +1,12 @@
 # Session notes
 
 ## Status
-- Done (box ticked): milestones 0–4, 6–9, 10a, 11 and 12. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
-- Built and committed, box unticked until the owner can act:
-  - 5 (species B, all body plans): only 2,000 of the 10,000 random species B genomes have run since the last fixes (all passed). `npm run test:slow:b` runs all 10,000, about 3 h at about 45 genomes/min; ask the owner before starting it.
-  - 10b (borosilicate helix): the frame-time check needs the owner's runs in Chrome and Safari, and their decision on counting "on time" as not missing a display refresh (details below).
-  - 10c (inspector and code bar): visual checks need the browser pane shown and focused, and one real clipboard copy.
-  - 13 (Methods page): needs item 2 of spec section 12 (the species B run above) and the owner's second-machine hash check. Evidence for every item is in ACCEPTANCE.md.
+- Every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
+- On 19 October 2026 the owner closed four milestones without their last checks, as good enough or not critical. If any of these is ever wanted, the details are below and in PLAN.md:
+  - 5: the full 10,000-genome species B run (`npm run test:slow:b`, about 3 h); 2,000 have passed since the last fixes.
+  - 10b: the frame-time check. Chrome was mostly 60 Hz jitter around the 16.7 ms cut-off plus one 300 ms stall; Safari ran at about 28 fps (cause not diagnosed: a 30 fps cap such as Low Power Mode, or a heavy frame). `helix.measureFrames()` reports refresh, missed frames, per-phase p95 and the GPU to diagnose it.
+  - 10c: the screenshot comparison against the lab with the pane shown, and a real clipboard copy.
+  - 13: spec section 12 items 1 (hash on a second machine) and 2 (species B 10,000); both stay unticked in SPEC.md.
 - Recorded hashes: species A wild type `642a289e51e48070`; species B disc wild type `a0865f1229602174`. On 4 October 2026 the owner confirmed both match in Safari, Chrome and Firefox on one machine; spec section 12 also needs a second machine.
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
