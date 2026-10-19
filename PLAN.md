@@ -3,7 +3,7 @@
 Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
-- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Next: milestone 14.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestone 14 done; next: milestone 15.
 
 # v0.1
 
@@ -217,7 +217,7 @@ Species C (phyllotaxis, spec section 4a) and species D (seashell, spec section 4
 
 ## Milestone 14: genome for species C and D (spec sections 2, 4a and 4b)
 
-- [ ] Done
+- [x] Done
 
 Build: both gene tables, headers AAG and AAT (clarification 17), decoding with every clamp, wild types (provisional until milestones 15 and 16), and specimen names for the two new genera. The rest of the tool keeps offering only A and B until milestone 17.
 

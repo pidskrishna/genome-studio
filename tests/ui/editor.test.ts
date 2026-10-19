@@ -367,6 +367,16 @@ describe('pasting', () => {
     expect(editor.message?.text).toMatch(/Unknown species/);
   });
 
+  it('species C and D codes are refused until the app grows them (milestone 17)', () => {
+    const editor = editorWith(wildType('A'));
+    for (const species of ['C', 'D'] as const) {
+      const result = editor.paste(wildType(species));
+      expect(result.ok).toBe(false);
+      expect(editor.code).toBe(wildType('A'));
+      expect(editor.message?.text).toMatch(/cannot be grown here yet/);
+    }
+  });
+
   it('a wrong checksum loads corrected, with a typo warning that stays until the next edit', () => {
     const good = wildType('B');
     const typo = good.slice(0, 157) + (good[157] === 'A' ? 'C' : 'A') + good.slice(158);

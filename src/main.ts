@@ -8,6 +8,7 @@ import { parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigmen
 import { Stage, type LookId, type Organism, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
+import { APP_SPECIES } from './ui/gene-info';
 import { GeneMap } from './ui/gene-map';
 import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
@@ -42,7 +43,7 @@ const shell = buildShell(document.getElementById('app') as HTMLElement);
 const stage = new Stage(shell.stage);
 
 const linked = hashText(location.hash);
-const parsed = linked.trim() === '' ? null : parseGenome(linked);
+const parsed = linked.trim() === '' ? null : parseGenome(linked, APP_SPECIES);
 const editor = new Editor({
   code: parsed?.ok ? parsed.code : wildType('A'),
   warning: parsed?.ok ? parsed.warning : undefined,

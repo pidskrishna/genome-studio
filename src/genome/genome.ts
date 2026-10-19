@@ -1,7 +1,7 @@
 import { baseToDigit, basesToValue, cleanCode, digitToBase, valueToBases } from './bases';
 import { checksumOf, CHECKSUM_BASES } from './checksum';
 import { decodeValue, encodeValue, rawMax } from './decode';
-import { geneAt, geneTable, type SpeciesId } from './genes';
+import { ALL_SPECIES, geneAt, geneTable, type SpeciesId } from './genes';
 import { speciesADerived, type SpeciesADerived } from './speciesA';
 
 export const GENOME_LENGTH = 160;
@@ -14,7 +14,8 @@ export const FIRST_GENE_POSITION = 7;
 /** 0-based index where the checksum starts. */
 export const CHECKSUM_START = GENOME_LENGTH - CHECKSUM_BASES;
 
-export const SPECIES_HEADER: Readonly<Record<SpeciesId, string>> = { A: 'AAA', B: 'AAC' };
+/** Species fields (clarifications 9 and 17). */
+export const SPECIES_HEADER: Readonly<Record<SpeciesId, string>> = { A: 'AAA', B: 'AAC', C: 'AAG', D: 'AAT' };
 export const ENCODING_VERSION_1 = 'AAA';
 
 /** Position of a gene in the code, 0-based start and length in bases. */
@@ -43,9 +44,7 @@ export function withChecksum(body: string): string {
 
 export function speciesOfHeader(code: string): SpeciesId | null {
   const field = code.slice(0, 3);
-  if (field === SPECIES_HEADER.A) return 'A';
-  if (field === SPECIES_HEADER.B) return 'B';
-  return null;
+  return ALL_SPECIES.find((s) => SPECIES_HEADER[s] === field) ?? null;
 }
 
 export function hasValidChecksum(code: string): boolean {
@@ -58,9 +57,10 @@ export type ParseResult =
 
 /**
  * Cleans and checks a pasted or linked code. A wrong checksum is not fatal: the code loads with a
- * typo warning and comes back with the corrected checksum (clarification 11).
+ * typo warning and comes back with the corrected checksum (clarification 11). `accepted` limits the
+ * species, for an app that does not grow every species yet; its message lists only those.
  */
-export function parseGenome(input: string): ParseResult {
+export function parseGenome(input: string, accepted: readonly SpeciesId[] = ALL_SPECIES): ParseResult {
   const cleaned = cleanCode(input);
   if (!cleaned.ok) return cleaned;
   const code = cleaned.code;
@@ -71,8 +71,12 @@ export function parseGenome(input: string): ParseResult {
     };
   }
   const species = speciesOfHeader(code);
-  if (species === null) {
-    return { ok: false, message: `Unknown species "${code.slice(0, 3)}". This tool grows species AAA and AAC.` };
+  if (species === null || !accepted.includes(species)) {
+    const fields = accepted.map((s) => SPECIES_HEADER[s]);
+    const list = fields.length > 1 ? `${fields.slice(0, -1).join(', ')} and ${fields[fields.length - 1]}` : fields.join('');
+    const field = code.slice(0, 3);
+    const first = species === null ? `Unknown species "${field}".` : `Species "${field}" cannot be grown here yet.`;
+    return { ok: false, message: `${first} This tool grows species ${list}.` };
   }
   if (code.slice(3, 6) !== ENCODING_VERSION_1) {
     return { ok: false, message: `Unknown encoding version "${code.slice(3, 6)}". This tool reads version ${ENCODING_VERSION_1}.` };

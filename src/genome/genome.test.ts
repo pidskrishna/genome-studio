@@ -3,7 +3,7 @@ import { basesToValue, cleanCode, valueToBases } from './bases';
 import { checksumOf } from './checksum';
 import { binCount, decodeValue, encodeValue, rawMax } from './decode';
 import { envelopeProfile, profileSquareIntegral } from './speciesA';
-import { geneTable, type SpeciesId } from './genes';
+import { ALL_SPECIES, geneTable, type SpeciesId } from './genes';
 import {
   CHECKSUM_START,
   GENOME_LENGTH,
@@ -23,7 +23,8 @@ import {
 import { mulberry32, randomGenome } from './test-helpers';
 import { wildType } from './wildtype';
 
-const SPECIES: SpeciesId[] = ['A', 'B'];
+const SPECIES: readonly SpeciesId[] = ALL_SPECIES;
+const RANDOM_SEEDS: Readonly<Record<SpeciesId, number>> = { A: 11, B: 22, C: 33, D: 44 };
 
 describe('gene values and bases', () => {
   it('every value 0 to 4,095 survives value → bases → value', () => {
@@ -71,7 +72,7 @@ describe('gene values and bases', () => {
 describe('random codes decode inside their ranges', () => {
   for (const species of SPECIES) {
     it(`10,000 random species ${species} codes`, () => {
-      const rand = mulberry32(species === 'A' ? 11 : 22);
+      const rand = mulberry32(RANDOM_SEEDS[species]);
       const table = geneTable(species);
       for (let n = 0; n < 10_000; n++) {
         const decoded = decodeGenome(randomGenome(species, rand));
@@ -124,7 +125,7 @@ describe('checksum', () => {
   it('catches every single-base change in positions 1 to 156, in 100 random genomes', () => {
     const rand = mulberry32(2026);
     for (let n = 0; n < 100; n++) {
-      const species = SPECIES[n % 2] as SpeciesId;
+      const species = SPECIES[n % SPECIES.length] as SpeciesId;
       const code = randomGenome(species, rand);
       expect(hasValidChecksum(code)).toBe(true);
       for (let i = 0; i < CHECKSUM_START; i++) {
@@ -202,8 +203,8 @@ describe('input cleaning', () => {
 });
 
 describe('header', () => {
-  it('species AAA and AAC with version AAA decode', () => {
-    for (const [species, field] of [['A', 'AAA'], ['B', 'AAC']] as const) {
+  it('species AAA, AAC, AAG and AAT with version AAA decode', () => {
+    for (const [species, field] of [['A', 'AAA'], ['B', 'AAC'], ['C', 'AAG'], ['D', 'AAT']] as const) {
       const code = makeGenome(species, geneTable(species).map(() => 0));
       expect(code.slice(0, 6)).toBe(`${field}AAA`);
       const result = parseGenome(code);
@@ -214,7 +215,7 @@ describe('header', () => {
 
   it('any other species or version is rejected with a message', () => {
     const base = wildType('A');
-    const fields = ['AAG', 'AAT', 'ACA', 'TTT'];
+    const fields = ['ACA', 'AGA', 'CAA', 'TTT'];
     for (const field of fields) {
       const result = parseGenome(field + base.slice(3));
       expect(result.ok).toBe(false);
@@ -226,6 +227,30 @@ describe('header', () => {
       if (!result.ok) expect(result.message).toContain(version);
     }
     expect(() => decodeGenome('TTT' + base.slice(3))).toThrow();
+  });
+
+  it('a species left out of the accepted list is refused with a message naming the ones accepted', () => {
+    for (const species of ['C', 'D'] as const) {
+      const code = wildType(species);
+      const result = parseGenome(code, ['A', 'B']);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.message).toContain(code.slice(0, 3));
+        expect(result.message).toContain('AAA and AAC');
+      }
+    }
+    expect(parseGenome(wildType('A'), ['A', 'B']).ok).toBe(true);
+  });
+
+  it('the wrong-checksum typo warning works for every species', () => {
+    for (const species of SPECIES) {
+      const good = wildType(species);
+      const i = 60;
+      const mistyped = good.slice(0, i) + (good[i] === 'A' ? 'C' : 'A') + good.slice(i + 1);
+      const result = parseGenome(mistyped);
+      expect(result.ok && result.warning).toMatch(/typo/);
+      expect(result.ok && result.species).toBe(species);
+    }
   });
 });
 
@@ -358,5 +383,17 @@ describe('wild types', () => {
     expect(valueById(b, 'patchContrast')).toBeCloseTo(0, 3);
     expect(valueById(b, 'lift')).toBeCloseTo(0, 3);
     expect(valueById(b, 'anisotropy')).toBeCloseTo(0, 3);
+    const c = decodeGenome(wildType('C'));
+    expect(valueById(c, 'bodyPlan')).toBe(0);
+    expect(valueById(c, 'organForm')).toBe(0);
+    expect(valueById(c, 'startingOrgans')).toBe(1);
+    expect(valueById(c, 'organAngle')).toBeCloseTo(60, 1);
+    expect(valueById(c, 'inhibitionRange') / 0.5).toBeCloseTo(1, 2);
+    const shell = decodeGenome(wildType('D'));
+    expect(valueById(shell, 'whorlExpansion') / 2.5).toBeCloseTo(1, 2);
+    expect(valueById(shell, 'handedness')).toBe(0);
+    expect(valueById(shell, 'ribCount')).toBe(12);
+    expect(valueById(shell, 'cordCount')).toBe(8);
+    expect(valueById(shell, 'gradientDriver')).toBe(3);
   });
 });

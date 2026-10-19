@@ -15,11 +15,26 @@ const B_WILD: readonly number[] = [
   300, 30, 0.6, 0.5, 3, 0.5, 0.5, 0.2,
 ];
 
+// Species C and D (v0.2): provisional until milestones 15 and 16. C is a domed head of florets in a
+// spiral; D a turreted shell with ribs and cords, coloured by its edge pattern.
+
+const C_WILD: readonly number[] = [
+  0, 0.5, 0, 3, 1, 0.3, 1.2, 0.6, 60, 0, 0.3, 0.3, 0.1, 0.05, 0.5, //
+  45, 20, 0.7, 0.5, 1, 0.5, 0.4, 0.2,
+];
+
+const D_WILD: readonly number[] = [
+  2.5, 2, 0.1, 1.2, 0, 0, 12, 0.1, 0.25, 8, 0.04, 0.3, 0.3, 0.05, 0.2, //
+  30, 15, 0.5, 0.6, 3, 0.6, 0.6, 0.1,
+];
+
+const WILD_VALUES: Readonly<Record<SpeciesId, readonly number[]>> = { A: A_WILD, B: B_WILD, C: C_WILD, D: D_WILD };
+
 const WILD_SEED = 1_234_567;
 
 /** The default genome for a species. */
 export function wildType(species: SpeciesId): string {
-  const values = species === 'A' ? A_WILD : B_WILD;
+  const values = WILD_VALUES[species];
   const raw = geneTable(species).map((def, i) => (def.kind === 'seed' ? WILD_SEED : encodeValue(def, values[i] ?? 0)));
   return makeGenome(species, raw);
 }

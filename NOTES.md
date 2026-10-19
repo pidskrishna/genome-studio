@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Next: milestone 14. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
+- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Milestone 14 is done; next: milestone 15. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
 - v0.1: every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
 - On 19 October 2026 the owner closed four milestones without their last checks, as good enough or not critical. If any of these is ever wanted, the details are below and in PLAN.md:
   - 5: the full 10,000-genome species B run (`npm run test:slow:b`, about 3 h); 2,000 have passed since the last fixes.
@@ -12,6 +12,12 @@
 - Owner preference: ask before any check run longer than about 20 minutes, and offer a smaller sample with its bound.
 
 ## Decisions not in SPEC.md
+v0.2 genome (milestone 14)
+- `SpeciesId` is `'A' | 'B' | 'C' | 'D'`; `ALL_SPECIES` lists them in header order and `SPECIES_HEADER` gives AAA, AAC, AAG, AAT. Gene tables sit in one `TABLES` record.
+- `parseGenome(input, accepted)` takes the species the caller accepts (all four by default). The app passes `APP_SPECIES` (`src/ui/gene-info.ts`, A and B only), so a C or D code pasted or linked is refused with "Species "AAG" cannot be grown here yet" and the current organism stays. Milestone 17 adds C and D to `APP_SPECIES` and removes `AppSpecies` where the four-species switch replaces it; `Studio.grow` throws for any species outside it.
+- Wild types for C and D (`wildtype.ts`) are provisional: a domed head of florets in a spiral, and a turreted shell with ribs and cords coloured by its edge pattern. Genera: C is Velula, D is Corula (from the fixed syllable tables).
+- The inspector's units and references for C and D genes are not written yet (milestone 17): `fieldUnit` shows their raw unit names, and `referenceOf` falls back to the basis text.
+
 Genome (`src/genome`)
 - Checksum: odd-weighted sum of digits mod 256, as 4 bases, so any single-base change is caught.
 - Log-scale genes decode with `detPow` (square roots only), so decoding is deterministic.

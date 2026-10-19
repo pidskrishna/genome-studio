@@ -1,6 +1,5 @@
-import type { SpeciesId } from '../genome';
 import { LOOK_NAMES, LOOKS, type LookId } from '../render/colour';
-import { SPECIES_NAMES } from './gene-info';
+import { SPECIES_NAMES, type AppSpecies } from './gene-info';
 import type { ProgressView } from './studio';
 import { glassSegments } from './surface';
 
@@ -16,7 +15,7 @@ export interface Shell {
   lookButtons: Record<LookId, HTMLButtonElement>;
   /** Toggles a transparent background (aria-pressed). */
   transparentButton: HTMLButtonElement;
-  speciesButtons: Record<SpeciesId, HTMLButtonElement>;
+  speciesButtons: Record<AppSpecies, HTMLButtonElement>;
   tools: {
     randomiseAll: HTMLButtonElement;
     wildType: HTMLButtonElement;

@@ -44,7 +44,7 @@ function toCanvas(p: Pixels): HTMLCanvasElement {
   return canvas;
 }
 
-async function grow(species: SpeciesId): Promise<Organism> {
+async function grow(species: 'A' | 'B'): Promise<Organism> {
   const code = wildType(species);
   const outcome = species === 'A' ? await client.run('speciesA', { code }) : await client.run('speciesB', { code });
   if (outcome.status !== 'done') throw new Error(`Species ${species} did not grow: ${outcome.status}`);

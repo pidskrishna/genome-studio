@@ -1,5 +1,6 @@
 import { formKey, parseGenome, pigmentsOf, speciesOfHeader, type Pigments, type SpeciesId } from '../genome';
 import type { Organism, ViewMode } from '../render/stage';
+import { APP_SPECIES, isAppSpecies } from './gene-info';
 import type { SimClient } from './sim-client';
 
 // Connects a code to the simulation and the stage. A valid code starts a regrow, with the progress
@@ -60,7 +61,7 @@ export class Studio {
 
   /** Parses a code and, if it is valid, regrows the organism from it. */
   async load(input: string): Promise<LoadOutcome> {
-    const parsed = parseGenome(input);
+    const parsed = parseGenome(input, APP_SPECIES);
     if (!parsed.ok) {
       this.deps.notice(parsed.message, 'error');
       return { status: 'rejected', message: parsed.message };
@@ -101,7 +102,7 @@ export class Studio {
   /** Regrows the organism (or, for a draft, a coarse run of the same code) from a valid code. */
   private async grow(code: string, draft = false): Promise<LoadOutcome> {
     const species = speciesOfHeader(code);
-    if (species === null) throw new Error('Code has no valid species header');
+    if (!isAppSpecies(species)) throw new Error('Code has no species the app grows');
     const key = draft ? draftKey(formKey(code)) : formKey(code);
     this.target = code;
     this.targetKey = key;

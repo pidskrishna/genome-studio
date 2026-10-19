@@ -15,7 +15,17 @@ import {
 export const SPECIES_NAMES: Readonly<Record<SpeciesId, string>> = {
   A: 'Branching and venation',
   B: 'Differential growth',
+  C: 'Phyllotaxis',
+  D: 'Seashell',
 };
+
+/** The species the app grows. C and D join in milestone 17; until then their codes are refused. */
+export type AppSpecies = 'A' | 'B';
+export const APP_SPECIES: readonly AppSpecies[] = ['A', 'B'];
+
+export function isAppSpecies(species: SpeciesId | null): species is AppSpecies {
+  return species !== null && (APP_SPECIES as readonly SpeciesId[]).includes(species);
+}
 
 /** Units the spec gives as percentages ("0.4% to 2% of envelope height"). */
 const PERCENT_UNITS: Readonly<Record<string, string>> = {

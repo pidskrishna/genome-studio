@@ -15,6 +15,7 @@ import {
   type ParseResult,
   type SpeciesId,
 } from '../genome';
+import { APP_SPECIES } from './gene-info';
 
 // The editor state from spec section 5: the current code, the focused gene, locks, undo and redo.
 // It holds no DOM; the gene map, inspector, code bar and (later) the helix all drive it through these
@@ -60,7 +61,7 @@ export type Message = { tone: 'warning' | 'error'; text: string };
 export class Editor {
   private current: string;
   private focused: number | null = null;
-  private readonly locks: Record<SpeciesId, Set<number>> = { A: new Set(), B: new Set() };
+  private readonly locks: Record<SpeciesId, Set<number>> = { A: new Set(), B: new Set(), C: new Set(), D: new Set() };
   private readonly undoStack: string[] = [];
   private readonly redoStack: string[] = [];
   private readonly listeners = new Set<(change: EditorChange) => void>();
@@ -201,7 +202,7 @@ export class Editor {
    * message; a code with a wrong checksum loads corrected, with a typo warning (clarification 11).
    */
   paste(input: string): ParseResult {
-    const parsed = parseGenome(input);
+    const parsed = parseGenome(input, APP_SPECIES);
     if (!parsed.ok) {
       this.note = { tone: 'error', text: parsed.message };
       this.emit({ type: 'state' });
