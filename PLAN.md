@@ -184,13 +184,13 @@ Checks:
 
 ## Milestone 12: export (spec section 9)
 
-- [ ] Done
+- [x] Done
 
 Build: the export dialog, tiled rendering, transparent background, caption, code in PNG metadata, methods file. The file name follows clarification 12, and square sizes follow clarification 13.
 
 Checks:
 - An A2 export is exactly 4,961 × 7,016 pixels.
-- No seams: an export at a size small enough to render in one pass, rendered tiled and untiled, matches within a small pixel tolerance.
+- No seams: an export at a size small enough to render in one pass, rendered tiled and untiled, matches within a small pixel tolerance. The owner set this tolerance on 19 October 2026: a pixel on a seam may differ by at most 1 level; everywhere else, at most 1 level on at most 0.01% of pixels (`TILE_TOLERANCE`).
 - With transparent background, the corner pixels have zero alpha.
 - Reading the PNG back finds the genome code in its metadata.
 - The methods file lists the code, species, version and all 24 decoded values.
