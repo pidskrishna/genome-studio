@@ -4,7 +4,7 @@ Done in order, one milestone per session. A milestone is done only when every ch
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
 - **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
-- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 to 21 done; next: milestone 22.
+- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 to 22 done; next: milestone 23.
 
 # v0.1
 
@@ -352,7 +352,7 @@ Checks:
 
 ## Milestone 22: species switch design pass (DESIGN.md)
 
-- [ ] Done
+- [x] Done
 
 Six species do not fit the four-segment control (DESIGN.md, "Segmented controls"; clarification 30). The switch is redesigned by milestone 10's process, stopping for the owner after each phase:
 

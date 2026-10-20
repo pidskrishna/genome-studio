@@ -258,10 +258,35 @@ Each entry gives the variant chosen in the lab.
 
 ### Segmented controls
 
-These are species, look, flat or 3D, and helix or gene map.
+These are look, flat or 3D, and helix or gene map. Species was one until v0.3; it is now a menu (below).
 
 - A single glass lozenge (`--fill-3`) slides to the chosen segment, critically damped over 220ms.
 - Arrow keys move the choice.
+
+### Choosing a species: drop list (v0.3)
+
+Six species do not fit a row of segments, and the species field allows 64. Chosen by the owner on 20 October 2026 from three variants in the lab (milestone 22): a drop list from the top bar, with short names and one line on each model.
+
+- **The button.** In the top bar, after the "Species" label: a glass button showing the current species' short name. It is wide enough for the longest name, so the bar does not shift when the species changes.
+- **Opening.** A click, Enter, Space, or the up or down arrow opens the list. It unfolds downward from under the button over 220ms, revealed from the top edge, with the ease-out curve; it is glass at layer 3 (`--fill-3`), one column, 22em wide.
+- **Rows.** Each row has the short name (body size, `--ink-2`, `--ink` when active or current) and one line on the model below it (label size, `--ink-3`). The current species says "· current" after its name.
+- **The lozenge.** A glass lozenge (`--fill-2` with a hairline) sits behind the active row and follows the pointer and the arrow keys, critically damped over 220ms, as in the segmented controls.
+- **Keys.** Up and down move; Home and End go to the first and last; a letter jumps to the next species starting with it; Enter or Space chooses; Escape closes and returns focus to the button; Tab closes.
+- **Choosing.** Choosing a species loads its wild type (spec clarifications 21 and 30) and the list fades out over 100ms. A click outside closes it with no change.
+- **Reduced motion.** The list opens and closes with an 80ms crossfade; the lozenge moves without easing.
+- **Accessibility.** The button has `aria-haspopup="listbox"` and `aria-expanded`; the list is a `listbox` whose `aria-activedescendant` follows the active row; the current species' row has `aria-selected="true"`.
+- **More species.** Each new species adds a row. Past ten rows the list keeps its height and scrolls inside, with the active row kept in view.
+
+| Species | Short name | Line on the model |
+| --- | --- | --- |
+| A | Branching | Branches grow toward open space |
+| B | Ruffles | A sheet that grows fastest at its edge |
+| C | Phyllotaxis | Organs form where there is room |
+| D | Seashell | A tube that grows and coils at its mouth |
+| E | Coral | Layers laid down where nutrient reaches |
+| F | Fungus | Hyphal tips that sense their neighbours |
+
+Elsewhere (the Methods page, the specimen caption) the full names stay as they are.
 
 ### Cursor: a calm reticle
 
@@ -301,6 +326,8 @@ Nothing in SPEC.md has changed. The owner decided these on 4 October 2026:
 1. **Gene bands (section 5).** The frosted boundary rings on the backbone, with labels and group colours in the margin ruler beside it, meet "each gene is a labelled band along the backbone". No spec edit.
 2. **Fluorescence controls (section 6).** "Controls lit in the organism's pigment hues" means: accents (focus, active and selected states, the slider hairline, the reticle, pulses) take pigment A's hue; pigment-gene marks take pigment B's; text stays neutral.
 3. **Fonts.** IBM Plex is bundled from the `@fontsource/ibm-plex-sans` and `@fontsource/ibm-plex-mono` npm packages (approved dependency). The app never loads fonts from a third party.
+
+4. **Species switch (sections 5 and 6, v0.3).** Decided on 20 October 2026 in milestone 22: the switch is the drop list of section 7, not a segmented control. Clarification 30 already calls for six species and this redesign, and clarification 10's "switch button" is the menu's button. No spec edit.
 
 Also changing, but recorded only in NOTES.md (not spec decisions):
 - The base colours (section 2).
@@ -353,3 +380,5 @@ Milestone 10 as first written ("the glass control-panel style and the restyling 
   - Screenshots compared against the lab, with mismatches fixed.
 
 The lab stays in `dev/` as the reference, and is committed with 10a.
+
+**v0.3, milestones 22 and 23.** Milestone 22 chose the species drop list in the lab (`dev/interaction-lab.html`, "Choosing a species") and wrote it into section 7. Milestone 23 builds it in the app with species E and F.
