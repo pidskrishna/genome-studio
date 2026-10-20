@@ -51,8 +51,8 @@ Species C and D in the app (milestone 17)
 
 Methods page and v0.2 acceptance (milestone 18, in progress)
 - Methods content for species C and D (`methods-content.ts`): grounding rows, procedure, equations (part II eqs. 2, 6, 7; part III eq. 1; Raup; Fowler eq. 8 with its constants), additions marked designed, designed extension or numerical choice, limits and references; gene tables for all four species. New status "Published method" for genes based on The Algorithmic Beauty of Plants and on Fowler et al.'s ornament. Numbers come from the species C and D constants.
-- 10,000-genome runs: `npm run test:slow:c` (40 files of 250) and `npm run test:slow:d` (20 files of 500). Species D passed 10,000 on 20 October 2026 in 5 minutes. Species C (about 2 hours) waits for the owner's go-ahead; 1,000 passed in milestone 15.
-- ACCEPTANCE.md has a v0.2 section; spec section 12's v0.2 items are ticked except 2 (species C 10,000 run) and 3 (cross-browser, owner).
+- 10,000-genome runs: `npm run test:slow:c` (40 files of 250) and `npm run test:slow:d` (20 files of 500). Species D passed 10,000 on 20 October 2026 in 5 minutes. Species C: the owner chose a sample instead of the full 10,000 (about 2 hours). A further 3,000 (the first 12 files of `test:slow:c`, seeds 30000 to 30011) all passed on 20 October 2026 in 59 minutes (estimated 35), so 4,000 in all with no failure: failure rate below 0.075% at 95% confidence.
+- ACCEPTANCE.md has a v0.2 section; spec section 12's v0.2 items are ticked except 2 (species C sampled at 4,000 of 10,000) and 3 (cross-browser, owner).
 
 Genome (`src/genome`)
 - Checksum: odd-weighted sum of digits mod 256, as 4 bases, so any single-base change is caught.
