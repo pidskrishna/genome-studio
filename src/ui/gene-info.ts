@@ -42,7 +42,6 @@ const PERCENT_UNITS: Readonly<Record<string, string>> = {
   'curve radius': "% of the curve's radius",
   'rib spacing': '% of the rib spacing',
   size: '% of size',
-  'growth space height': '% of the growth space height',
   'layer thickness': '% of the layer thickness',
   'polyp spacing': '% of the polyp spacing',
   diameter: '% of its diameter',
@@ -131,6 +130,8 @@ export function referenceOf(def: GeneDef): string {
   if (basis === 'Fowler et al. 1992') return `${FOWLER_1992}.`;
   if (basis === 'Merks et al. 2003') return `${MERKS_2003}.`;
   if (basis === 'Kaandorp and Sloot 2001; Merks et al. 2003') return `${KAANDORP_SLOOT_2001}; ${MERKS_2003}.`;
+  if (basis === 'Kaandorp and Sloot 2001') return `${KAANDORP_SLOOT_2001}.`;
+  if (basis === 'Merks et al. 2003; Kaandorp et al. 2005') return `${MERKS_2003}; ${KAANDORP_2005}.`;
   if (basis.startsWith('Kaandorp et al. 2005')) return `${KAANDORP_2005}${basis.slice('Kaandorp et al. 2005'.length)}.`;
   if (basis.startsWith('Designed (Kaandorp et al. 2005')) return `Designed choice. ${KAANDORP_2005} start from a small sphere; the starting object is an input to the model.`;
   if (basis.startsWith('Meškauskas et al. 2004')) return `${MESKAUSKAS_2004}${basis.slice('Meškauskas et al. 2004'.length)}.`;

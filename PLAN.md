@@ -295,7 +295,7 @@ Checks:
 
 # v0.3
 
-Species E (coral, spec section 4c) and species F (fungal fruit body, spec section 4d), through the whole tool. v0.3 clarifications are 25 to 31. In every v0.3 milestone, species A to D must keep growing exactly as in v0.2: the full test suite passes and their recorded hashes are unchanged.
+Species E (coral, spec section 4c) and species F (fungal fruit body, spec section 4d), through the whole tool. v0.3 clarifications are 25 onward. In every v0.3 milestone, species A to D must keep growing exactly as in v0.2: the full test suite passes and their recorded hashes are unchanged.
 
 ## Milestone 19: genome for species E and F (spec sections 2, 4c and 4d)
 
@@ -316,7 +316,7 @@ Checks (unit tests):
 
 - [ ] Done
 
-First: check every model statement in section 4c against Kaandorp and Sloot (2001), Merks et al. (2003) and Kaandorp et al. (2005), and against Kaandorp (1994) where available. Where they differ, stop and propose the spec edit (clarification 26).
+First: check every model statement in section 4c against Kaandorp and Sloot (2001), Merks et al. (2003) and Kaandorp et al. (2005), and against Kaandorp (1994) where available. Where they differ, stop and propose the spec edit (clarification 26). Done on 20 October 2026: clarification 32.
 
 Build: the starting forms, the nutrient lattice with its source plane and absorbing floor, the diffusion solver (clarification 29), rasterising the colony into the lattice, uptake at polyp height, the growth function with the curvature factor, growth threshold and uptake response, polyp division and merging, smoothing, irregularity, the stopping rules and vertex cap, corallite relief, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 27). No rendering.
 
@@ -324,7 +324,7 @@ Checks:
 - 1,000 random genomes grow to maturity with no error and no NaN. There is no 10,000 run for species E (clarification 31).
 - Same code, same geometry hash; wild-type hash recorded.
 - With the curvature rule off, the wild type has more than one branch tip at maturity.
-- Compactness rises as growth to transport falls, over at least four values across its range.
+- Compactness rises as growth to transport rises, over at least four values across its range (clarification 32).
 - Raising the polyp spacing lowers the number of branch tips and raises the mean distance between them.
 - With growth very slow against transport, the field matches the steady-state (Laplace) solution within a stated tolerance.
 - The vertex count never exceeds 120,000 and no triangle has zero area.

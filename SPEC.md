@@ -248,24 +248,26 @@ Stony corals and many sponges grow by accretion: living tissue on the surface la
 
 Implement the accretive growth model:
 
+- Lengths are in lattice units (l.u.), the spacing of the nutrient lattice, as in the papers. The growth space is a cube of N l.u., a constant of the encoding version (provisionally 96; Merks et al. used 144 and 200).
 - The colony is a closed triangle mesh, starting from a small form on the floor of the growth space (locus 1). Each vertex stands for a polyp.
-- The nutrient diffuses through a fixed cubic lattice from a source plane at the top of the growth space. The colony's surface and the floor both absorb it, as in Kaandorp et al. (2005), figure 1c, where the floor stands for competing encrusting organisms. Flow is zero: the diffusion-limited regime of that paper.
-- Each growth step: the field is advanced by an amount of diffusion set by the growth-to-transport ratio (locus 2); each polyp's uptake c is read at the polyp height (locus 6) above its vertex and normalised by the largest uptake; each vertex moves along its averaged normal by l = s · c · k(h) (Kaandorp et al. 2005, eq. 2.3, with Kaandorp and Sloot's curvature factor k(h)), where s is the layer thickness (locus 4). A polyp whose normalised uptake is below the growth threshold (locus 7) lays down nothing.
-- Edges longer than the polyp spacing (locus 3) are split; polyps closer than half of it are merged, so polyps stay closely packed.
-- The curvature rule (locus 5) blends k(h) from 1 everywhere (Merks et al.: branching arises without it) to Kaandorp and Sloot's rule.
+- The nutrient R diffuses through the lattice. The top plane is held at R = 1. The colony and the floor are solid and absorb it, R = 0, as in Merks et al. (2003) and Kaandorp et al. (2005), figure 1c, where the floor stands for competing organisms on the sea floor. The four sides wrap around (periodic). Flow is zero: the diffusion-limited regime.
+- Each growth step: the field is advanced by one interval of diffusion, set by locus 2 and started from the previous step's field; each polyp's uptake c is the concentration probed at the polyp height (locus 6) along its normal, normalised by the largest uptake; each vertex moves along its averaged normal by l = s · c · k(h) (Kaandorp et al. 2005, eq. 2.3; Merks et al.'s linear growth function, with Kaandorp and Sloot's curvature factor k(h)), where s is the layer thickness (locus 4). A polyp whose growth would fall below the growth threshold (locus 7, Kaandorp and Sloot's tr) lays down nothing.
+- **Growth to transport (locus 2).** The ratio s² / (D Δt): the time nutrient takes to diffuse one layer thickness, over the time of one growth step Δt. As it falls, the field comes closer to its steady state and depletion zones form between branches, which open the colony into branches; as it rises towards 1 and beyond, growth and transport share a time scale and the colony becomes compact and nearly spherical (Merks et al. 2003, the separation of time scales of growth and transport).
+- **Mesh refinement (Merks et al. 2003).** The polyp spacing (locus 3) is the starting mean edge length. An edge is split when it reaches 1.5 times it, the new vertex placed by third-order interpolation between the two vertex normals; two vertices fuse when their edge falls below 0.75 times it; a triangle smaller than 0.1 times the starting mean triangle area is removed by fusing its shortest edge.
+- The curvature rule (locus 5) blends k(h) from 1 everywhere (Merks et al.: branching arises without it) to Kaandorp and Sloot's rule, under which growth is greatest where the radius of curvature is below 2 s and stops where it is above 20 s. The blend between the two published variants is designed.
 - Corallites, the cups each polyp sits in, are drawn as relief on the surface at each vertex. They do not affect growth.
 
 | Locus | Gene | Model parameter | Range | Basis |
 | --- | --- | --- | --- | --- |
 | 1 | Starting form | Starting object on the floor: knob, ridge, ring, or encrusting disc | 4 choices | Designed (Kaandorp et al. 2005 start from a small sphere; the starting object is an input) |
-| 2 | Growth to transport | Ratio of the growth rate to the rate of nutrient transport | 0.02 to 2, log | Merks et al. 2003 |
-| 3 | Polyp spacing | Edge length at which a polyp divides | 0.5% to 3% of the growth space height, log | Kaandorp et al. 2005 |
-| 4 | Layer thickness | s, the largest thickness of one growth layer | 0.1 to 1 polyp spacing | Kaandorp et al. 2005, eq. 2.3 |
+| 2 | Growth to transport | s² / (D Δt): time to diffuse one layer thickness over the time of one growth step | 0.001 to 5, log | Merks et al. 2003 |
+| 3 | Polyp spacing | Starting mean edge length; edges split at 1.5 times it and fuse below 0.75 times it | 1 to 4 lattice units, log | Merks et al. 2003; Kaandorp et al. 2005 |
+| 4 | Layer thickness | s, the largest thickness of one growth layer | 0.25 to 1.25 lattice units | Kaandorp et al. 2005, eq. 2.3 |
 | 5 | Curvature rule | Strength of the curvature factor k(h): 0 is off, as in Merks et al.; 1 is Kaandorp and Sloot's rule | 0 to 1 | Kaandorp and Sloot 2001; Merks et al. 2003 |
-| 6 | Polyp height | Distance above the surface at which nutrient is absorbed | 0 to 2 polyp spacings | Kaandorp et al. 2005 |
-| 7 | Growth threshold | Normalised uptake below which a polyp lays down no new layer | 0 to 0.3 | Designed extension |
+| 6 | Polyp height | Distance along the normal at which uptake is probed | 1 to 3 lattice units | Merks et al. 2003; Kaandorp et al. 2005 |
+| 7 | Growth threshold | tr, the normalised growth below which a polyp lays down no new layer | 0 to 0.3 | Kaandorp and Sloot 2001 |
 | 8 | Uptake response | γ in l ∝ c^γ; 1 is the published linear rule | 0.5 to 2, log | Designed extension |
-| 9 | Starting size | Size of the starting object | 2% to 10% of the growth space height, log | Designed |
+| 9 | Starting size | Radius of the starting object | 4 to 16 lattice units, log | Designed |
 | 10 | Surface smoothing | Relaxation of vertex positions after each step | 0 to 1 | Model (numerical) |
 | 11 | Growth irregularity | Random variation in layer thickness from polyp to polyp | 0 to 30% | Designed extension |
 | 12 | Corallite size | Diameter of each polyp's cup | 20% to 100% of the polyp spacing | Designed |
@@ -277,7 +279,7 @@ Implement the accretive growth model:
 
 For locus 20, the gradient driver choices are: growth layer (the step a surface was laid down), nutrient uptake, curvature, or height.
 
-**Fixed environment.** The growth space, the source plane at its top, the absorbing floor, the lattice size and the diffusion constant are named constants of the encoding version, in one place (section 11). Whether the floor absorbs is not a gene, because the environment is constant (section 1, clarification 31).
+**Fixed environment.** The growth space, the source plane at its top, the absorbing floor, the periodic sides, the lattice size and the diffusion constant are named constants of the encoding version, in one place (section 11). Whether the floor absorbs is not a gene, because the environment is constant (section 1, clarification 31).
 
 **Maturity.** Growth stops when the colony's top reaches a fixed fraction of the height of the source plane, or after a fixed number of growth steps, whichever comes first; both are constants of the encoding version. A hard cap of 120,000 vertices applies, to be tuned for speed.
 
@@ -472,7 +474,7 @@ The tool is accurate at the level of its growth models and openly a designed abs
 | Shell rib width, nodules, flare and growth irregularity (v0.2) | Designed extension | Added for visual range |
 | Coral accretive growth (v0.3) | Published model, implemented as written | Kaandorp and Sloot 2001; Merks, Hoekstra, Kaandorp and Sloot 2003; Kaandorp et al. 2005 |
 | Coral nutrient field (v0.3) | Published model, numerical choice of solver | Kaandorp et al. 2005 used lattice Boltzmann; here a diffusion solver on a lattice (clarification 29) |
-| Coral corallites, growth threshold, uptake response and growth irregularity (v0.3) | Designed extension | Added for visual range |
+| Coral corallites, uptake response and growth irregularity (v0.3) | Designed extension | Added for visual range |
 | Hyphal growth and branching (v0.3) | Published model, implemented as written | Meškauskas, McNulty and Moore 2004; Meškauskas, Fricker and Moore 2004 |
 | Fruit body programmes (v0.3) | Published method, designed timings | Meškauskas, McNulty and Moore 2004, figures 5 to 7 |
 | Hyphal field sums (v0.3) | Numerical choice | A spatial grid instead of a sum over every point (clarification 29) |
@@ -544,7 +546,7 @@ The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 - [ ] 10,000 random genomes of species F, and 1,000 of species E, all grow to maturity with no failure and no invalid numbers. Species E has no 10,000 run, by the owner's decision of 20 October 2026, because of its run time; 1,000 passing bounds its failure rate below 0.3% at 95% confidence (clarification 31).
 - [ ] The same species E and F code gives the same geometry hash in three browsers on two different machines.
 - [ ] Species E with the curvature rule off branches: the wild type has more than one branch tip at maturity, as Merks et al. report.
-- [ ] Species E: compactness (colony volume over convex hull volume, Kaandorp et al. 2005) rises as growth to transport falls, as Merks et al. report.
+- [ ] Species E: compactness (colony volume over convex hull volume, Kaandorp et al. 2005) rises as growth to transport rises, as Merks et al. report.
 - [ ] Species E: raising the polyp spacing makes branches fewer and further apart (Kaandorp et al. 2005: polyp spacing is the main control of branch spacing).
 - [ ] Species F, colony programme: the mycelium is close to spherical (Meškauskas et al.: most settings give spherical colonies), and lowering the branching threshold gives fewer tips and longer sections (their figures 3 and 4).
 - [ ] Species F, cup programme: a slice through the axis is hollow, with fewer hyphae on the axis than at the rim (figure 5B). Mushroom programme: the cap is wider than the stem.
@@ -593,6 +595,7 @@ Agreed with the owner on 4 October 2026. These resolve gaps and contradictions i
 26. **Provisional tables (sections 4c and 4d).** As clarification 18: the ranges in the species E and F gene tables are provisional until that species' simulation milestone, which starts by checking every model statement in its section against the cited papers. Where a paper differs, or a range cannot be made stable, work stops and the exact edit to this spec is proposed, as in clarification 2. Once the milestone is done, the table is fixed like the others.
 27. **Geometry (sections 4c and 4d).** Species E produces one closed triangle mesh in the species B geometry form, with four gradient-driver attributes per vertex and a small fixed drawn thickness. Species F produces a branch geometry in the species A form: nodes, parents and a radius per node, every radius the hypha thickness gene, since hyphae do not taper and the pipe model does not apply. Hyphae may cross and their tubes may intersect.
 28. **Drafts (section 6).** Species E's draft uses a coarser lattice and a larger polyp spacing. Species F's draft uses a longer growth step per time unit and fewer drawn sides per hypha. Both use the same seed and are labelled as drafts, as in clarification 3.
-29. **Numerical choices (sections 4c and 4d).** Species E solves the diffusion equation on its lattice with a fixed number of steps per growth step; Kaandorp et al. (2005) used lattice Boltzmann moment propagation, which solves the same equation. Species F sums its fields over a spatial grid, with a cutoff for the density field and coarser cells for the long-range field, instead of over every point of the mycelium. Both are stated on the Methods page as numerical choices.
+29. **Numerical choices (sections 4c and 4d).** Species E advances the diffusion equation on its lattice by one implicit (backward Euler) step per growth step, of the length locus 2 sets, solved with a fixed number of multigrid cycles from the previous step's field (clarification 32); Kaandorp and Sloot (2001) used a fixed number of lattice Boltzmann moment-propagation iterations, and Merks et al. (2003) iterated them to a steady state, which solve the same equation. Species F sums its fields over a spatial grid, with a cutoff for the density field and coarser cells for the long-range field, instead of over every point of the mycelium. Both are stated on the Methods page as numerical choices.
 30. **Species switch (sections 5 and 6).** The switch offers all six species. Choosing one loads its wild type. The four-segment control does not fit six, so its design is redone in milestone 22, by the same process as milestone 10, before it is built.
 31. **Owner decisions of 20 October 2026.** The coral's floor is fixed as absorbing, as a named constant, because section 1 keeps the environment constant; there is no floor uptake gene. Species E has no 10,000-genome run, because each growth step updates a 3D lattice; its random-genome check is 1,000 genomes (section 12).
+32. **Species E model check (section 4c).** Added on 20 October 2026 when milestone 20 checked section 4c against Merks et al. (2003), read as chapter 4 of Merks's thesis (Branching Growth in Stony Corals: a Modelling Approach, University of Amsterdam, 2003), and Kaandorp et al. (2005). Kaandorp and Sloot (2001) is not freely available; its curvature rule and growth threshold were checked through Merks's description of their model. Approved by the owner: growth to transport is s² / (D Δt), 0.001 to 5, and compactness rises with it, as Merks et al. found when growth and transport share a time scale (the earlier wording had the direction reversed); lengths are in lattice units, with polyp spacing 1 to 4, layer thickness 0.25 to 1.25, polyp height 1 to 3 (uptake cannot be probed at the surface, where the concentration is 0) and starting radius 4 to 16; mesh refinement follows Merks et al. (split at 1.5 times the starting edge length, fuse below 0.75 times, small triangles removed); the growth threshold is Kaandorp and Sloot's tr, so it is published, not designed; the sides of the growth space are periodic.
