@@ -7,6 +7,7 @@ import { Specimen } from './specimen';
 import { buttonSection, copySection, lensFrostSection, lockSection, numeralsSection, sliderSection, typeSection, pressable } from './controls';
 import { cycleSection, focusSection, materialSection, randomiseSection } from './helix-sections';
 import { looksSection } from './looks-section';
+import { speciesSection } from './species-section';
 import './lab.css';
 
 // Interaction lab (dev only, not part of the build): three working variants of each core interaction
@@ -159,6 +160,7 @@ async function grow(): Promise<void> {
 
 const main = document.getElementById('lab-main') as HTMLElement;
 main.append(
+  speciesSection(),
   materialSection(reticle),
   sliderSection(),
   lensFrostSection(),

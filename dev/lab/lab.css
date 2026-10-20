@@ -769,3 +769,21 @@ html.reticle-on input[type='text'], html.reticle-on textarea { cursor: text !imp
 @media (max-width: 1100px) {
   .sec-head { grid-template-columns: 1fr; gap: var(--s1); }
 }
+
+/* Species switch (milestone 22) ---------------------------------------------------------------- */
+
+.var-stage.species-stage { min-height: 360px; place-items: start stretch; padding: 0; background-size: 520px auto; background-position: 70% 30%; }
+.species-bar { position: relative; display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s4); border-radius: 0; z-index: 3; }
+.species-bar .top-label { font-size: var(--fs-label); color: var(--ink-2); }
+.species-bar-rest { color: var(--ink-3); white-space: pre; margin-left: var(--s4); }
+.species-button { min-width: 9.5em; text-align: left; }
+.species-menu { position: absolute; padding: 4px; z-index: 4; outline: none; }
+.species-menu[hidden] { display: none; }
+.species-list, .species-popup { display: flex; flex-direction: column; width: 22em; }
+.species-grid { display: grid; grid-template-columns: repeat(3, 16em); }
+.species-lozenge { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: var(--r-control); background-color: var(--fill-2); box-shadow: inset 0 0 0 1px var(--hair); pointer-events: none; }
+.species-row { position: relative; z-index: 1; display: grid; gap: 1px; padding: 6px 10px 7px; border-radius: var(--r-control); }
+.species-name { color: var(--ink-2); transition: color var(--t-small) var(--ease-out); }
+.species-row.active .species-name, .species-row[aria-selected='true'] .species-name { color: var(--ink); }
+.species-row[aria-selected='true'] .species-name::after { content: ' · current'; color: var(--ink-3); font-size: var(--fs-label); }
+.species-line { font-size: var(--fs-label); color: var(--ink-3); }
