@@ -4,11 +4,10 @@ import '@fontsource/ibm-plex-sans/latin-400-italic.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
-import { parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigments } from './genome';
+import { parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigments, type SpeciesId } from './genome';
 import { Stage, type LookId, type Organism, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
-import { APP_SPECIES, type AppSpecies } from './ui/gene-info';
 import { GeneMap } from './ui/gene-map';
 import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
@@ -39,11 +38,11 @@ function hashText(hash: string): string {
 const root = document.documentElement;
 applyMotionTokens();
 onReducedMotionChange(() => applyMotionTokens());
-const shell = buildShell(document.getElementById('app') as HTMLElement);
+const shell = buildShell(document.getElementById('app') as HTMLElement, (species) => commands.switchSpecies(species));
 const stage = new Stage(shell.stage);
 
 const linked = hashText(location.hash);
-const parsed = linked.trim() === '' ? null : parseGenome(linked, APP_SPECIES);
+const parsed = linked.trim() === '' ? null : parseGenome(linked);
 const editor = new Editor({
   code: parsed?.ok ? parsed.code : wildType('A'),
   warning: parsed?.ok ? parsed.warning : undefined,
@@ -182,7 +181,7 @@ const commands = {
   wildType: () => editor.resetWildType(),
   undo: () => editor.undo(),
   redo: () => editor.redo(),
-  switchSpecies: (species: AppSpecies) => editor.switchSpecies(species),
+  switchSpecies: (species: SpeciesId) => editor.switchSpecies(species),
   setView: (mode: ViewMode) => showView(mode),
   setLook: (look: LookId) => showLook(look),
   setTransparent: (transparent: boolean) => showTransparent(transparent),
@@ -237,7 +236,7 @@ function showTransparent(transparent: boolean): void {
 }
 
 function refreshControls(): void {
-  for (const [s, b] of Object.entries(shell.speciesButtons)) b.setAttribute('aria-pressed', String(s === editor.species));
+  shell.speciesMenu.set(editor.species);
   shell.tools.undo.disabled = !editor.canUndo;
   shell.tools.redo.disabled = !editor.canRedo;
 }
@@ -256,7 +255,6 @@ shell.tools.randomiseAll.addEventListener('click', commands.randomiseAll);
 shell.tools.wildType.addEventListener('click', commands.wildType);
 shell.tools.undo.addEventListener('click', commands.undo);
 shell.tools.redo.addEventListener('click', commands.redo);
-for (const species of APP_SPECIES) shell.speciesButtons[species].addEventListener('click', () => commands.switchSpecies(species));
 shell.editorViews.helix.addEventListener('click', () => commands.setEditorView('helix'));
 shell.editorViews.map.addEventListener('click', () => commands.setEditorView('map'));
 shell.viewButtons['3d'].addEventListener('click', () => commands.setView('3d'));

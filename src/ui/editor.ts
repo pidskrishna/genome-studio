@@ -15,7 +15,6 @@ import {
   type ParseResult,
   type SpeciesId,
 } from '../genome';
-import { APP_SPECIES, type AppSpecies } from './gene-info';
 
 // The editor state from spec section 5: the current code, the focused gene, locks, undo and redo.
 // It holds no DOM; the gene map, inspector, code bar and (later) the helix all drive it through these
@@ -192,7 +191,7 @@ export class Editor {
   }
 
   /** Switches species, which loads that species' wild type. */
-  switchSpecies(species: AppSpecies): void {
+  switchSpecies(species: SpeciesId): void {
     if (species === this.species) return;
     this.commit(wildType(species), 'species');
   }
@@ -202,7 +201,7 @@ export class Editor {
    * message; a code with a wrong checksum loads corrected, with a typo warning (clarification 11).
    */
   paste(input: string): ParseResult {
-    const parsed = parseGenome(input, APP_SPECIES);
+    const parsed = parseGenome(input);
     if (!parsed.ok) {
       this.note = { tone: 'error', text: parsed.message };
       this.emit({ type: 'state' });

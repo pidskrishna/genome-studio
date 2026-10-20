@@ -1,5 +1,4 @@
-import { pigmentsOf, wildType, type Pigments } from '../src/genome';
-import type { AppSpecies } from '../src/ui/gene-info';
+import { pigmentsOf, wildType, type Pigments, type SpeciesId } from '../src/genome';
 import { LOOK_NAMES, LOOKS, type LookId } from '../src/render/colour';
 import { Stage, type Organism, type ViewMode } from '../src/render/stage';
 import { comparePixels, seamDifferences, tileRects, tilesMatch, toStraightAlpha, TILE_TOLERANCE, type Pixels } from '../src/render/tiles';
@@ -10,7 +9,7 @@ import { SimClient } from '../src/ui/sim-client';
 // and 3 × 3) must match the same frame drawn whole. The fluorescence look is also run with the glow
 // gene at 1, whose wider bloom is blurred at a lower resolution (downsampling factor above 1).
 //
-// Query options: ?look=plate|fluorescence|glossy, ?species=A|B|C|D, ?view=3d|flat, ?bg=opaque|transparent.
+// Query options: ?look=plate|fluorescence|glossy, ?species=A|B|C|D|E|F, ?view=3d|flat, ?bg=opaque|transparent.
 // When done, window.tileSummary is { done: true, pass, passed, total, failures } and
 // window.tileResults has one row per combination.
 
@@ -45,9 +44,9 @@ function toCanvas(p: Pixels): HTMLCanvasElement {
   return canvas;
 }
 
-const JOB = { A: 'speciesA', B: 'speciesB', C: 'speciesC', D: 'speciesD' } as const;
+const JOB = { A: 'speciesA', B: 'speciesB', C: 'speciesC', D: 'speciesD', E: 'speciesE', F: 'speciesF' } as const;
 
-async function grow(species: AppSpecies): Promise<Organism> {
+async function grow(species: SpeciesId): Promise<Organism> {
   const code = wildType(species);
   const outcome = await client.run(JOB[species], { code });
   if (outcome.status !== 'done') throw new Error(`Species ${species} did not grow: ${outcome.status}`);
@@ -55,7 +54,7 @@ async function grow(species: AppSpecies): Promise<Organism> {
 }
 
 interface Result {
-  species: AppSpecies;
+  species: SpeciesId;
   view: ViewMode;
   look: LookId;
   transparent: boolean;
@@ -76,7 +75,7 @@ const label = (r: Omit<Result, 'differing' | 'onSeam' | 'maxChannel' | 'total' |
   `${r.species} ${r.view === '3d' ? '3D' : 'flat'} ${r.look}${r.glow === 1 ? ' (glow 1)' : ''} ${r.transparent ? 'transparent' : 'opaque'} ${r.split}`;
 
 async function run(): Promise<void> {
-  for (const species of pick('species', ['A', 'B', 'C', 'D'] as const)) {
+  for (const species of pick('species', ['A', 'B', 'C', 'D', 'E', 'F'] as const)) {
     status.textContent = `Growing species ${species}…`;
     stage.setOrganism(await grow(species));
     const wild = pigmentsOf(wildType(species));

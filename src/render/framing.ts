@@ -20,14 +20,16 @@ export interface ViewDirection {
 }
 
 /**
- * Starting 3D direction per species: trees and shells from just above the horizon, sheets and flower
- * heads from higher up.
+ * Starting 3D direction per species: trees, shells, corals and fruit bodies from just above the
+ * horizon, sheets and flower heads from higher up.
  */
-export const START_VIEW: Readonly<Record<'A' | 'B' | 'C' | 'D', ViewDirection>> = {
+export const START_VIEW: Readonly<Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', ViewDirection>> = {
   A: { azimuth: 30, elevation: 12 },
   B: { azimuth: 30, elevation: 35 },
   C: { azimuth: 30, elevation: 40 },
   D: { azimuth: 30, elevation: 18 },
+  E: { azimuth: 30, elevation: 15 },
+  F: { azimuth: 30, elevation: 10 },
 };
 
 /** Unit vector from the target toward the camera. */

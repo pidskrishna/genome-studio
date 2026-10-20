@@ -32,6 +32,8 @@ export interface JobInputs {
   speciesBDraft: SpeciesBInput;
   speciesCDraft: SpeciesCInput;
   speciesDDraft: SpeciesDInput;
+  speciesEDraft: SpeciesEInput;
+  speciesFDraft: SpeciesFInput;
 }
 
 /** Output of each job. */
@@ -47,6 +49,8 @@ export interface JobOutputs {
   speciesBDraft: SheetGeometry;
   speciesCDraft: PhylloGeometry;
   speciesDDraft: ShellGeometry;
+  speciesEDraft: CoralGeometry;
+  speciesFDraft: HyphaGeometry;
 }
 
 export type JobKind = keyof JobInputs;

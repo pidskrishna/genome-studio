@@ -1,6 +1,7 @@
+import type { SpeciesId } from '../genome';
 import { LOOK_NAMES, LOOKS, type LookId } from '../render/colour';
-import { SPECIES_NAMES, APP_SPECIES, type AppSpecies } from './gene-info';
 import type { ProgressView } from './studio';
+import { SpeciesMenu } from './species-menu';
 import { glassSegments } from './surface';
 
 // The page layout from spec section 6: top bar, helix column on the left (holding the editor buttons,
@@ -15,7 +16,8 @@ export interface Shell {
   lookButtons: Record<LookId, HTMLButtonElement>;
   /** Toggles a transparent background (aria-pressed). */
   transparentButton: HTMLButtonElement;
-  speciesButtons: Record<AppSpecies, HTMLButtonElement>;
+  /** The species switch, a drop list (DESIGN.md section 7). */
+  speciesMenu: SpeciesMenu;
   tools: {
     randomiseAll: HTMLButtonElement;
     wildType: HTMLButtonElement;
@@ -73,8 +75,8 @@ function topGroup(label: string, ...controls: HTMLElement[]): HTMLElement {
   return el('span', { className: 'top-group' }, el('span', { className: 'top-label', textContent: label }), ...controls);
 }
 
-export function buildShell(parent: HTMLElement): Shell {
-  const speciesButtons = Object.fromEntries(APP_SPECIES.map((s) => [s, button(SPECIES_NAMES[s])])) as Record<AppSpecies, HTMLButtonElement>;
+export function buildShell(parent: HTMLElement, onSpecies: (species: SpeciesId) => void): Shell {
+  const speciesMenu = new SpeciesMenu(onSpecies);
   const view3d = button('3D');
   const viewFlat = button('Flat');
   const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
@@ -86,7 +88,7 @@ export function buildShell(parent: HTMLElement): Shell {
     'header',
     { className: 'top-bar glass layer-1' },
     el('h1', { textContent: 'Genome studio' }),
-    topGroup('Species', segmented('Species', ...APP_SPECIES.map((s) => speciesButtons[s]))),
+    topGroup('Species', speciesMenu.button),
     topGroup('View', segmented('View', view3d, viewFlat)),
     topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
     methodsButton,
@@ -161,7 +163,7 @@ export function buildShell(parent: HTMLElement): Shell {
     viewButtons: { '3d': view3d, flat: viewFlat },
     lookButtons,
     transparentButton,
-    speciesButtons,
+    speciesMenu,
     tools,
     editorViews,
     editorBody,

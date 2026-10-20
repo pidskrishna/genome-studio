@@ -8,6 +8,10 @@ import type { PhylloGeometry } from '../../src/sim/speciesC';
 import type { ShellGeometry } from '../../src/sim/speciesD';
 import { grow as growC } from '../sim/speciesC/helpers';
 import { grow as growD } from '../sim/speciesD/helpers';
+import type { CoralGeometry } from '../../src/sim/speciesE';
+import type { HyphaGeometry } from '../../src/sim/speciesF';
+import { grow as growE } from '../sim/speciesE/helpers';
+import { grow as growF } from '../sim/speciesF/helpers';
 
 // Grown organisms shared by the render tests, each grown once per test file.
 
@@ -37,4 +41,15 @@ export function wildC(): PhylloGeometry {
 
 export function wildD(): ShellGeometry {
   return (d ??= growD(wildType('D')));
+}
+
+let e: CoralGeometry | undefined;
+let f: HyphaGeometry | undefined;
+
+export function wildE(): CoralGeometry {
+  return (e ??= growE(wildType('E')));
+}
+
+export function wildF(): HyphaGeometry {
+  return (f ??= growF(wildType('F')));
 }

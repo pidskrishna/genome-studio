@@ -37,5 +37,8 @@ export const TIP_CAP = 4_000;
 export const SEGMENT_CAP = 80_000;
 /** ... and vertices of the drawn tubes, estimated as nodes × sides plus a cap at each tip. */
 export const VERTEX_CAP = 200_000;
-/** Sides of each drawn hypha, as the branch renderer draws them. */
+/** Sides of each drawn hypha, as the branch renderer draws them ... */
 export const DRAWN_SIDES = 8;
+/** ... and in a draft (clarification 28), whose tips also grow this many units per step for half the steps. */
+export const DRAFT_SIDES = 4;
+export const DRAFT_STEP = 3;

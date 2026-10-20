@@ -7,6 +7,8 @@ import {
   CLOSE_TIME,
   COLONY_TIME,
   CUP_TIME,
+  DRAFT_SIDES,
+  DRAFT_STEP,
   DRAWN_SIDES,
   FLAT_TIME,
   GROW_MULTIPLE,
@@ -46,6 +48,8 @@ export interface HyphaGeometry {
   /** Four values per node: hyphal age, tips supported, phase of the programme, height. */
   drivers: Float64Array;
   stats: { steps: number; stopReason: StopReason; segments: number; tips: number; nodes: number; drawnVertices: number };
+  /** Sides to draw each hypha with: the renderer's usual 8, or fewer in a draft (clarification 28). */
+  drawnSides: number;
   /** Geometry hash over positions, parents, radii and drivers. */
   hash: string;
 }
@@ -64,29 +68,30 @@ interface Phase {
 
 const HALF_PI = PI / 2;
 
-/** The phases of each programme (section 4d, clarification 34). */
-function programme(p: SpeciesFParams): Phase[] {
-  if (p.programme === 0) return [{ end: COLONY_TIME, angle: null, pull: 0, parallel: false }];
+/** The phases of each programme (section 4d, clarification 34), in steps of `step` units. */
+function programme(p: SpeciesFParams, step: number): Phase[] {
+  const steps = (time: number) => Math.floor(time / step);
+  if (p.programme === 0) return [{ end: steps(COLONY_TIME), angle: null, pull: 0, parallel: false }];
   const phases: Phase[] = [];
-  let t = FLAT_TIME;
+  let t = steps(FLAT_TIME);
   phases.push({ end: t, angle: [HALF_PI, HALF_PI], pull: 0, parallel: false });
-  t += CUP_TIME;
+  t += steps(CUP_TIME);
   phases.push({ end: t, angle: [HALF_PI, p.cupAngle], pull: 0, parallel: true });
   if (p.programme >= 2) {
-    t += CLOSE_TIME;
+    t += steps(CLOSE_TIME);
     phases.push({ end: t, angle: null, pull: 1, parallel: true });
   }
   if (p.programme >= 3) {
-    t += NECK_TIME;
+    t += steps(NECK_TIME);
     // Figure 7C: the pull is reduced, not removed, and growth turns upward into a bottle's neck.
     phases.push({ end: t, angle: [0, 0], pull: NECK_PULL, parallel: true });
   }
   if (p.programme >= 4) {
-    if (p.stemLength > 0) {
-      t += p.stemLength;
+    if (steps(p.stemLength) > 0) {
+      t += steps(p.stemLength);
       phases.push({ end: t, angle: [0, 0], pull: 0, parallel: true });
     }
-    t += CAP_TIME;
+    t += steps(CAP_TIME);
     phases.push({ end: t, angle: 'cap', pull: 0, parallel: true });
   }
   return phases;
@@ -136,9 +141,27 @@ function normalise(x: number, y: number, z: number): [number, number, number] | 
   return l > 0 ? [x / l, y / l, z / l] : null;
 }
 
+export interface HyphaOptions {
+  /**
+   * The draft (clarification 28): tips grow DRAFT_STEP units per step for that fraction of the
+   * steps, with branching and persistence per step adjusted so they stay the same per unit of
+   * length, and the hyphae drawn with fewer sides.
+   */
+  draft?: boolean;
+}
+
 /** Grows species F from decoded parameters. Yields progress from 0 to 1. */
-export function* growSpeciesF(p: SpeciesFParams): Generator<number, HyphaGeometry> {
-  const phases = programme(p);
+export function* growSpeciesF(full: SpeciesFParams, options: HyphaOptions = {}): Generator<number, HyphaGeometry> {
+  const step = options.draft ? DRAFT_STEP : 1;
+  const p: SpeciesFParams = options.draft
+    ? {
+        ...full,
+        branchingProbability: 1 - (1 - full.branchingProbability) * (1 - full.branchingProbability),
+        persistence: full.persistence * full.persistence,
+      }
+    : full;
+  const sides = options.draft ? DRAFT_SIDES : DRAWN_SIDES;
+  const phases = programme(p, step);
   const total = phases[phases.length - 1]!.end;
   const rng = new Rng(p.seed, 1);
 
@@ -177,6 +200,7 @@ export function* growSpeciesF(p: SpeciesFParams): Generator<number, HyphaGeometr
     const count = nx.length - 1;
     const pts: FieldPoints = {
       count,
+      step,
       x: new Float64Array(count),
       y: new Float64Array(count),
       z: new Float64Array(count),
@@ -194,9 +218,9 @@ export function* growSpeciesF(p: SpeciesFParams): Generator<number, HyphaGeometr
       pts.z[i] = nz[v]!;
       pts.section[i] = sectionOf[v]!;
       pts.weight[i] = LC / sectionSize[sectionOf[v]!]!;
-      pts.tx[i] = nx[v]! - nx[u]!;
-      pts.ty[i] = ny[v]! - ny[u]!;
-      pts.tz[i] = nz[v]! - nz[u]!;
+      pts.tx[i] = (nx[v]! - nx[u]!) / step;
+      pts.ty[i] = (ny[v]! - ny[u]!) / step;
+      pts.tz[i] = (nz[v]! - nz[u]!) / step;
     }
     const tree = new FieldTree(pts);
 
@@ -291,16 +315,16 @@ export function* growSpeciesF(p: SpeciesFParams): Generator<number, HyphaGeometr
         continue;
       }
       const u = nx.length;
-      nx.push(nx[v]! + dir[0]);
-      ny.push(ny[v]! + dir[1]);
-      nz.push(nz[v]! + dir[2]);
+      nx.push(nx[v]! + step * dir[0]);
+      ny.push(ny[v]! + step * dir[1]);
+      nz.push(nz[v]! + step * dir[2]);
       parent.push(v);
       birth.push(t);
       phaseOf.push(phaseIndex);
       sectionOf.push(tip.section);
       sectionSize[tip.section] = sectionSize[tip.section]! + 1;
       sectionPoints[tip.section]!.push(u - 1);
-      next.push({ node: u, section: tip.section, dx: dir[0], dy: dir[1], dz: dir[2], length: tip.length + 1, capStart: tip.capStart });
+      next.push({ node: u, section: tip.section, dx: dir[0], dy: dir[1], dz: dir[2], length: tip.length + step, capStart: tip.capStart });
       grew++;
     }
     tips = next;
@@ -320,7 +344,7 @@ export function* growSpeciesF(p: SpeciesFParams): Generator<number, HyphaGeometr
     }
   }
 
-  return output(p, { nx, ny, nz, parent, birth, phaseOf }, tips.length, steps, stopReason);
+  return output(p, { nx, ny, nz, parent, birth, phaseOf }, tips.length, steps, stopReason, sides);
 }
 
 /** Thins the nodes to the drawn vertex cap, works out the drivers, and packs the geometry. */
@@ -330,6 +354,7 @@ function output(
   tipCount: number,
   steps: number,
   stopReason: StopReason,
+  sides: number,
 ): HyphaGeometry {
   const n = m.nx.length;
   const children = new Int32Array(n);
@@ -346,7 +371,7 @@ function output(
   // × (sides + 1) vertices.
   let sideChains = 0;
   for (let v = 0; v < n; v++) sideChains += Math.max(0, children[v]! - 1);
-  const drawn = (nodes: number) => (nodes + sideChains) * DRAWN_SIDES + (sideChains + 2) * (DRAWN_SIDES + 1);
+  const drawn = (nodes: number) => (nodes + sideChains) * sides + (sideChains + 2) * (sides + 1);
   // Keep the start, every end and branch point, and every k-th node between, within the vertex cap.
   let keepEvery = 1;
   const estimate = (k: number) => {
@@ -391,6 +416,7 @@ function output(
     radii,
     drivers,
     stats: { steps, stopReason, segments: n - 1, tips: tipCount, nodes: count, drawnVertices: drawn(count) },
+    drawnSides: sides,
     hash: hashBranchGeometry({ positions, parents, radii, drivers }),
   };
 }

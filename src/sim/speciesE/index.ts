@@ -6,6 +6,7 @@ import {
   AREA_FACTOR,
   CURVATURE_MAX,
   CURVATURE_MIN,
+  DRAFT_SCALE,
   DRAWN_THICKNESS,
   FUSE_FACTOR,
   FUSE_PASSES,
@@ -72,9 +73,30 @@ function top(mesh: CoralMesh): number {
   return max;
 }
 
+export interface CoralOptions {
+  /**
+   * The draft (clarification 28): the same colony on a lattice DRAFT_SCALE times coarser, every
+   * length divided by it, so the polyps are relatively larger where the spacing is near its minimum;
+   * no corallites. The result is scaled back up, so it sits where the organism will.
+   */
+  draft?: boolean;
+}
+
 /** Grows species E from decoded parameters. Yields progress from 0 to 1. */
-export function* growSpeciesE(p: SpeciesEParams): Generator<number, CoralGeometry> {
-  const n = LATTICE;
+export function* growSpeciesE(full: SpeciesEParams, options: CoralOptions = {}): Generator<number, CoralGeometry> {
+  const scale = options.draft ? DRAFT_SCALE : 1;
+  const n = LATTICE / scale;
+  const p: SpeciesEParams = options.draft
+    ? {
+        ...full,
+        polypSpacing: Math.max(1, full.polypSpacing / scale),
+        layerThickness: full.layerThickness / scale,
+        polypHeight: full.polypHeight / scale,
+        startingSize: full.startingSize / scale,
+        coralliteDepth: 0,
+        coralliteRim: 0,
+      }
+    : full;
   const spacing = p.polypSpacing;
   const s = p.layerThickness;
   // α = D Δt, from growth to transport = s² / (D Δt).
@@ -163,9 +185,9 @@ export function* growSpeciesE(p: SpeciesEParams): Generator<number, CoralGeometr
   const positions = new Float64Array(V * 3);
   const drivers = new Float64Array(V * 4);
   for (let v = 0; v < V; v++) {
-    positions[v * 3] = mesh.positions[v * 3]! - n / 2;
-    positions[v * 3 + 1] = mesh.positions[v * 3 + 1]!;
-    positions[v * 3 + 2] = mesh.positions[v * 3 + 2]! - n / 2;
+    positions[v * 3] = (mesh.positions[v * 3]! - n / 2) * scale;
+    positions[v * 3 + 1] = mesh.positions[v * 3 + 1]! * scale;
+    positions[v * 3 + 2] = (mesh.positions[v * 3 + 2]! - n / 2) * scale;
     drivers[v * 4] = mesh.birth[v]!;
     drivers[v * 4 + 1] = mesh.uptake[v]!;
     drivers[v * 4 + 2] = relief.curvature[v] ?? 0;
@@ -177,8 +199,8 @@ export function* growSpeciesE(p: SpeciesEParams): Generator<number, CoralGeometr
     positions,
     triangles,
     drivers,
-    cellWidth: spacing / (1 << relief.levels),
-    drawnThickness: DRAWN_THICKNESS * spacing,
+    cellWidth: (scale * spacing) / (1 << relief.levels),
+    drawnThickness: DRAWN_THICKNESS * spacing * scale,
     stats: { steps, stopReason, polyps, vertices: V, triangles: triangles.length / 3, levels: relief.levels, top: finalTop },
     hash: hashSheetGeometry({ positions, triangles, drivers }),
   };

@@ -67,6 +67,7 @@ describe('the fields', () => {
     const count = 3000;
     const pts: FieldPoints = {
       count,
+      step: 1,
       x: new Float64Array(count),
       y: new Float64Array(count),
       z: new Float64Array(count),

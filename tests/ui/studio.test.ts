@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { geneTable, pigmentsOf, readGene, wildType, withChecksum, writeGene, type Pigments } from '../../src/genome';
-import type { AppSpecies } from '../../src/ui/gene-info';
+import { geneTable, pigmentsOf, readGene, wildType, withChecksum, writeGene, type Pigments, type SpeciesId } from '../../src/genome';
 import type { Organism, ViewMode } from '../../src/render/stage';
 import type { FromWorker, ToWorker } from '../../src/sim/protocol';
 import { SimClient, type Connect } from '../../src/ui/sim-client';
 import { Studio, type NoticeTone } from '../../src/ui/studio';
-import { wildA, wildB, wildC, wildD } from '../render/fixtures';
+import { wildA, wildB, wildC, wildD, wildE, wildF } from '../render/fixtures';
 
-const WILD = { A: wildA, B: wildB, C: wildC, D: wildD } as const;
+const WILD = { A: wildA, B: wildB, C: wildC, D: wildD, E: wildE, F: wildF } as const;
 
 // The studio with the real simulation client over a fake worker channel, so the test controls when
 // progress and results arrive. Geometry comes from real growth runs.
@@ -166,7 +165,7 @@ describe('which edits regrow', () => {
   const runs = (t: ReturnType<typeof setup>) => t.posted.filter((p) => p.type === 'run').length;
   const other = (code: string, locus: number) => (readGene(code, locus) + 1) % 4096;
 
-  async function grown(species: AppSpecies) {
+  async function grown(species: SpeciesId) {
     const t = setup();
     const done = t.studio.update(wildType(species));
     t.finish(WILD[species]());
@@ -175,7 +174,7 @@ describe('which edits regrow', () => {
   }
 
   it('changing any pigment gene does not start a simulation run, for every species', async () => {
-    for (const species of ['A', 'B', 'C', 'D'] as const) {
+    for (const species of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
       const t = await grown(species);
       for (const def of geneTable(species).filter((g) => g.group === 'pigment')) {
         const code = writeGene(t.studio.code!, def.locus, other(t.studio.code!, def.locus));
@@ -191,7 +190,7 @@ describe('which edits regrow', () => {
   it('changing any pigment gene to any of several values does not start a run, and the stage gets the new pigments at once', async () => {
     // Ends of the range, the middle, bin edges of the gradient driver, and spread values.
     const values = [0, 1, 1023, 1024, 2047, 2048, 3071, 3072, 4094, 4095, 777, 3333];
-    for (const species of ['A', 'B', 'C', 'D'] as const) {
+    for (const species of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
       const t = await grown(species);
       const pigmentLoci = geneTable(species).filter((g) => g.group === 'pigment');
       expect(pigmentLoci.map((g) => g.locus)).toEqual([16, 17, 18, 19, 20, 21, 22, 23]);
@@ -227,7 +226,7 @@ describe('which edits regrow', () => {
   });
 
   it('changing any form gene or the seed regrows', async () => {
-    for (const species of ['A', 'B', 'C', 'D'] as const) {
+    for (const species of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
       const t = await grown(species);
       let expected = 1;
       for (const def of geneTable(species).filter((g) => g.group !== 'pigment')) {

@@ -1,4 +1,4 @@
-import { speciesADraft, speciesBDraft, speciesCDraft, speciesDDraft } from './draft';
+import { speciesADraft, speciesBDraft, speciesCDraft, speciesDDraft, speciesEDraft, speciesFDraft } from './draft';
 import type { JobTable } from './host';
 import { probe } from './probe';
 import { speciesA } from './speciesA';
@@ -21,4 +21,6 @@ export const JOBS: JobTable = {
   speciesBDraft,
   speciesCDraft,
   speciesDDraft,
+  speciesEDraft,
+  speciesFDraft,
 };

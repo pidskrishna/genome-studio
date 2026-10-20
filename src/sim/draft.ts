@@ -8,6 +8,10 @@ import { growSpeciesC, type PhylloGeometry, type SpeciesCInput } from './species
 import { speciesCParams } from './speciesC/params';
 import { growSpeciesD, type ShellGeometry, type SpeciesDInput } from './speciesD';
 import { speciesDParams } from './speciesD/params';
+import { growSpeciesE, type CoralGeometry, type SpeciesEInput } from './speciesE';
+import { speciesEParams } from './speciesE/params';
+import { growSpeciesF, type HyphaGeometry, type SpeciesFInput } from './speciesF';
+import { speciesFParams } from './speciesF/params';
 
 // The draft (spec section 6, clarification 3): a low-resolution run of the same code with the same
 // algorithm, shown while a form gene's slider is dragged. It shares the organism's character and
@@ -27,6 +31,10 @@ import { speciesDParams } from './speciesD/params';
 // receptacle's rings and segments.
 //
 // Species D (clarification 20): half the rings and half the points around the generating curve.
+//
+// Species E (clarification 28): a lattice a third the size, every length a third, no corallites.
+//
+// Species F (clarification 28): tips grow three units per step for a third of the steps, drawn with four sides.
 
 /** How much longer a draft's growth step (species A) or cells (species B) are than the organism's. */
 export const DRAFT_SCALE = 2;
@@ -85,5 +93,23 @@ export function* speciesDDraft(input: SpeciesDInput): Generator<number, JobDone<
   return {
     output: geometry,
     transfer: [geometry.positions.buffer, geometry.triangles.buffer, geometry.drivers.buffer],
+  };
+}
+
+/** Worker job: a species E draft. */
+export function* speciesEDraft(input: SpeciesEInput): Generator<number, JobDone<CoralGeometry>> {
+  const geometry = yield* growSpeciesE(speciesEParams(input.code), { draft: true });
+  return {
+    output: geometry,
+    transfer: [geometry.positions.buffer, geometry.triangles.buffer, geometry.drivers.buffer],
+  };
+}
+
+/** Worker job: a species F draft. */
+export function* speciesFDraft(input: SpeciesFInput): Generator<number, JobDone<HyphaGeometry>> {
+  const geometry = yield* growSpeciesF(speciesFParams(input.code), { draft: true });
+  return {
+    output: geometry,
+    transfer: [geometry.positions.buffer, geometry.parents.buffer, geometry.radii.buffer, geometry.drivers.buffer],
   };
 }

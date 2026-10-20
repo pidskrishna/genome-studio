@@ -1,7 +1,6 @@
 import { formKey, parseGenome, pigmentsOf, speciesOfHeader, type Pigments, type SpeciesId } from '../genome';
 import type { JobKind } from '../sim/protocol';
 import type { Organism, ViewMode } from '../render/stage';
-import { APP_SPECIES, isAppSpecies, type AppSpecies } from './gene-info';
 import type { SimClient } from './sim-client';
 
 // Connects a code to the simulation and the stage. A valid code starts a regrow, with the progress
@@ -47,11 +46,13 @@ export type LoadOutcome =
 export type UpdateOutcome = LoadOutcome | { status: 'unchanged' };
 
 /** The worker job that grows each species, and its draft. */
-const JOBS: Readonly<Record<AppSpecies, readonly [JobKind, JobKind]>> = {
+const JOBS: Readonly<Record<SpeciesId, readonly [JobKind, JobKind]>> = {
   A: ['speciesA', 'speciesADraft'],
   B: ['speciesB', 'speciesBDraft'],
   C: ['speciesC', 'speciesCDraft'],
   D: ['speciesD', 'speciesDDraft'],
+  E: ['speciesE', 'speciesEDraft'],
+  F: ['speciesF', 'speciesFDraft'],
 };
 
 export class Studio {
@@ -70,7 +71,7 @@ export class Studio {
 
   /** Parses a code and, if it is valid, regrows the organism from it. */
   async load(input: string): Promise<LoadOutcome> {
-    const parsed = parseGenome(input, APP_SPECIES);
+    const parsed = parseGenome(input);
     if (!parsed.ok) {
       this.deps.notice(parsed.message, 'error');
       return { status: 'rejected', message: parsed.message };
@@ -111,7 +112,7 @@ export class Studio {
   /** Regrows the organism (or, for a draft, a coarse run of the same code) from a valid code. */
   private async grow(code: string, draft = false): Promise<LoadOutcome> {
     const species = speciesOfHeader(code);
-    if (!isAppSpecies(species)) throw new Error('Code has no species the app grows');
+    if (species === null) throw new Error('Code has no valid species header');
     const key = draft ? draftKey(formKey(code)) : formKey(code);
     this.target = code;
     this.targetKey = key;

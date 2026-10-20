@@ -87,9 +87,20 @@ export class CoralMesh {
       const q = t[s - (s % 3) + ((s % 3) + 1) % 3]!;
       keys[s] = p < q ? p * span + q : q * span + p;
     }
-    const order = new Int32Array(slots);
-    for (let s = 0; s < slots; s++) order[s] = s;
-    order.sort((i, j) => keys[i]! - keys[j]! || i - j);
+    // Order the slots by key, then slot. Where key × slots + slot is an exact double, pack the two
+    // and use the built-in numeric sort, which is much faster; otherwise compare.
+    const order = new Float64Array(slots);
+    const packable = span * span * slots < 2 ** 53;
+    if (packable) {
+      for (let s = 0; s < slots; s++) order[s] = keys[s]! * slots + s;
+      order.sort();
+      for (let k = 0; k < slots; k++) order[k] = order[k]! - Math.floor(order[k]! / slots) * slots;
+    } else {
+      const index = new Int32Array(slots);
+      for (let s = 0; s < slots; s++) index[s] = s;
+      index.sort((i, j) => keys[i]! - keys[j]! || i - j);
+      order.set(index);
+    }
     const triEdge = new Int32Array(slots);
     const ea: number[] = [];
     const eb: number[] = [];

@@ -21,13 +21,25 @@ export const SPECIES_NAMES: Readonly<Record<SpeciesId, string>> = {
   F: 'Fungal fruit body',
 };
 
-/** The species the app grows. E and F join in milestone 23; until then their codes are refused. */
-export type AppSpecies = 'A' | 'B' | 'C' | 'D';
-export const APP_SPECIES: readonly AppSpecies[] = ['A', 'B', 'C', 'D'];
+/** Short names for the species switch (DESIGN.md section 7). Elsewhere the full names stay. */
+export const SPECIES_SHORT: Readonly<Record<SpeciesId, string>> = {
+  A: 'Branching',
+  B: 'Ruffles',
+  C: 'Phyllotaxis',
+  D: 'Seashell',
+  E: 'Coral',
+  F: 'Fungus',
+};
 
-export function isAppSpecies(species: SpeciesId | null): species is AppSpecies {
-  return species !== null && (APP_SPECIES as readonly SpeciesId[]).includes(species);
-}
+/** One line on each model, under its name in the species switch. */
+export const SPECIES_LINES: Readonly<Record<SpeciesId, string>> = {
+  A: 'Branches grow toward open space',
+  B: 'A sheet that grows fastest at its edge',
+  C: 'Organs form where there is room',
+  D: 'A tube that grows and coils at its mouth',
+  E: 'Layers laid down where nutrient reaches',
+  F: 'Hyphal tips that sense their neighbours',
+};
 
 
 /** Units the spec gives as percentages ("0.4% to 2% of envelope height"). */

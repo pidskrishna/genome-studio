@@ -16,6 +16,8 @@ import { LEAF_SIZE, SOFTENING, THETA } from './constants';
 
 export interface FieldPoints {
   count: number;
+  /** Length of the segment ending at each point: one unit, or the draft's longer step. */
+  step: number;
   x: Float64Array;
   y: Float64Array;
   z: Float64Array;
@@ -46,6 +48,8 @@ const EPS2 = SOFTENING * SOFTENING;
 
 export class FieldTree {
   private readonly order: Int32Array;
+  /** Scratch space for partitioning, shared by every node. */
+  private readonly scratch: Int32Array;
   // Per tree node: centre and half size of its cube, total weight, weighted centre, summed segment
   // directions, first child (−1 for a leaf), and the range of `order` it covers.
   private cx: number[] = [];
@@ -66,6 +70,7 @@ export class FieldTree {
   constructor(private readonly pts: FieldPoints) {
     const n = pts.count;
     this.order = new Int32Array(n);
+    this.scratch = new Int32Array(n);
     for (let i = 0; i < n; i++) this.order[i] = i;
     if (n === 0) return;
     let lo = [Infinity, Infinity, Infinity];
@@ -115,20 +120,25 @@ export class FieldTree {
     this.to.push(end);
     if (end - start <= LEAF_SIZE || depth >= 24) return id;
     // Partition into octants by counting, keeping the original order within each.
-    const octant = (i: number) => (p.x[i]! >= cx ? 1 : 0) + (p.y[i]! >= cy ? 2 : 0) + (p.z[i]! >= cz ? 4 : 0);
+    const scratch = this.scratch;
     const counts = [0, 0, 0, 0, 0, 0, 0, 0];
-    for (let k = start; k < end; k++) counts[octant(this.order[k]!)]!++;
-    const starts = [start];
-    for (let o = 1; o < 8; o++) starts.push(starts[o - 1]! + counts[o - 1]!);
-    const sorted = new Int32Array(end - start);
-    const next = starts.slice();
     for (let k = start; k < end; k++) {
       const i = this.order[k]!;
-      const o = octant(i);
-      sorted[next[o]! - start] = i;
+      const o = (p.x[i]! >= cx ? 1 : 0) + (p.y[i]! >= cy ? 2 : 0) + (p.z[i]! >= cz ? 4 : 0);
+      scratch[k] = o;
+      counts[o]!++;
+    }
+    const starts = [start];
+    for (let o = 1; o < 8; o++) starts.push(starts[o - 1]! + counts[o - 1]!);
+    const next = starts.slice();
+    // Octants are noted in scratch[start, end); place the indices after them in a second pass.
+    const placed = new Int32Array(end - start);
+    for (let k = start; k < end; k++) {
+      const o = scratch[k]!;
+      placed[next[o]! - start] = this.order[k]!;
       next[o]!++;
     }
-    this.order.set(sorted, start);
+    this.order.set(placed, start);
     const h = half / 2;
     const children: number[] = [];
     for (let o = 0; o < 8; o++) {
@@ -199,7 +209,7 @@ function point(out: FieldSample, p: FieldPoints, i: number, x: number, y: number
   const ty = p.ty[i]!;
   const tz = p.tz[i]!;
   const along = fx * tx + fy * ty + fz * tz;
-  if (along > 0 || along < -1) return;
+  if (along > 0 || along < -p.step) return;
   const h = Math.sqrt(Math.max(fx * fx + fy * fy + fz * fz - along * along, EPS2));
   out.px += (sign * tx) / h;
   out.py += (sign * ty) / h;

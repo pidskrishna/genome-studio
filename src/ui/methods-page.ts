@@ -1,5 +1,5 @@
-import { specimenName, speciesOfHeader } from '../genome';
-import { APP_SPECIES, SPECIES_NAMES } from './gene-info';
+import { ALL_SPECIES, specimenName, speciesOfHeader } from '../genome';
+import { SPECIES_NAMES } from './gene-info';
 import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D, type ModelSection } from './methods-content';
 import { button, el } from './shell';
 
@@ -43,8 +43,7 @@ export class MethodsPage {
   constructor(private readonly ctx: MethodsContext) {
     const close = button('Close');
     close.addEventListener('click', () => this.element.close());
-    // Species E and F join with their models in milestone 24.
-    const genes = APP_SPECIES.map((species) =>
+    const genes = ALL_SPECIES.map((species) =>
       el(
         'section',
         { className: 'methods-section' },

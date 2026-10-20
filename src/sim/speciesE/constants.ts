@@ -49,6 +49,9 @@ export const SIDE_MARGIN = 2;
 /** The starting mesh is jittered by up to this fraction of the polyp spacing (seed stream 2). */
 export const START_JITTER = 0.1;
 
+/** The draft's lattice and lengths are this many times coarser (clarification 28). */
+export const DRAFT_SCALE = 3;
+
 /** Drawn thickness, as a fraction of the polyp spacing (clarification 27). */
 export const DRAWN_THICKNESS = 0.25;
 /** Corallites: subdivision passes at most, before the vertex cap ... */

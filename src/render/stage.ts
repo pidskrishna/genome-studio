@@ -26,6 +26,8 @@ import type { BranchGeometry } from '../sim/speciesA';
 import type { SheetGeometry } from '../sim/speciesB';
 import type { PhylloGeometry } from '../sim/speciesC';
 import type { ShellGeometry } from '../sim/speciesD';
+import type { CoralGeometry } from '../sim/speciesE';
+import type { HyphaGeometry } from '../sim/speciesF';
 import { bloomKernel, BloomPass, paddedRect } from './bloom';
 import { buildBranchMesh } from './branch-mesh';
 import { buildExactMesh, disposeExactMesh, setExactColours, type ExactMesh } from './exact-mesh';
@@ -46,12 +48,14 @@ export type ViewMode = '3d' | 'flat';
 export type Framing = 'stage' | 'fit';
 export type { LookId } from './colour';
 
-/** Species B, C and D are all drawn as a sheet with thickness (clarification 19). */
+/** Species B to E are drawn as a sheet with thickness (clarifications 19 and 27); A and F as tubes. */
 export type Organism =
   | { species: 'A'; geometry: BranchGeometry }
   | { species: 'B'; geometry: SheetGeometry }
   | { species: 'C'; geometry: PhylloGeometry }
-  | { species: 'D'; geometry: ShellGeometry };
+  | { species: 'D'; geometry: ShellGeometry }
+  | { species: 'E'; geometry: CoralGeometry }
+  | { species: 'F'; geometry: HyphaGeometry };
 
 /** Multisampling for off-screen drawing, matching the on-screen antialiasing. */
 const SAMPLES = 4;
@@ -164,7 +168,11 @@ export class Stage {
   /** Replaces the organism on the stage and frames it from the starting direction. */
   setOrganism(organism: Organism): void {
     const geometry: BufferGeometry =
-      organism.species === 'A' ? buildBranchMesh(organism.geometry) : buildSheetMesh(organism.geometry);
+      organism.species === 'A'
+        ? buildBranchMesh(organism.geometry)
+        : organism.species === 'F'
+          ? buildBranchMesh(organism.geometry, organism.geometry.drawnSides)
+          : buildSheetMesh(organism.geometry);
     const source = geometry.userData.source as Uint32Array;
     const colour = new BufferAttribute(new Float32Array(source.length * 3), 3);
     geometry.setAttribute('color', colour);
