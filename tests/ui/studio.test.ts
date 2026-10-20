@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { geneTable, pigmentsOf, readGene, wildType, withChecksum, writeGene, type Pigments, type SpeciesId } from '../../src/genome';
+import { geneTable, pigmentsOf, readGene, wildType, withChecksum, writeGene, type Pigments } from '../../src/genome';
+import type { AppSpecies } from '../../src/ui/gene-info';
 import type { Organism, ViewMode } from '../../src/render/stage';
 import type { FromWorker, ToWorker } from '../../src/sim/protocol';
 import { SimClient, type Connect } from '../../src/ui/sim-client';
@@ -165,7 +166,7 @@ describe('which edits regrow', () => {
   const runs = (t: ReturnType<typeof setup>) => t.posted.filter((p) => p.type === 'run').length;
   const other = (code: string, locus: number) => (readGene(code, locus) + 1) % 4096;
 
-  async function grown(species: SpeciesId) {
+  async function grown(species: AppSpecies) {
     const t = setup();
     const done = t.studio.update(wildType(species));
     t.finish(WILD[species]());

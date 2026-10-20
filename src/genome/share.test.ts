@@ -8,7 +8,7 @@ describe('link sharing', () => {
   it('a code written into the page address parses back to the same code', () => {
     const rand = mulberry32(99);
     for (let n = 0; n < 100; n++) {
-      const code = randomGenome((['A', 'B', 'C', 'D'] as const)[n % 4]!, rand);
+      const code = randomGenome((['A', 'B', 'C', 'D', 'E', 'F'] as const)[n % 6]!, rand);
       const link = shareLink('https://studio.example/app/?x=1', code);
       expect(new URL(link).hash).toBe(codeToHash(code));
       const parsed = parseHash(new URL(link).hash);

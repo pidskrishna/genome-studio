@@ -28,8 +28,8 @@ describe('inspector text for every species', () => {
     }
   });
 
-  it('names all four species', () => {
-    expect(SPECIES_NAMES).toEqual({ A: 'Branching and venation', B: 'Differential growth', C: 'Phyllotaxis', D: 'Seashell' });
+  it('names all six species', () => {
+    expect(SPECIES_NAMES).toEqual({ A: 'Branching and venation', B: 'Differential growth', C: 'Phyllotaxis', D: 'Seashell', E: 'Coral', F: 'Fungal fruit body' });
   });
 
   it('whole numbers take a singular unit at one', () => {

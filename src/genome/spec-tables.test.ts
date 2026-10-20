@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import specText from '../../SPEC.md?raw';
-import { SPECIES_A_GENES, SPECIES_B_GENES, SPECIES_C_GENES, SPECIES_D_GENES, type GeneDef } from './genes';
+import { SPECIES_A_GENES, SPECIES_B_GENES, SPECIES_C_GENES, SPECIES_D_GENES, SPECIES_E_GENES, SPECIES_F_GENES, type GeneDef } from './genes';
 
-const ALL_TABLES = [SPECIES_A_GENES, SPECIES_B_GENES, SPECIES_C_GENES, SPECIES_D_GENES];
+const ALL_TABLES = [SPECIES_A_GENES, SPECIES_B_GENES, SPECIES_C_GENES, SPECIES_D_GENES, SPECIES_E_GENES, SPECIES_F_GENES];
 
 interface Row {
   loci: number[];
@@ -103,6 +103,14 @@ describe('gene tables match SPEC.md locus by locus', () => {
     checkAgainst(SPECIES_D_GENES, sectionRows('## 4b. Species D'), SPECIES_A_GENES);
   });
 
+  it('species E', () => {
+    checkAgainst(SPECIES_E_GENES, sectionRows('## 4c. Species E'), SPECIES_A_GENES);
+  });
+
+  it('species F', () => {
+    checkAgainst(SPECIES_F_GENES, sectionRows('## 4d. Species F'), SPECIES_A_GENES);
+  });
+
   it('whole-number genes are exactly the ones whose range is a count', () => {
     expect(SPECIES_A_GENES.filter((g) => g.kind === 'int').map((g) => g.name)).toEqual(['Origins', 'Limb smoothing']);
     expect(SPECIES_B_GENES.filter((g) => g.kind === 'int').map((g) => g.name)).toEqual(['Relaxation']);
@@ -112,6 +120,10 @@ describe('gene tables match SPEC.md locus by locus', () => {
     expect(SPECIES_C_GENES.filter((g) => g.kind === 'choice').map((g) => g.name)).toEqual(['Body plan', 'Organ form', 'Gradient driver']);
     expect(SPECIES_D_GENES.filter((g) => g.kind === 'int').map((g) => g.name)).toEqual(['Rib count', 'Cord count']);
     expect(SPECIES_D_GENES.filter((g) => g.kind === 'choice').map((g) => g.name)).toEqual(['Handedness', 'Gradient driver']);
+    expect(SPECIES_E_GENES.filter((g) => g.kind === 'int')).toEqual([]);
+    expect(SPECIES_E_GENES.filter((g) => g.kind === 'choice').map((g) => g.name)).toEqual(['Starting form', 'Septa', 'Gradient driver']);
+    expect(SPECIES_F_GENES.filter((g) => g.kind === 'int')).toEqual([]);
+    expect(SPECIES_F_GENES.filter((g) => g.kind === 'choice').map((g) => g.name)).toEqual(['Fruit body', 'Gradient driver']);
   });
 
   it('gradient driver choices follow the spec wording', () => {
@@ -123,6 +135,11 @@ describe('gene tables match SPEC.md locus by locus', () => {
     expect(SPECIES_C_GENES[2]?.choices).toEqual(['Floret', 'Scale', 'Leaf', 'Spine']);
     expect(SPECIES_D_GENES[19]?.choices).toEqual(['Growth lines', 'Position around the curve', 'Ornament relief', 'Edge pattern']);
     expect(SPECIES_D_GENES[5]?.choices).toEqual(['Right', 'Left']);
+    expect(SPECIES_E_GENES[19]?.choices).toEqual(['Growth layer', 'Nutrient uptake', 'Curvature', 'Height']);
+    expect(SPECIES_E_GENES[0]?.choices).toEqual(['Knob', 'Ridge', 'Ring', 'Encrusting disc']);
+    expect(SPECIES_E_GENES[13]?.choices).toEqual(['None', '6', '12', '24']);
+    expect(SPECIES_F_GENES[19]?.choices).toEqual(['Hyphal age', 'Tips supported', 'Phase of the programme', 'Height']);
+    expect(SPECIES_F_GENES[0]?.choices).toEqual(['Colony', 'Cup', 'Closed', 'Flask', 'Mushroom']);
   });
 
   it('pigment genes are loci 16 to 23, the seed is 24, the rest are form genes', () => {

@@ -4,7 +4,7 @@ Done in order, one milestone per session. A milestone is done only when every ch
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
 - **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
-- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Next: milestone 19.
+- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestone 19 done; next: milestone 20.
 
 # v0.1
 
@@ -299,7 +299,7 @@ Species E (coral, spec section 4c) and species F (fungal fruit body, spec sectio
 
 ## Milestone 19: genome for species E and F (spec sections 2, 4c and 4d)
 
-- [ ] Done
+- [x] Done
 
 Build: both gene tables, headers ACA and ACC (clarification 25), decoding with every clamp, wild types (provisional until milestones 20 and 21), and specimen names for the two new genera. The rest of the tool keeps offering only A to D until milestone 23.
 

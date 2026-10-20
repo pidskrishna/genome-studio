@@ -77,11 +77,12 @@ export const GROUNDING: readonly GroundingRow[] = [
 export function geneStatus(def: GeneDef): Status {
   const b = def.basis;
   if (b.startsWith('Paper') || b === 'Nath 2003' || b.startsWith('Douady and Couder') || b === 'Raup 1966') return 'Published model';
+  if (b.startsWith('Merks') || b.startsWith('Kaandorp') || b.startsWith('Meškauskas')) return 'Published model';
   if (b.startsWith('Prusinkiewicz and Lindenmayer') || b === 'Fowler et al. 1992') return 'Published method';
   if (b === 'Plate mechanics') return 'Published rule';
   if (b === 'Designed extension') return 'Designed extension';
-  if (b === 'Designed') return 'Designed';
-  if (b === 'Model') return 'Model parameter';
+  if (b.startsWith('Designed')) return 'Designed';
+  if (b.startsWith('Model')) return 'Model parameter';
   if (b === 'Appearance') return 'Appearance';
   return 'Encoding';
 }

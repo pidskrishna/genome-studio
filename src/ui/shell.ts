@@ -1,6 +1,5 @@
 import { LOOK_NAMES, LOOKS, type LookId } from '../render/colour';
-import { ALL_SPECIES, type SpeciesId } from '../genome';
-import { SPECIES_NAMES } from './gene-info';
+import { SPECIES_NAMES, APP_SPECIES, type AppSpecies } from './gene-info';
 import type { ProgressView } from './studio';
 import { glassSegments } from './surface';
 
@@ -16,7 +15,7 @@ export interface Shell {
   lookButtons: Record<LookId, HTMLButtonElement>;
   /** Toggles a transparent background (aria-pressed). */
   transparentButton: HTMLButtonElement;
-  speciesButtons: Record<SpeciesId, HTMLButtonElement>;
+  speciesButtons: Record<AppSpecies, HTMLButtonElement>;
   tools: {
     randomiseAll: HTMLButtonElement;
     wildType: HTMLButtonElement;
@@ -75,7 +74,7 @@ function topGroup(label: string, ...controls: HTMLElement[]): HTMLElement {
 }
 
 export function buildShell(parent: HTMLElement): Shell {
-  const speciesButtons = Object.fromEntries(ALL_SPECIES.map((s) => [s, button(SPECIES_NAMES[s])])) as Record<SpeciesId, HTMLButtonElement>;
+  const speciesButtons = Object.fromEntries(APP_SPECIES.map((s) => [s, button(SPECIES_NAMES[s])])) as Record<AppSpecies, HTMLButtonElement>;
   const view3d = button('3D');
   const viewFlat = button('Flat');
   const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
@@ -87,7 +86,7 @@ export function buildShell(parent: HTMLElement): Shell {
     'header',
     { className: 'top-bar glass layer-1' },
     el('h1', { textContent: 'Genome studio' }),
-    topGroup('Species', segmented('Species', ...ALL_SPECIES.map((s) => speciesButtons[s]))),
+    topGroup('Species', segmented('Species', ...APP_SPECIES.map((s) => speciesButtons[s]))),
     topGroup('View', segmented('View', view3d, viewFlat)),
     topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
     methodsButton,

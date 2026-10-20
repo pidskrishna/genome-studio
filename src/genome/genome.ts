@@ -14,8 +14,8 @@ export const FIRST_GENE_POSITION = 7;
 /** 0-based index where the checksum starts. */
 export const CHECKSUM_START = GENOME_LENGTH - CHECKSUM_BASES;
 
-/** Species fields (clarifications 9 and 17). */
-export const SPECIES_HEADER: Readonly<Record<SpeciesId, string>> = { A: 'AAA', B: 'AAC', C: 'AAG', D: 'AAT' };
+/** Species fields (clarifications 9, 17 and 25). */
+export const SPECIES_HEADER: Readonly<Record<SpeciesId, string>> = { A: 'AAA', B: 'AAC', C: 'AAG', D: 'AAT', E: 'ACA', F: 'ACC' };
 export const ENCODING_VERSION_1 = 'AAA';
 
 /** Position of a gene in the code, 0-based start and length in bases. */

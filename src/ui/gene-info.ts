@@ -17,7 +17,17 @@ export const SPECIES_NAMES: Readonly<Record<SpeciesId, string>> = {
   B: 'Differential growth',
   C: 'Phyllotaxis',
   D: 'Seashell',
+  E: 'Coral',
+  F: 'Fungal fruit body',
 };
+
+/** The species the app grows. E and F join in milestone 23; until then their codes are refused. */
+export type AppSpecies = 'A' | 'B' | 'C' | 'D';
+export const APP_SPECIES: readonly AppSpecies[] = ['A', 'B', 'C', 'D'];
+
+export function isAppSpecies(species: SpeciesId | null): species is AppSpecies {
+  return species !== null && (APP_SPECIES as readonly SpeciesId[]).includes(species);
+}
 
 
 /** Units the spec gives as percentages ("0.4% to 2% of envelope height"). */
@@ -32,6 +42,10 @@ const PERCENT_UNITS: Readonly<Record<string, string>> = {
   'curve radius': "% of the curve's radius",
   'rib spacing': '% of the rib spacing',
   size: '% of size',
+  'growth space height': '% of the growth space height',
+  'layer thickness': '% of the layer thickness',
+  'polyp spacing': '% of the polyp spacing',
+  diameter: '% of its diameter',
 };
 
 /** How the exact number field shows a gene: model value × scale, followed by the unit. */
@@ -93,6 +107,10 @@ const DOUADY_1996 = 'Douady and Couder (1996), Phyllotaxis as a dynamical self o
 const ABOP_1990 = 'Prusinkiewicz and Lindenmayer (1990), The Algorithmic Beauty of Plants, chapter 4';
 const RAUP_1966 = 'Raup (1966), Geometric analysis of shell coiling: general problems, Journal of Paleontology 40:1178–1190';
 const FOWLER_1992 = 'Fowler, Meinhardt and Prusinkiewicz (1992), Modeling seashells, Computer Graphics 26(2):379–387';
+const KAANDORP_SLOOT_2001 = 'Kaandorp and Sloot (2001), Morphological models of radiate accretive growth and the influence of hydrodynamics, Journal of Theoretical Biology 209:257–274';
+const MERKS_2003 = 'Merks, Hoekstra, Kaandorp and Sloot (2003), Models of coral growth: spontaneous branching, compactification and the Laplacian growth assumption, Journal of Theoretical Biology 224:153–166';
+const KAANDORP_2005 = 'Kaandorp et al. (2005), Morphogenesis of the branching reef coral Madracis mirabilis, Proceedings of the Royal Society B 272:127–133';
+const MESKAUSKAS_2004 = 'Meškauskas, McNulty and Moore (2004), Concerted regulation of all hyphal tips generates fungal fruit body structures, Mycological Research 108:341–353';
 
 /** The gene's reference, from the spec's "Basis" column. */
 export function referenceOf(def: GeneDef): string {
@@ -111,6 +129,12 @@ export function referenceOf(def: GeneDef): string {
   if (basis === 'Prusinkiewicz and Lindenmayer 1990 (organ shape is an input)') return `${ABOP_1990}. Organ shapes are an input to the model.`;
   if (basis === 'Raup 1966') return `${RAUP_1966}.`;
   if (basis === 'Fowler et al. 1992') return `${FOWLER_1992}.`;
+  if (basis === 'Merks et al. 2003') return `${MERKS_2003}.`;
+  if (basis === 'Kaandorp and Sloot 2001; Merks et al. 2003') return `${KAANDORP_SLOOT_2001}; ${MERKS_2003}.`;
+  if (basis.startsWith('Kaandorp et al. 2005')) return `${KAANDORP_2005}${basis.slice('Kaandorp et al. 2005'.length)}.`;
+  if (basis.startsWith('Designed (Kaandorp et al. 2005')) return `Designed choice. ${KAANDORP_2005} start from a small sphere; the starting object is an input to the model.`;
+  if (basis.startsWith('Meškauskas et al. 2004')) return `${MESKAUSKAS_2004}${basis.slice('Meškauskas et al. 2004'.length)}.`;
+  if (basis === 'Model (numerical)') return 'A numerical setting of this tool’s simulation, not of a published model.';
   if (basis === 'Designed') return 'Designed choice. Not part of the published model.';
   if (basis === 'Appearance') return 'Appearance only: used by the renderer, never by the growth simulation.';
   if (basis === 'Encoding') return 'Part of the encoding: feeds the seeded random generator.';

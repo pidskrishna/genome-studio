@@ -367,6 +367,16 @@ describe('pasting', () => {
     expect(editor.message?.text).toMatch(/Unknown species/);
   });
 
+  it('species E and F codes are refused until the app grows them (milestone 23)', () => {
+    const editor = editorWith(wildType('A'));
+    for (const species of ['E', 'F'] as const) {
+      const result = editor.paste(wildType(species));
+      expect(result.ok).toBe(false);
+      expect(editor.code).toBe(wildType('A'));
+      expect(editor.message?.text).toMatch(/cannot be grown here yet/);
+    }
+  });
+
   it('species C and D codes load (milestone 17)', () => {
     const editor = editorWith(wildType('A'));
     for (const species of ['C', 'D'] as const) {

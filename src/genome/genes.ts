@@ -1,9 +1,9 @@
-// Gene tables. They must match SPEC.md (sections 3, 4, 4a and 4b) locus by locus: order, names, ranges, scales.
+// Gene tables. They must match SPEC.md (sections 3, 4 and 4a to 4d) locus by locus: order, names, ranges, scales.
 
-export type SpeciesId = 'A' | 'B' | 'C' | 'D';
+export type SpeciesId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
-/** Every species the encoding knows, in header order (AAA, AAC, AAG, AAT). */
-export const ALL_SPECIES: readonly SpeciesId[] = ['A', 'B', 'C', 'D'];
+/** Every species the encoding knows, in header order (AAA, AAC, AAG, AAT, ACA, ACC). */
+export const ALL_SPECIES: readonly SpeciesId[] = ['A', 'B', 'C', 'D', 'E', 'F'];
 export type GeneGroup = 'form' | 'pigment' | 'seed';
 export type GeneKind = 'linear' | 'log' | 'int' | 'choice' | 'seed';
 
@@ -46,6 +46,8 @@ const A_DRIVERS = ['Distance from base', 'Branch radius', 'Branch order', 'Heigh
 const B_DRIVERS = ['Distance from margin', 'Curvature', 'Order of growth', 'Height'] as const;
 const C_DRIVERS = ['Order of appearance', 'Distance from the apex', 'Position along the organ', 'Height'] as const;
 const D_DRIVERS = ['Growth lines', 'Position around the curve', 'Ornament relief', 'Edge pattern'] as const;
+const E_DRIVERS = ['Growth layer', 'Nutrient uptake', 'Curvature', 'Height'] as const;
+const F_DRIVERS = ['Hyphal age', 'Tips supported', 'Phase of the programme', 'Height'] as const;
 
 /** Loci 16 to 23, shared by every species apart from the choices of locus 20. */
 function appearance(drivers: readonly string[], driverParameter: string): readonly Def[] {
@@ -153,11 +155,56 @@ export const SPECIES_D_GENES: readonly GeneDef[] = table([
   seedGene('Random seed for growth irregularity and the edge pattern\'s starting noise'),
 ]);
 
+const KAANDORP_2005 = 'Kaandorp et al. 2005';
+const MESKAUSKAS_2004 = 'Meškauskas et al. 2004';
+
+export const SPECIES_E_GENES: readonly GeneDef[] = table([
+  { locus: 1, id: 'startingForm', name: 'Starting form', kind: 'choice', min: 0, max: 3, unit: '', parameter: 'Starting object on the floor: knob, ridge, ring, or encrusting disc', basis: `Designed (${KAANDORP_2005} start from a small sphere; the starting object is an input)`, choices: ['Knob', 'Ridge', 'Ring', 'Encrusting disc'], description: 'Chooses the small object on the floor that the colony grows from.' },
+  { locus: 2, id: 'growthToTransport', name: 'Growth to transport', kind: 'log', min: 0.02, max: 2, unit: '', parameter: 'Ratio of the growth rate to the rate of nutrient transport', basis: 'Merks et al. 2003', description: 'Sets how fast the colony grows against how fast nutrient reaches it, from compact mounds to open, thin branches.' },
+  { locus: 3, id: 'polypSpacing', name: 'Polyp spacing', kind: 'log', min: 0.005, max: 0.03, unit: 'growth space height', parameter: 'Edge length at which a polyp divides', basis: KAANDORP_2005, description: 'Sets how far apart the polyps sit, which sets how far apart the branches are.' },
+  { locus: 4, id: 'layerThickness', name: 'Layer thickness', kind: 'linear', min: 0.1, max: 1, unit: 'polyp spacings', parameter: 's, the largest thickness of one growth layer', basis: `${KAANDORP_2005}, eq. 2.3`, description: 'Sets the thickest layer of skeleton a polyp can lay down in one step.' },
+  { locus: 5, id: 'curvatureRule', name: 'Curvature rule', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'Strength of the curvature factor k(h): 0 is off, as in Merks et al.; 1 is Kaandorp and Sloot\'s rule', basis: 'Kaandorp and Sloot 2001; Merks et al. 2003', description: 'Blends in a rule that slows growth by surface curvature, from off to the original rule.' },
+  { locus: 6, id: 'polypHeight', name: 'Polyp height', kind: 'linear', min: 0, max: 2, unit: 'polyp spacings', parameter: 'Distance above the surface at which nutrient is absorbed', basis: KAANDORP_2005, description: 'Sets how far above the skeleton each polyp takes up nutrient.' },
+  { locus: 7, id: 'growthThreshold', name: 'Growth threshold', kind: 'linear', min: 0, max: 0.3, unit: '', parameter: 'Normalised uptake below which a polyp lays down no new layer', basis: 'Designed extension', description: 'Stops growth where a polyp takes up too little nutrient, which leaves the hollows bare.' },
+  { locus: 8, id: 'uptakeResponse', name: 'Uptake response', kind: 'log', min: 0.5, max: 2, unit: '', parameter: 'γ in l ∝ c^γ; 1 is the published linear rule', basis: 'Designed extension', description: 'Sets how strongly growth follows uptake, from even to favouring the best-fed polyps.' },
+  { locus: 9, id: 'startingSize', name: 'Starting size', kind: 'log', min: 0.02, max: 0.1, unit: 'growth space height', parameter: 'Size of the starting object', basis: 'Designed', description: 'Sets the size of the object the colony starts from.' },
+  { locus: 10, id: 'surfaceSmoothing', name: 'Surface smoothing', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'Relaxation of vertex positions after each step', basis: 'Model (numerical)', description: 'Evens out the surface after each growth step.' },
+  { locus: 11, id: 'growthIrregularity', name: 'Growth irregularity', kind: 'linear', min: 0, max: 0.3, unit: 'layer thickness', parameter: 'Random variation in layer thickness from polyp to polyp', basis: 'Designed extension', description: 'Varies the thickness of each new layer at random from polyp to polyp.' },
+  { locus: 12, id: 'coralliteSize', name: 'Corallite size', kind: 'linear', min: 0.2, max: 1, unit: 'polyp spacing', parameter: 'Diameter of each polyp\'s cup', basis: 'Designed', description: 'Sets the size of the cup each polyp sits in.' },
+  { locus: 13, id: 'coralliteDepth', name: 'Corallite depth', kind: 'linear', min: 0, max: 0.5, unit: 'diameter', parameter: 'Depth of each cup', basis: 'Designed', description: 'Sets how deep each polyp\'s cup is.' },
+  { locus: 14, id: 'septa', name: 'Septa', kind: 'choice', min: 0, max: 3, unit: '', parameter: 'Radial ridges in each cup: 0, 6, 12 or 24', basis: 'Designed', choices: ['None', '6', '12', '24'], description: 'Chooses how many radial ridges divide each cup.' },
+  { locus: 15, id: 'coralliteRim', name: 'Corallite rim', kind: 'linear', min: 0, max: 0.5, unit: 'diameter', parameter: 'Height of the raised rim around each cup', basis: 'Designed', description: 'Sets how high the rim around each cup stands.' },
+  ...appearance(E_DRIVERS, 'What the A-to-B gradient follows: growth layer, nutrient uptake, curvature, or height'),
+  seedGene('Random seed for growth irregularity and the starting mesh'),
+]);
+
+export const SPECIES_F_GENES: readonly GeneDef[] = table([
+  { locus: 1, id: 'fruitBody', name: 'Fruit body', kind: 'choice', min: 0, max: 4, unit: '', parameter: 'Programme: colony, cup, closed, flask, or mushroom', basis: `${MESKAUSKAS_2004}, figures 5 to 7 (the sequence of settings is an input)`, choices: ['Colony', 'Cup', 'Closed', 'Flask', 'Mushroom'], description: 'Chooses the sequence of rules every hyphal tip follows over time, and so the kind of fruit body.' },
+  { locus: 2, id: 'branchingThreshold', name: 'Branching threshold', kind: 'log', min: 0.005, max: 0.5, unit: '', parameter: 'Density field below which a tip may branch', basis: `${MESKAUSKAS_2004}, figures 3 and 4`, description: 'Sets how sparse the hyphae around a tip must be before it can branch, from open to dense growth.' },
+  { locus: 3, id: 'selfAvoidance', name: 'Self-avoidance', kind: 'linear', min: 0, max: 0.5, unit: '', parameter: 'Impact of negative autotropism', basis: `${MESKAUSKAS_2004}, eq. 3 and figure 1`, description: 'Sets how strongly each tip turns away from the hyphae around it.' },
+  { locus: 4, id: 'branchingProbability', name: 'Branching probability', kind: 'log', min: 0.01, max: 1, unit: 'per step', parameter: 'Chance per step that an eligible tip branches', basis: MESKAUSKAS_2004, description: 'Sets the chance that a tip allowed to branch does so in each step.' },
+  { locus: 5, id: 'persistence', name: 'Persistence', kind: 'linear', min: 0, max: 0.9, unit: '', parameter: 'k, how much a tip keeps its previous direction', basis: `${MESKAUSKAS_2004}, eq. 13`, description: 'Sets how much each tip keeps its direction instead of turning at once.' },
+  { locus: 6, id: 'orientationStrength', name: 'Orientation strength', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'Ig, impact of the vertical orientation field', basis: `${MESKAUSKAS_2004}, eq. 12`, description: 'Sets how strongly tips steer to the angle the programme asks for.' },
+  { locus: 7, id: 'cupAngle', name: 'Cup angle', kind: 'linear', min: 0, max: 90, unit: '°', parameter: 'Orientation angle in the cup phase, from vertical', basis: `${MESKAUSKAS_2004}, figure 5A`, description: 'Sets how widely the cup opens, from a narrow tube to a flat saucer.' },
+  { locus: 8, id: 'closingPull', name: 'Closing pull', kind: 'linear', min: 0, max: 1, unit: '', parameter: 'Im, impact of long-range positive autotropism', basis: `${MESKAUSKAS_2004}, eqs. 6 and 7, figure 6`, description: 'Sets how strongly distant hyphae draw tips back together, which closes a cup.' },
+  { locus: 9, id: 'stemLength', name: 'Stem length', kind: 'linear', min: 0, max: 300, unit: 'time units', parameter: 'Length of the stem phase', basis: `${MESKAUSKAS_2004}, figure 7 (phase lengths are an input)`, description: 'Sets how long the stem grows before the cap forms.' },
+  { locus: 10, id: 'capAngle', name: 'Cap angle', kind: 'linear', min: 90, max: 180, unit: '°', parameter: 'Final orientation angle in the cap phase', basis: `${MESKAUSKAS_2004}, figure 5C`, description: 'Sets how far the cap turns down, from flat to hanging straight down.' },
+  { locus: 11, id: 'capTurnLength', name: 'Cap turn length', kind: 'log', min: 50, max: 500, unit: 'units', parameter: 'Hyphal length over which the angle turns to the cap angle', basis: `${MESKAUSKAS_2004}, figure 5C`, description: 'Sets how gradually the cap curves over, from an abrupt edge to a broad dome.' },
+  { locus: 12, id: 'parallelTropism', name: 'Parallel tropism', kind: 'linear', min: 0, max: 0.5, unit: '', parameter: 'Ic, impact of growth along neighbouring hyphae', basis: `${MESKAUSKAS_2004}, eq. 9 and figure 8`, description: 'Sets how strongly tips turn to grow alongside their neighbours, which bundles hyphae into cords.' },
+  { locus: 13, id: 'spiralTwist', name: 'Spiral twist', kind: 'linear', min: 0, max: 90, unit: '°', parameter: 'Rotation of the orientation vector about the hyphal axis', basis: `${MESKAUSKAS_2004} (vector rotation)`, description: 'Twists each tip\'s steering about its own axis, which winds hyphae into spirals.' },
+  { locus: 14, id: 'branchAngle', name: 'Branch angle', kind: 'linear', min: 15, max: 180, unit: '°', parameter: 'Largest angle between a new branch and its parent', basis: MESKAUSKAS_2004, description: 'Sets the widest angle at which a new branch may leave its parent.' },
+  { locus: 15, id: 'hyphaThickness', name: 'Hypha thickness', kind: 'log', min: 0.1, max: 1, unit: 'units', parameter: 'Drawn radius of each hypha', basis: 'Designed', description: 'Sets how thick each hypha is drawn.' },
+  ...appearance(F_DRIVERS, 'What the A-to-B gradient follows: hyphal age, tips supported, phase of the programme, or height'),
+  seedGene('Random seed for branching decisions and branch directions'),
+]);
+
 const TABLES: Readonly<Record<SpeciesId, readonly GeneDef[]>> = {
   A: SPECIES_A_GENES,
   B: SPECIES_B_GENES,
   C: SPECIES_C_GENES,
   D: SPECIES_D_GENES,
+  E: SPECIES_E_GENES,
+  F: SPECIES_F_GENES,
 };
 
 export function geneTable(species: SpeciesId): readonly GeneDef[] {

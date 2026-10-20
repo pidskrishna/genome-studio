@@ -72,9 +72,9 @@ describe('specimen names', () => {
     const genera = new Set<string>();
     for (let s = 0; s < 64; s++) genera.add(specimenName(valueToBases(s, 3) + wild.slice(3)).genus);
     expect(genera.size).toBe(64);
-    const four = new Set((['A', 'B', 'C', 'D'] as const).map((s) => specimenName(wildType(s)).genus));
-    expect(four.size).toBe(4);
-    for (const species of ['C', 'D'] as const) {
+    const six = new Set((['A', 'B', 'C', 'D', 'E', 'F'] as const).map((s) => specimenName(wildType(s)).genus));
+    expect(six.size).toBe(6);
+    for (const species of ['C', 'D', 'E', 'F'] as const) {
       const genus = specimenName(wildType(species)).genus;
       for (let n = 0; n < 50; n++) expect(specimenName(randomGenome(species, rand)).genus).toBe(genus);
     }
@@ -85,6 +85,8 @@ describe('specimen names', () => {
     expect(specimenName(wildType('B')).genus).toBe('Plicula');
     expect(specimenName(wildType('C')).genus).toBe('Velula');
     expect(specimenName(wildType('D')).genus).toBe('Corula');
+    expect(specimenName(wildType('E')).genus).toBe('Lobula');
+    expect(specimenName(wildType('F')).genus).toBe('Spirula');
   });
 });
 

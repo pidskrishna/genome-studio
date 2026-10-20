@@ -24,7 +24,7 @@ import { mulberry32, randomGenome } from './test-helpers';
 import { wildType } from './wildtype';
 
 const SPECIES: readonly SpeciesId[] = ALL_SPECIES;
-const RANDOM_SEEDS: Readonly<Record<SpeciesId, number>> = { A: 11, B: 22, C: 33, D: 44 };
+const RANDOM_SEEDS: Readonly<Record<SpeciesId, number>> = { A: 11, B: 22, C: 33, D: 44, E: 55, F: 66 };
 
 describe('gene values and bases', () => {
   it('every value 0 to 4,095 survives value → bases → value', () => {
@@ -203,8 +203,8 @@ describe('input cleaning', () => {
 });
 
 describe('header', () => {
-  it('species AAA, AAC, AAG and AAT with version AAA decode', () => {
-    for (const [species, field] of [['A', 'AAA'], ['B', 'AAC'], ['C', 'AAG'], ['D', 'AAT']] as const) {
+  it('species AAA, AAC, AAG, AAT, ACA and ACC with version AAA decode', () => {
+    for (const [species, field] of [['A', 'AAA'], ['B', 'AAC'], ['C', 'AAG'], ['D', 'AAT'], ['E', 'ACA'], ['F', 'ACC']] as const) {
       const code = makeGenome(species, geneTable(species).map(() => 0));
       expect(code.slice(0, 6)).toBe(`${field}AAA`);
       const result = parseGenome(code);
@@ -215,7 +215,7 @@ describe('header', () => {
 
   it('any other species or version is rejected with a message', () => {
     const base = wildType('A');
-    const fields = ['ACA', 'AGA', 'CAA', 'TTT'];
+    const fields = ['ACG', 'ACT', 'AGA', 'CAA', 'TTT'];
     for (const field of fields) {
       const result = parseGenome(field + base.slice(3));
       expect(result.ok).toBe(false);
@@ -230,7 +230,7 @@ describe('header', () => {
   });
 
   it('a species left out of the accepted list is refused with a message naming the ones accepted', () => {
-    for (const species of ['C', 'D'] as const) {
+    for (const species of ['C', 'D', 'E', 'F'] as const) {
       const code = wildType(species);
       const result = parseGenome(code, ['A', 'B']);
       expect(result.ok).toBe(false);

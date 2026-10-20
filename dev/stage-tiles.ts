@@ -1,4 +1,5 @@
-import { pigmentsOf, wildType, type Pigments, type SpeciesId } from '../src/genome';
+import { pigmentsOf, wildType, type Pigments } from '../src/genome';
+import type { AppSpecies } from '../src/ui/gene-info';
 import { LOOK_NAMES, LOOKS, type LookId } from '../src/render/colour';
 import { Stage, type Organism, type ViewMode } from '../src/render/stage';
 import { comparePixels, seamDifferences, tileRects, tilesMatch, toStraightAlpha, TILE_TOLERANCE, type Pixels } from '../src/render/tiles';
@@ -46,7 +47,7 @@ function toCanvas(p: Pixels): HTMLCanvasElement {
 
 const JOB = { A: 'speciesA', B: 'speciesB', C: 'speciesC', D: 'speciesD' } as const;
 
-async function grow(species: SpeciesId): Promise<Organism> {
+async function grow(species: AppSpecies): Promise<Organism> {
   const code = wildType(species);
   const outcome = await client.run(JOB[species], { code });
   if (outcome.status !== 'done') throw new Error(`Species ${species} did not grow: ${outcome.status}`);
@@ -54,7 +55,7 @@ async function grow(species: SpeciesId): Promise<Organism> {
 }
 
 interface Result {
-  species: SpeciesId;
+  species: AppSpecies;
   view: ViewMode;
   look: LookId;
   transparent: boolean;
