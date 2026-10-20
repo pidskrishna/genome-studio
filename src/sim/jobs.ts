@@ -5,6 +5,7 @@ import { speciesA } from './speciesA';
 import { speciesB } from './speciesB';
 import { speciesC } from './speciesC';
 import { speciesD } from './speciesD';
+import { speciesE } from './speciesE';
 
 /** Every job the worker can run. */
 export const JOBS: JobTable = {
@@ -13,6 +14,7 @@ export const JOBS: JobTable = {
   speciesB,
   speciesC,
   speciesD,
+  speciesE,
   speciesADraft,
   speciesBDraft,
   speciesCDraft,

@@ -321,7 +321,7 @@ First: check every model statement in section 4c against Kaandorp and Sloot (200
 Build: the starting forms, the nutrient lattice with its source plane and absorbing floor, the diffusion solver (clarification 29), rasterising the colony into the lattice, uptake at polyp height, the growth function with the curvature factor, growth threshold and uptake response, polyp division and merging, smoothing, irregularity, the stopping rules and vertex cap, corallite relief, and the four gradient-driver attributes per vertex. Output in the species B geometry form (clarification 27). No rendering.
 
 Checks:
-- 1,000 random genomes grow to maturity with no error and no NaN. There is no 10,000 run for species E (clarification 31).
+- 1,000 random genomes grow to maturity with no error and no NaN. There is no 10,000 run for species E (clarification 31). Passed on 20 October 2026 (`npm run test:slow:e`, 46 minutes on eight threads).
 - Same code, same geometry hash; wild-type hash recorded.
 - With the curvature rule off, the wild type has more than one branch tip at maturity.
 - Compactness rises as growth to transport rises, over at least four values across its range (clarification 32).
