@@ -214,8 +214,25 @@ export function buildMesh(p: SpeciesCParams, plane: PlaneResult, options: MeshOp
   };
 }
 
+/**
+ * The last organ arrangement, keyed by the parameters it depends on. Placing organs is the slow part,
+ * and a drag on an organ-shape gene (or its release) changes none of these, so the draft and the
+ * organism reuse it. The arrangement is a pure function of the key, so reuse never changes a result.
+ */
+let lastPlane: { key: string; result: PlaneResult } | null = null;
+
+function planeKey(p: SpeciesCParams): string {
+  return [p.bodyPlan, p.gamma, p.falloff, p.startingOrgans, p.initiationNoise, p.seed].join('|');
+}
+
 /** Grows species C from decoded parameters. Yields progress from 0 to 1. */
 export function* growSpeciesC(p: SpeciesCParams, options: MeshOptions = {}): Generator<number, PhylloGeometry> {
+  const key = planeKey(p);
+  if (lastPlane && lastPlane.key === key) {
+    const geometry = buildMesh(p, lastPlane.result, options);
+    yield 1;
+    return geometry;
+  }
   const plane = growPlane(p, new Rng(p.seed, 1));
   // Organs are many and quick, and every yield hands the worker back to its event loop, so yield
   // only when progress moves on by a whole percent.
@@ -229,6 +246,7 @@ export function* growSpeciesC(p: SpeciesCParams, options: MeshOptions = {}): Gen
     }
     step = plane.next();
   }
+  lastPlane = { key, result: step.value };
   const geometry = buildMesh(p, step.value, options);
   yield 1;
   return geometry;

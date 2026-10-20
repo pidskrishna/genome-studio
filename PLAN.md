@@ -3,7 +3,7 @@
 Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
-- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 16 done; next: milestone 17.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 17 done; next: milestone 18.
 
 # v0.1
 
@@ -268,7 +268,7 @@ Checks:
 
 ## Milestone 17: species C and D in the app (spec sections 5 to 9)
 
-- [ ] Done
+- [x] Done
 
 Build: the species switch with four species (clarification 21, as a segmented control per DESIGN.md), drawing C and D on the stage in all three looks and both views, the editor, helix, gene map and inspector for the new genes, drafts (clarification 20), the tray, export and methods file.
 

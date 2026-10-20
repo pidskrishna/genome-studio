@@ -1,5 +1,6 @@
 import { LOOK_NAMES, LOOKS, type LookId } from '../render/colour';
-import { SPECIES_NAMES, type AppSpecies } from './gene-info';
+import { ALL_SPECIES, type SpeciesId } from '../genome';
+import { SPECIES_NAMES } from './gene-info';
 import type { ProgressView } from './studio';
 import { glassSegments } from './surface';
 
@@ -15,7 +16,7 @@ export interface Shell {
   lookButtons: Record<LookId, HTMLButtonElement>;
   /** Toggles a transparent background (aria-pressed). */
   transparentButton: HTMLButtonElement;
-  speciesButtons: Record<AppSpecies, HTMLButtonElement>;
+  speciesButtons: Record<SpeciesId, HTMLButtonElement>;
   tools: {
     randomiseAll: HTMLButtonElement;
     wildType: HTMLButtonElement;
@@ -74,8 +75,7 @@ function topGroup(label: string, ...controls: HTMLElement[]): HTMLElement {
 }
 
 export function buildShell(parent: HTMLElement): Shell {
-  const speciesA = button(SPECIES_NAMES.A);
-  const speciesB = button(SPECIES_NAMES.B);
+  const speciesButtons = Object.fromEntries(ALL_SPECIES.map((s) => [s, button(SPECIES_NAMES[s])])) as Record<SpeciesId, HTMLButtonElement>;
   const view3d = button('3D');
   const viewFlat = button('Flat');
   const lookButtons = Object.fromEntries(LOOKS.map((l) => [l, button(LOOK_NAMES[l])])) as Record<LookId, HTMLButtonElement>;
@@ -87,7 +87,7 @@ export function buildShell(parent: HTMLElement): Shell {
     'header',
     { className: 'top-bar glass layer-1' },
     el('h1', { textContent: 'Genome studio' }),
-    topGroup('Species', segmented('Species', speciesA, speciesB)),
+    topGroup('Species', segmented('Species', ...ALL_SPECIES.map((s) => speciesButtons[s]))),
     topGroup('View', segmented('View', view3d, viewFlat)),
     topGroup('Look', segmented('Look', ...LOOKS.map((l) => lookButtons[l])), transparentButton),
     methodsButton,
@@ -162,7 +162,7 @@ export function buildShell(parent: HTMLElement): Shell {
     viewButtons: { '3d': view3d, flat: viewFlat },
     lookButtons,
     transparentButton,
-    speciesButtons: { A: speciesA, B: speciesB },
+    speciesButtons,
     tools,
     editorViews,
     editorBody,

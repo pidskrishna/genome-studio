@@ -21,7 +21,7 @@ import { Editor, type EditorChange } from '../../src/ui/editor';
 // The editor state on its own, with no DOM: slider and bases in sync, randomise and locks, undo and
 // redo, the protected header and checksum, and the species switch.
 
-const SPECIES: readonly SpeciesId[] = ['A', 'B'];
+const SPECIES: readonly SpeciesId[] = ['A', 'B', 'C', 'D'];
 
 function editorWith(code: string, seed = 1): Editor {
   return new Editor({ code, random: mulberry32(seed) });
@@ -367,13 +367,13 @@ describe('pasting', () => {
     expect(editor.message?.text).toMatch(/Unknown species/);
   });
 
-  it('species C and D codes are refused until the app grows them (milestone 17)', () => {
+  it('species C and D codes load (milestone 17)', () => {
     const editor = editorWith(wildType('A'));
     for (const species of ['C', 'D'] as const) {
       const result = editor.paste(wildType(species));
-      expect(result.ok).toBe(false);
-      expect(editor.code).toBe(wildType('A'));
-      expect(editor.message?.text).toMatch(/cannot be grown here yet/);
+      expect(result.ok).toBe(true);
+      expect(editor.code).toBe(wildType(species));
+      expect(editor.species).toBe(species);
     }
   });
 

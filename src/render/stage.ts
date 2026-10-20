@@ -24,6 +24,8 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { Pigments } from '../genome';
 import type { BranchGeometry } from '../sim/speciesA';
 import type { SheetGeometry } from '../sim/speciesB';
+import type { PhylloGeometry } from '../sim/speciesC';
+import type { ShellGeometry } from '../sim/speciesD';
 import { bloomKernel, BloomPass, paddedRect } from './bloom';
 import { buildBranchMesh } from './branch-mesh';
 import { buildExactMesh, disposeExactMesh, setExactColours, type ExactMesh } from './exact-mesh';
@@ -44,7 +46,12 @@ export type ViewMode = '3d' | 'flat';
 export type Framing = 'stage' | 'fit';
 export type { LookId } from './colour';
 
-export type Organism = { species: 'A'; geometry: BranchGeometry } | { species: 'B'; geometry: SheetGeometry };
+/** Species B, C and D are all drawn as a sheet with thickness (clarification 19). */
+export type Organism =
+  | { species: 'A'; geometry: BranchGeometry }
+  | { species: 'B'; geometry: SheetGeometry }
+  | { species: 'C'; geometry: PhylloGeometry }
+  | { species: 'D'; geometry: ShellGeometry };
 
 /** Multisampling for off-screen drawing, matching the on-screen antialiasing. */
 const SAMPLES = 4;

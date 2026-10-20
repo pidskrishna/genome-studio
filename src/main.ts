@@ -4,11 +4,10 @@ import '@fontsource/ibm-plex-sans/latin-400-italic.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
-import { parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigments, type SpeciesId } from './genome';
+import { ALL_SPECIES, parseGenome, pigmentsOf, shareLink, specimenName, wildType, type Pigments, type SpeciesId } from './genome';
 import { Stage, type LookId, type Organism, type ViewMode } from './render/stage';
 import { CodeBar } from './ui/code-bar';
 import { Editor } from './ui/editor';
-import { APP_SPECIES } from './ui/gene-info';
 import { GeneMap } from './ui/gene-map';
 import { HelixView } from './ui/helix-view';
 import { buildShell } from './ui/shell';
@@ -43,7 +42,7 @@ const shell = buildShell(document.getElementById('app') as HTMLElement);
 const stage = new Stage(shell.stage);
 
 const linked = hashText(location.hash);
-const parsed = linked.trim() === '' ? null : parseGenome(linked, APP_SPECIES);
+const parsed = linked.trim() === '' ? null : parseGenome(linked);
 const editor = new Editor({
   code: parsed?.ok ? parsed.code : wildType('A'),
   warning: parsed?.ok ? parsed.warning : undefined,
@@ -256,8 +255,7 @@ shell.tools.randomiseAll.addEventListener('click', commands.randomiseAll);
 shell.tools.wildType.addEventListener('click', commands.wildType);
 shell.tools.undo.addEventListener('click', commands.undo);
 shell.tools.redo.addEventListener('click', commands.redo);
-shell.speciesButtons.A.addEventListener('click', () => commands.switchSpecies('A'));
-shell.speciesButtons.B.addEventListener('click', () => commands.switchSpecies('B'));
+for (const species of ALL_SPECIES) shell.speciesButtons[species].addEventListener('click', () => commands.switchSpecies(species));
 shell.editorViews.helix.addEventListener('click', () => commands.setEditorView('helix'));
 shell.editorViews.map.addEventListener('click', () => commands.setEditorView('map'));
 shell.viewButtons['3d'].addEventListener('click', () => commands.setView('3d'));

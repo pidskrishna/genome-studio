@@ -159,3 +159,17 @@ describe('the grown organism', () => {
     expect(ones).toBe(g.stats.organs);
   }, 120_000);
 });
+
+describe('reusing the organ arrangement (milestone 17)', () => {
+  it('a regrow that reuses the last arrangement gives the same hash as growing from scratch', () => {
+    // Organ length and angle do not move organs, so after the wild type the arrangement is reused.
+    const shaped = withGenes(wild, { 7: 2.5, 9: 30 });
+    grow(wild);
+    const reused = grow(shaped);
+    // A different inhibition range replaces the cached arrangement; the next grow starts afresh.
+    grow(withGenes(wild, { 2: 0.9 }));
+    const fresh = grow(shaped);
+    expect(reused.hash).toBe(fresh.hash);
+    expect(reused.positions).toEqual(fresh.positions);
+  }, 120_000);
+});

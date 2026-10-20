@@ -19,10 +19,15 @@ export interface ViewDirection {
   elevation: number;
 }
 
-/** Starting 3D direction per species: trees from just above the horizon, sheets from higher up. */
-export const START_VIEW: Readonly<Record<'A' | 'B', ViewDirection>> = {
+/**
+ * Starting 3D direction per species: trees and shells from just above the horizon, sheets and flower
+ * heads from higher up.
+ */
+export const START_VIEW: Readonly<Record<'A' | 'B' | 'C' | 'D', ViewDirection>> = {
   A: { azimuth: 30, elevation: 12 },
   B: { azimuth: 30, elevation: 35 },
+  C: { azimuth: 30, elevation: 40 },
+  D: { azimuth: 30, elevation: 18 },
 };
 
 /** Unit vector from the target toward the camera. */

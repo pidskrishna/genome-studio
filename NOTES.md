@@ -1,7 +1,7 @@
 # Session notes
 
 ## Status
-- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Milestones 14 to 16 are done; next: milestone 17. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
+- **v0.2 started on 19 October 2026** at the owner's request: species C (phyllotaxis, spec section 4a) and D (seashell, 4b), milestones 14 to 18 in PLAN.md, clarifications 17 to 21. Milestones 14 to 17 are done; next: milestone 18. The gene tables are provisional until milestones 15 and 16 check them against the papers (clarification 18); the citations were written from memory and are part of that check. Coral and sponge, and closed looping venation, are noted as candidate species for later in spec section 11. The v0.1 state is tagged `v0.1` (`6efb10e`).
 - v0.1: every milestone (0 to 13) is closed. Milestone 10 was split into 10a to 10c with the owner's approval (4 October 2026).
 - On 19 October 2026 the owner closed four milestones without their last checks, as good enough or not critical. If any of these is ever wanted, the details are below and in PLAN.md:
   - 5: the full 10,000-genome species B run (`npm run test:slow:b`, about 3 h); 2,000 have passed since the last fixes.
@@ -14,9 +14,8 @@
 ## Decisions not in SPEC.md
 v0.2 genome (milestone 14)
 - `SpeciesId` is `'A' | 'B' | 'C' | 'D'`; `ALL_SPECIES` lists them in header order and `SPECIES_HEADER` gives AAA, AAC, AAG, AAT. Gene tables sit in one `TABLES` record.
-- `parseGenome(input, accepted)` takes the species the caller accepts (all four by default). The app passes `APP_SPECIES` (`src/ui/gene-info.ts`, A and B only), so a C or D code pasted or linked is refused with "Species "AAG" cannot be grown here yet" and the current organism stays. Milestone 17 adds C and D to `APP_SPECIES` and removes `AppSpecies` where the four-species switch replaces it; `Studio.grow` throws for any species outside it.
+- `parseGenome(input, accepted)` takes the species the caller accepts (all four by default). Milestones 14 to 16 kept the app to A and B with it; milestone 17 removed that gate, and the app now passes nothing.
 - Wild types for C and D (`wildtype.ts`) are provisional: a domed head of florets in a spiral, and a turreted shell with ribs and cords coloured by its edge pattern. Genera: C is Velula, D is Corula (from the fixed syllable tables).
-- The inspector's units and references for C and D genes are not written yet (milestone 17): `fieldUnit` shows their raw unit names, and `referenceOf` falls back to the basis text.
 
 Species C simulation (`src/sim/speciesC/`, milestone 15)
 - Paper check (19 October 2026): section 4a was checked against Douady and Couder (1996) parts I to III and chapter 4 of The Algorithmic Beauty of Plants; the owner approved edits 1 to 8 (clarifications 22 and 23). The PDFs were read as text with macOS PDFKit (`osascript -l JavaScript`), as poppler is not installed.
@@ -42,6 +41,14 @@ Species D simulation (`src/sim/speciesD/`, milestone 16)
 - Drivers: growth lines (ring index), position around the curve (j / 128), ornament relief (in curve radii), edge pattern (activator). Draft job (`speciesDDraft`): half the rings and half the points.
 - Results: Raup checks hold to 1e-9 (W per turn) and 1e-12 (flat coil, closed umbilicus); 1,000 random genomes all sound in 18 s; wild type 0.07 s in Chrome; hash `f28ebaf03093a6d5` in Node and Chrome.
 - Dev page: `dev/species-d.html`, with `?code=` and `?view=flat`.
+
+Species C and D in the app (milestone 17)
+- The stage draws B, C and D with the sheet mesh; `Organism` has all four. Starting 3D views: C from 40° above (like a flower head), D from 18° (like a shell on a table). `Studio` picks each species' job and draft from a table.
+- Top bar: four species buttons in one segmented control. At 1024 and 1440 px it now wraps to two lines (Export moves down), and the stage, which runs under the glass bars by design (DESIGN.md, layering), loses more of its top to the bar: shapes taller than wide in the flat view, like the species D wild type, run under the top bar's glass. Not changed: shorter labels or a different bar layout is a design decision for the owner.
+- Inspector: units for the new genes (percent units shown as percentages), singular "organ" and "cord", references for Douady and Couder, The Algorithmic Beauty of Plants, Raup and Fowler et al.; the generic "Designed" reference no longer says "starting form".
+- Species C drafts: the worker keeps the last organ arrangement, keyed by the genes it depends on (loci 1, 2, 4, 5, 15 and the seed); a draft or regrow that changes only organ shape reuses it (0.03 s draft in the app). Drafts that change the arrangement grow it afresh: 0.6 s in Node for the inhibition range at 0.4, 3.35 s in the hidden browser pane. Species D drafts take about 0.15 s.
+- Checks (20 October 2026, browser pane at 1024 × 768): both wild types in all three looks and both views; tile check 32 of 32 for C and for D; a random C and D code pasted (lower case, spaced) and opened as a link in a fresh tab gave the same hashes (`c48cc3204b5e46d2`, `15b102d12c9a934a`); drafts labelled, and four released codes matched growing from scratch in Node; A4 exports 2,480 × 3,508 with the code in the PNG text, methods files with all 24 values.
+- Not yet: the Methods page still lists only species A and B (milestone 18).
 
 Genome (`src/genome`)
 - Checksum: odd-weighted sum of digits mod 256, as 4 bases, so any single-base change is caught.
@@ -131,7 +138,7 @@ Frame-time check (10b), owner's runs on 4 to 5 October 2026
 - **Species B ruffles look modest** on stage (about 5% of the radius; the wild-type disc reads as a flat plate with a frilled rim). Not tuned yet: any range or constant change needs owner approval (clarification 2).
 - **Speed:** species B averages 2–3 s per genome, with extreme cases at 25–45 s (low growth rate, sphere, many passes). Wild types take 0.2 s (A) and about 2 s (B) in the browser. `npm test` takes about 50 s with `testTimeout` at 60 s. `test:slow` (A 10,000 + B 1,000) takes about 25 min.
 - **Helix:** in a short column the full inspector, opened below the focused gene, covers much of the helix beneath it (the gene itself stays visible at 24% of the height). The base tooltip shows only over something pickable.
-- **Top bar** wraps to two lines at about 1024 px.
+- **Top bar** wraps to two lines at about 1024 px; with four species since milestone 17, also at 1440 px.
 - **Methods page (milestone 13) must state:** the duplicate-child rule, the clear stem lasting until the first branch, and all the species B designs above, marked as designed or numerical.
 
 Looks (`src/render/looks.ts`, `bloom.ts`, `exact-mesh.ts`, `colour.ts`, milestone 9)

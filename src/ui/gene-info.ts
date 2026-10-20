@@ -19,13 +19,6 @@ export const SPECIES_NAMES: Readonly<Record<SpeciesId, string>> = {
   D: 'Seashell',
 };
 
-/** The species the app grows. C and D join in milestone 17; until then their codes are refused. */
-export type AppSpecies = 'A' | 'B';
-export const APP_SPECIES: readonly AppSpecies[] = ['A', 'B'];
-
-export function isAppSpecies(species: SpeciesId | null): species is AppSpecies {
-  return species !== null && (APP_SPECIES as readonly SpeciesId[]).includes(species);
-}
 
 /** Units the spec gives as percentages ("0.4% to 2% of envelope height"). */
 const PERCENT_UNITS: Readonly<Record<string, string>> = {
@@ -34,6 +27,11 @@ const PERCENT_UNITS: Readonly<Record<string, string>> = {
   'per step': '% per step',
   radius: '% of radius',
   'final size': '% of final size',
+  'final radius': '% of the final radius',
+  'organ length': '% of organ length',
+  'curve radius': "% of the curve's radius",
+  'rib spacing': '% of the rib spacing',
+  size: '% of size',
 };
 
 /** How the exact number field shows a gene: model value × scale, followed by the unit. */
@@ -61,7 +59,7 @@ export function formatNumber(x: number): string {
 }
 
 function singular(unit: string): string {
-  return unit.replace(/^nodes\b/, 'node').replace(/^passes\b/, 'pass');
+  return unit.replace(/^nodes\b/, 'node').replace(/^passes\b/, 'pass').replace(/^organs\b/, 'organ').replace(/^cords\b/, 'cord');
 }
 
 /** A decoded model value in words, with its unit: "1.60% of envelope height", "3 nodes", "Ring". */
@@ -91,6 +89,10 @@ export function rawValueText(def: GeneDef, raw: number): string {
 const RUNIONS_2007 = 'Runions, Lane and Prusinkiewicz (2007), Modeling Trees with a Space Colonization Algorithm';
 const NATH_2003 = 'Nath, Crawford, Carpenter and Coen (2003), Genetic Control of Surface Curvature, Science 299:1404';
 const SHARON_2010 = 'Sharon and Efrati (2010), The mechanics of non-Euclidean plates, Soft Matter 6:5693';
+const DOUADY_1996 = 'Douady and Couder (1996), Phyllotaxis as a dynamical self organizing process, parts I to III, Journal of Theoretical Biology 178:255–312';
+const ABOP_1990 = 'Prusinkiewicz and Lindenmayer (1990), The Algorithmic Beauty of Plants, chapter 4';
+const RAUP_1966 = 'Raup (1966), Geometric analysis of shell coiling: general problems, Journal of Paleontology 40:1178–1190';
+const FOWLER_1992 = 'Fowler, Meinhardt and Prusinkiewicz (1992), Modeling seashells, Computer Graphics 26(2):379–387';
 
 /** The gene's reference, from the spec's "Basis" column. */
 export function referenceOf(def: GeneDef): string {
@@ -102,7 +104,14 @@ export function referenceOf(def: GeneDef): string {
   if (basis === 'Plate mechanics') return `Thin-plate mechanics; see ${SHARON_2010}.`;
   if (basis === 'Model') return 'A parameter of this tool’s spring-mesh simulation, not of a published model.';
   if (basis === 'Designed extension') return 'Designed extension, added for visual range. Not part of the published model.';
-  if (basis === 'Designed') return 'Designed choice of starting form. Not part of the published model.';
+  if (basis === 'Douady and Couder 1996') return `${DOUADY_1996}.`;
+  if (basis === 'Douady and Couder 1996 (initial conditions)') return `${DOUADY_1996}. The starting organs are the paper's initial conditions.`;
+  if (basis === 'Prusinkiewicz and Lindenmayer 1990') return `${ABOP_1990}.`;
+  if (basis === 'Prusinkiewicz and Lindenmayer 1990 (receptacle is an input)') return `${ABOP_1990}. The receptacle is an input to the model.`;
+  if (basis === 'Prusinkiewicz and Lindenmayer 1990 (organ shape is an input)') return `${ABOP_1990}. Organ shapes are an input to the model.`;
+  if (basis === 'Raup 1966') return `${RAUP_1966}.`;
+  if (basis === 'Fowler et al. 1992') return `${FOWLER_1992}.`;
+  if (basis === 'Designed') return 'Designed choice. Not part of the published model.';
   if (basis === 'Appearance') return 'Appearance only: used by the renderer, never by the growth simulation.';
   if (basis === 'Encoding') return 'Part of the encoding: feeds the seeded random generator.';
   return basis;

@@ -1,6 +1,6 @@
 import { formKey, parseGenome, pigmentsOf, speciesOfHeader, type Pigments, type SpeciesId } from '../genome';
+import type { JobKind } from '../sim/protocol';
 import type { Organism, ViewMode } from '../render/stage';
-import { APP_SPECIES, isAppSpecies } from './gene-info';
 import type { SimClient } from './sim-client';
 
 // Connects a code to the simulation and the stage. A valid code starts a regrow, with the progress
@@ -45,6 +45,14 @@ export type LoadOutcome =
 
 export type UpdateOutcome = LoadOutcome | { status: 'unchanged' };
 
+/** The worker job that grows each species, and its draft. */
+const JOBS: Readonly<Record<SpeciesId, readonly [JobKind, JobKind]>> = {
+  A: ['speciesA', 'speciesADraft'],
+  B: ['speciesB', 'speciesBDraft'],
+  C: ['speciesC', 'speciesCDraft'],
+  D: ['speciesD', 'speciesDDraft'],
+};
+
 export class Studio {
   /** The code of the organism on the stage. */
   code: string | null = null;
@@ -61,7 +69,7 @@ export class Studio {
 
   /** Parses a code and, if it is valid, regrows the organism from it. */
   async load(input: string): Promise<LoadOutcome> {
-    const parsed = parseGenome(input, APP_SPECIES);
+    const parsed = parseGenome(input);
     if (!parsed.ok) {
       this.deps.notice(parsed.message, 'error');
       return { status: 'rejected', message: parsed.message };
@@ -102,16 +110,14 @@ export class Studio {
   /** Regrows the organism (or, for a draft, a coarse run of the same code) from a valid code. */
   private async grow(code: string, draft = false): Promise<LoadOutcome> {
     const species = speciesOfHeader(code);
-    if (!isAppSpecies(species)) throw new Error('Code has no species the app grows');
+    if (species === null) throw new Error('Code has no valid species header');
     const key = draft ? draftKey(formKey(code)) : formKey(code);
     this.target = code;
     this.targetKey = key;
     this.deps.progress.show(0);
     const onProgress = (f: number): void => this.deps.progress.show(f);
-    const outcome =
-      species === 'A'
-        ? await this.deps.sim.run(draft ? 'speciesADraft' : 'speciesA', { code }, onProgress)
-        : await this.deps.sim.run(draft ? 'speciesBDraft' : 'speciesB', { code }, onProgress);
+    const [full, coarse] = JOBS[species];
+    const outcome = await this.deps.sim.run(draft ? coarse : full, { code }, onProgress);
     // A superseded run leaves the indicator to the run that replaced it.
     if (outcome.status === 'superseded') return { status: 'superseded' };
     this.deps.progress.hide();
@@ -121,10 +127,8 @@ export class Studio {
       this.deps.notice(message, 'error');
       return { status: 'failed', message };
     }
-    const organism: Organism =
-      species === 'A'
-        ? { species, geometry: outcome.output as Extract<Organism, { species: 'A' }>['geometry'] }
-        : { species, geometry: outcome.output as Extract<Organism, { species: 'B' }>['geometry'] };
+    // The job was chosen by species, so its output is that species' geometry.
+    const organism = { species, geometry: outcome.output } as Organism;
     this.deps.stage.setOrganism(organism);
     // Pigment edits made while this run was growing share its form key; keep the latest.
     const shown = this.target ?? code;
