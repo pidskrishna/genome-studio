@@ -1,6 +1,6 @@
-import { specimenName, speciesOfHeader } from '../genome';
+import { ALL_SPECIES, specimenName, speciesOfHeader } from '../genome';
 import { SPECIES_NAMES } from './gene-info';
-import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, type ModelSection } from './methods-content';
+import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D, type ModelSection } from './methods-content';
 import { button, el } from './shell';
 
 // The Methods page (spec section 10): inside the app, so it can show the current organism's code and
@@ -43,7 +43,7 @@ export class MethodsPage {
   constructor(private readonly ctx: MethodsContext) {
     const close = button('Close');
     close.addEventListener('click', () => this.element.close());
-    const genes = (['A', 'B'] as const).map((species) =>
+    const genes = ALL_SPECIES.map((species) =>
       el(
         'section',
         { className: 'methods-section' },
@@ -60,6 +60,8 @@ export class MethodsPage {
       el('section', { className: 'methods-section' }, el('h3', { textContent: 'What is published and what is designed' }), table(['Part', 'Status', 'Basis'], GROUNDING.map((g) => [g.part, g.status, g.basis]))),
       modelSection(SPECIES_A),
       modelSection(SPECIES_B),
+      modelSection(SPECIES_C),
+      modelSection(SPECIES_D),
       el('section', { className: 'methods-section' }, el('h3', { textContent: 'From code to organism' }), ...ENCODING_NOTES.map((n) => el('p', { textContent: n }))),
       ...genes,
     );

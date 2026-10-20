@@ -437,15 +437,15 @@ The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 
 **v0.2.**
 
-- [ ] Every species A and B geometry hash recorded in v0.1 is unchanged.
+- [x] Every species A and B geometry hash recorded in v0.1 is unchanged.
 - [ ] 10,000 random genomes each of species C and D all grow to maturity with no failure and no invalid numbers.
 - [ ] The same species C and D code gives the same geometry hash in three browsers on two different machines.
-- [ ] Species C in a spiral arrangement: the mean angle between successive organs is within 1° of the golden angle, 137.5°, and the spirals visible in the head come in consecutive Fibonacci numbers.
-- [ ] Species C: raising the inhibition range moves the arrangement from spiral toward alternate (180° between successive organs), as Douady and Couder report; on the cone body plan with stiff falloff, two starting organs give opposite pairs at right angles over a range of the inhibition range.
-- [ ] Species D with ornament off: the generating curve grows by W per turn, a translation of 0 gives a flat coil with every whorl in one plane, and the left-handed shell is the mirror image of the right-handed one.
-- [ ] Changing a pigment gene of species C or D does not regrow the organism.
-- [ ] Species C and D draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
-- [ ] The Methods page states which parts of species C and D are published models and which are designed.
+- [x] Species C in a spiral arrangement: the mean angle between successive organs is within 1° of the golden angle, 137.5°, and the spirals visible in the head come in consecutive Fibonacci numbers.
+- [x] Species C: raising the inhibition range moves the arrangement from spiral toward alternate (180° between successive organs), as Douady and Couder report; on the cone body plan with stiff falloff, two starting organs give opposite pairs at right angles over a range of the inhibition range.
+- [x] Species D with ornament off: the generating curve grows by W per turn, a translation of 0 gives a flat coil with every whorl in one plane, and the left-handed shell is the mirror image of the right-handed one.
+- [x] Changing a pigment gene of species C or D does not regrow the organism.
+- [x] Species C and D draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
+- [x] The Methods page states which parts of species C and D are published models and which are designed.
 
 Left to the implementer: the random number generator, the mesh data structure, the shading technique for the monochrome plate, the syllable tables, the wild-type genomes, the organ and receptacle shapes of species C, and final tuning of gene ranges so the whole range of every gene is stable and visibly different.
 

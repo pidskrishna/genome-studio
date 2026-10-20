@@ -48,7 +48,11 @@ Species C and D in the app (milestone 17)
 - Inspector: units for the new genes (percent units shown as percentages), singular "organ" and "cord", references for Douady and Couder, The Algorithmic Beauty of Plants, Raup and Fowler et al.; the generic "Designed" reference no longer says "starting form".
 - Species C drafts: the worker keeps the last organ arrangement, keyed by the genes it depends on (loci 1, 2, 4, 5, 15 and the seed); a draft or regrow that changes only organ shape reuses it (0.03 s draft in the app). Drafts that change the arrangement grow it afresh: 0.6 s in Node for the inhibition range at 0.4, 3.35 s in the hidden browser pane. Species D drafts take about 0.15 s.
 - Checks (20 October 2026, browser pane at 1024 × 768): both wild types in all three looks and both views; tile check 32 of 32 for C and for D; a random C and D code pasted (lower case, spaced) and opened as a link in a fresh tab gave the same hashes (`c48cc3204b5e46d2`, `15b102d12c9a934a`); drafts labelled, and four released codes matched growing from scratch in Node; A4 exports 2,480 × 3,508 with the code in the PNG text, methods files with all 24 values.
-- Not yet: the Methods page still lists only species A and B (milestone 18).
+
+Methods page and v0.2 acceptance (milestone 18, in progress)
+- Methods content for species C and D (`methods-content.ts`): grounding rows, procedure, equations (part II eqs. 2, 6, 7; part III eq. 1; Raup; Fowler eq. 8 with its constants), additions marked designed, designed extension or numerical choice, limits and references; gene tables for all four species. New status "Published method" for genes based on The Algorithmic Beauty of Plants and on Fowler et al.'s ornament. Numbers come from the species C and D constants.
+- 10,000-genome runs: `npm run test:slow:c` (40 files of 250) and `npm run test:slow:d` (20 files of 500). Species D passed 10,000 on 20 October 2026 in 5 minutes. Species C (about 2 hours) waits for the owner's go-ahead; 1,000 passed in milestone 15.
+- ACCEPTANCE.md has a v0.2 section; spec section 12's v0.2 items are ticked except 2 (species C 10,000 run) and 3 (cross-browser, owner).
 
 Genome (`src/genome`)
 - Checksum: odd-weighted sum of digits mod 256, as 4 bases, so any single-base change is caught.
