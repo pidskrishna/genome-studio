@@ -4,7 +4,7 @@ Done in order, one milestone per session. A milestone is done only when every ch
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
 - **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
-- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 to 22 done; next: milestone 23.
+- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 to 23 done (23 closed by the owner with one check noted); next: milestone 24.
 
 # v0.1
 
@@ -369,7 +369,7 @@ Checks:
 
 ## Milestone 23: species E and F in the app (spec sections 5 to 9)
 
-- [ ] Done
+- [x] Done: closed by the owner on 20 October 2026 with one check noted. Not passed: species F's tile check in 3D plate and glossy (24 of 32 frames; at most 17 of 480,000 pixels differ, by up to 11 colour levels, where bundled hyphae interpenetrate). Species E passed 32 of 32.
 
 Build: the species switch with six species as designed in milestone 22 (clarification 30), drawing E and F on the stage in all three looks and both views, the editor, helix, gene map and inspector for the new genes, drafts (clarification 28), the tray, export and methods file.
 
