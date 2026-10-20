@@ -4,7 +4,7 @@ Done in order, one milestone per session. A milestone is done only when every ch
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
 - **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
-- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 and 20 done; next: milestone 21.
+- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 to 21 done; next: milestone 22.
 
 # v0.1
 
@@ -333,7 +333,7 @@ Checks:
 
 ## Milestone 21: species F simulation (spec section 4d)
 
-- [ ] Done
+- [x] Done
 
 First: check every model statement in section 4d against Meškauskas, McNulty and Moore (2004) and Meškauskas, Fricker and Moore (2004). Where they differ, stop and propose the spec edit (clarification 26). Done on 20 October 2026: clarification 34.
 
