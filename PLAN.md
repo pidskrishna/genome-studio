@@ -3,7 +3,7 @@
 Done in order, one milestone per session. A milestone is done only when every check under it passes. Section numbers refer to `SPEC.md`; "clarification n" refers to its section 13.
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
-- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 17 done; next: milestone 18.
+- **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
 
 # v0.1
 
@@ -283,7 +283,7 @@ Checks:
 
 ## Milestone 18: Methods page and v0.2 acceptance (spec sections 10 and 12)
 
-- [ ] Done
+- [x] Done: closed by the owner on 20 October 2026 with a sample. Not run: the full 10,000 random species C genomes (4,000 passed with no failure, so the failure rate is below 0.075% at 95% confidence); and the owner's cross-browser hash check (Safari, Firefox, second machine). Species D passed all 10,000.
 
 Build: Methods page content for species C and D (models, equations, every gene with range and scale, references, limits, which parts are published and which designed), and v0.2 evidence in ACCEPTANCE.md.
 
