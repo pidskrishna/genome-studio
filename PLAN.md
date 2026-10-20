@@ -340,7 +340,7 @@ First: check every model statement in section 4d against Meškauskas, McNulty an
 Build: hyphal sections and tips, the density, long-range and parallel fields on a spatial grid (clarification 29), the tropism sum, persistence, branching, the five programmes with their phases, the caps, tube geometry, and the four gradient-driver attributes per node. Output in the species A geometry form (clarification 27). No rendering.
 
 Checks:
-- 1,000 random genomes grow to maturity with no error and no NaN (a slower script runs 10,000).
+- 1,000 random genomes grow to maturity with no error and no NaN (a slower script runs 10,000). Passed on 20 October 2026 (the first two files of `npm run test:slow:f`, 8 minutes).
 - Same code, same geometry hash; wild-type hash recorded.
 - Colony programme: the ratio of the longest to the shortest principal axis of the tip positions is below a stated bound; lowering the branching threshold lowers the tip count and raises the mean section length.
 - Cup programme: fewer hyphae cross a small disc on the axis than an equal disc at the rim.

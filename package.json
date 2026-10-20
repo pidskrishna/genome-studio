@@ -12,7 +12,8 @@
     "test:slow:b": "vitest run --config vitest.slow-b.config.ts",
     "test:slow:c": "vitest run --config vitest.slow-c.config.ts",
     "test:slow:d": "vitest run --config vitest.slow-d.config.ts",
-    "test:slow:e": "vitest run --config vitest.slow-e.config.ts"
+    "test:slow:e": "vitest run --config vitest.slow-e.config.ts",
+    "test:slow:f": "vitest run --config vitest.slow-f.config.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

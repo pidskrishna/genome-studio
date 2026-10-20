@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Species F check</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body { font: 15px/1.5 system-ui, sans-serif; margin: 2rem; color: #111; background: #fff; display: grid; grid-template-columns: 30rem 1fr; gap: 2rem; }
+      h1 { font-size: 1.3rem; }
+      dt { font-weight: 600; margin-top: 0.6rem; }
+      dd { margin: 0; font-family: ui-monospace, monospace; word-break: break-all; }
+      .match { color: #0a6b2d; }
+      .mismatch { color: #b00020; }
+      button { font: inherit; margin-top: 1.2rem; }
+      #stage { position: relative; height: 80vh; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>Species F determinism and speed check (wild type)</h1>
+      <p>Grows the wild type (or <code>?code=</code>) in the simulation worker and draws it with the branch renderer. Open this page in Safari, Chrome and Firefox and compare the geometry hash. <code>?view=flat</code> shows the top-down view; <code>?genes=2:0.5,3:3</code> sets genes by locus.</p>
+      <dl id="out"><dt>Status</dt><dd>Growing…</dd></dl>
+      <button id="again" type="button">Grow again</button>
+    </div>
+    <div id="stage"></div>
+    <script type="module" src="./species-f.ts"></script>
+  </body>
+</html>

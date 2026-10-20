@@ -30,7 +30,8 @@ const D_WILD: readonly number[] = [
 
 // Species E and F (v0.3): provisional until milestones 20 and 21. E is an upright branching coral
 // with six-part cups, at Merks et al.'s settings (polyp spacing 1.9, starting radius 8, no curvature
-// rule, threshold off) with transport well ahead of growth; F a mushroom, grown with the paper's figure 8 settings where it gives them.
+// rule, threshold off) with transport well ahead of growth; F a mushroom from a deep cup, with the paper's
+// 10% self-avoidance, 40% branching probability and figure 8's parallel tropism of 0.1.
 
 const E_WILD: readonly number[] = [
   0, 0.005, 1.9, 1, 0, 1, 0, 1, 8, 0, 0.05, 0.6, 0.2, 1, 0.15, //
@@ -38,7 +39,7 @@ const E_WILD: readonly number[] = [
 ];
 
 const F_WILD: readonly number[] = [
-  4, 0.06, 0.1, 0.4, 0.1, 0.5, 45, 0.3, 150, 180, 200, 0.1, 0, 60, 0.3, //
+  4, 0.012, 0.1, 0.4, 0.8, 0.5, 15, 1, 100, 180, 200, 0.1, 0, 60, 0.3, //
   35, 15, 0.3, 0.7, 0, 0.5, 0.2, 0.3,
 ];
 
