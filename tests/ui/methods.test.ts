@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_SPECIES, geneTable } from '../../src/genome';
-import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D } from '../../src/ui/methods-content';
+import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D, SPECIES_E, SPECIES_F } from '../../src/ui/methods-content';
 
 // Milestone 13: the Methods page states which parts are published models and which are designed
 // (spec section 12), lists every gene with its range and scale, and the additions to the procedures.
@@ -77,7 +77,45 @@ describe('Methods page content', () => {
     expect(SPECIES_D.limits.join(' ')).toContain('not the biology of the mantle');
   });
 
+  it('states which parts of species E and F are published and which are designed (spec section 12, v0.3)', () => {
+    for (const part of ['Coral accretive growth', 'Coral nutrient field', 'Corallites', 'Hyphal growth and branching', 'Fruit body programmes']) {
+      expect(GROUNDING.some((g) => g.part.startsWith(part))).toBe(true);
+    }
+    expect(GROUNDING.find((g) => g.part.startsWith('Corallites'))!.status).toBe('Designed extension');
+    for (const section of [SPECIES_E, SPECIES_F]) {
+      expect(section.additions.length).toBeGreaterThan(3);
+      for (const a of section.additions) expect(['Designed', 'Designed extension', 'Numerical choice']).toContain(a.status);
+    }
+    // Every gene but the seed has a status of its own, not the fallback.
+    for (const species of ['E', 'F'] as const) {
+      for (const row of geneRows(species)) if (row.locus !== 24) expect(row.status, `${species} ${row.name}`).not.toBe('Encoding');
+    }
+  });
+
+  it('states the species E model, its solver and its limits (clarifications 29, 31 and 32)', () => {
+    const text = [...SPECIES_E.procedure, ...SPECIES_E.equations].join(' ');
+    expect(text).toContain('s² / (D Δt)');
+    expect(text).toContain('eq. 2.3');
+    expect(text).toContain('Laplace');
+    expect(SPECIES_E.additions.map((a) => a.text).join(' ')).toContain('multigrid');
+    expect(SPECIES_E.limits.join(' ')).toContain('abiotic');
+    expect(SPECIES_E.limits.join(' ')).toContain('figure 1c');
+  });
+
+  it('states the species F model, its calibration and programmes (clarifications 34 and 35)', () => {
+    const text = [...SPECIES_F.procedure, ...SPECIES_F.equations].join(' ');
+    expect(text).toContain('eq. 3');
+    expect(text).toContain('eq. 5');
+    expect(text).toContain('eq. 13');
+    expect(text).toContain('Mushroom');
+    expect(SPECIES_F.additions.map((a) => a.text).join(' ')).toContain('clarification 35');
+    expect(SPECIES_F.limits.join(' ')).toContain('Gills and spores are not modelled');
+  });
+
   it('cites every species\' references', () => {
+    expect(SPECIES_E.references.join(' ')).toContain('Merks, Hoekstra, Kaandorp and Sloot (2003)');
+    expect(SPECIES_E.references.join(' ')).toContain('Kaandorp and Sloot (2001)');
+    expect(SPECIES_F.references.join(' ')).toContain('Meškauskas, McNulty and Moore (2004)');
     expect(SPECIES_C.references.join(' ')).toContain('Douady and Couder (1996)');
     expect(SPECIES_C.references.join(' ')).toContain('Prusinkiewicz and Lindenmayer (1990)');
     expect(SPECIES_D.references.join(' ')).toContain('Raup (1966)');

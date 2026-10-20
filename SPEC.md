@@ -12,7 +12,7 @@ Each species has its own genome. The tool has no name yet.
 | --- | --- | --- | --- |
 | v0.1 | Closed 19 October 2026 (PLAN.md milestones 0 to 13) | A: branching and venation; B: differential growth | Everything in sections 1 to 13 except sections 4a and 4b and the clarifications from 17 on |
 | v0.2 | Closed 20 October 2026 (PLAN.md milestones 14 to 18) | Adds C: phyllotaxis (section 4a); D: seashell (section 4b) | The two new species through the whole tool: editor, stage, looks, draft, tray, export and Methods page |
-| v0.3 | Planned 20 October 2026 | Adds E: coral (section 4c); F: fungal fruit body (section 4d) | The two new species through the whole tool: editor, stage, looks, draft, tray, export and Methods page, and a redesigned species switch |
+| v0.3 | Closed 20 October 2026 (PLAN.md milestones 19 to 24) | Adds E: coral (section 4c); F: fungal fruit body (section 4d) | The two new species through the whole tool: editor, stage, looks, draft, tray, export and Methods page, and a redesigned species switch |
 
 v0.2 must not change species A or B: their gene tables stay as they are, and every code that grew in v0.1 grows the same geometry, with the same hash. Earlier copies of this spec called v0.1 "v1".
 
@@ -540,20 +540,20 @@ The build is done when all of these pass. Evidence for each is in ACCEPTANCE.md.
 - [x] Species C and D draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
 - [x] The Methods page states which parts of species C and D are published models and which are designed.
 
-**v0.3.**
+**v0.3.** Closed on 20 October 2026 with items 2 (species F sampled at 3,000 of 10,000), 3 (cross-browser, owner) and 10 (species F's 3D tile check) open.
 
-- [ ] Every species A to D geometry hash recorded in v0.2 is unchanged.
+- [x] Every species A to D geometry hash recorded in v0.2 is unchanged.
 - [ ] 10,000 random genomes of species F, and 1,000 of species E, all grow to maturity with no failure and no invalid numbers. Species E has no 10,000 run, by the owner's decision of 20 October 2026, because of its run time; 1,000 passing bounds its failure rate below 0.3% at 95% confidence (clarification 31).
 - [ ] The same species E and F code gives the same geometry hash in three browsers on two different machines.
-- [ ] Species E with the curvature rule off branches: the wild type has more than one branch tip at maturity, as Merks et al. report.
-- [ ] Species E: compactness (colony volume over convex hull volume, Kaandorp et al. 2005) rises as growth to transport rises, as Merks et al. report.
-- [ ] Species E: raising the polyp spacing gives thicker branches and a more compact colony (Merks et al. 2003, figure 4.6).
-- [ ] Species F, colony programme: the mycelium is close to spherical (Meškauskas et al.: most settings give spherical colonies), and lowering the branching threshold gives fewer tips and longer sections (their figures 3 and 4).
-- [ ] Species F, cup programme: a slice through the axis is hollow, with fewer hyphae on the axis than at the rim (figure 5B). Mushroom programme: the cap is wider than the stem.
-- [ ] Changing a pigment gene of species E or F does not regrow the organism.
+- [x] Species E with the curvature rule off branches: the wild type has more than one branch tip at maturity, as Merks et al. report.
+- [x] Species E: compactness (colony volume over convex hull volume, Kaandorp et al. 2005) rises as growth to transport rises, as Merks et al. report.
+- [x] Species E: raising the polyp spacing gives thicker branches and a more compact colony (Merks et al. 2003, figure 4.6).
+- [x] Species F, colony programme: the mycelium is close to spherical (Meškauskas et al.: most settings give spherical colonies), and lowering the branching threshold gives fewer tips and longer sections (their figures 3 and 4).
+- [x] Species F, cup programme: a slice through the axis is hollow, with fewer hyphae on the axis than at the rim (figure 5B). Mushroom programme: the cap is wider than the stem.
+- [x] Changing a pigment gene of species E or F does not regrow the organism.
 - [ ] Species E and F draw in all three looks and both views, and export as stitched tiles within the tile tolerance.
-- [ ] The species switch offers all six species, as designed in milestone 22, in all three looks.
-- [ ] The Methods page states which parts of species E and F are published models and which are designed.
+- [x] The species switch offers all six species, as designed in milestone 22, in all three looks.
+- [x] The Methods page states which parts of species E and F are published models and which are designed.
 
 Left to the implementer: the random number generator, the mesh data structure, the shading technique for the monochrome plate, the syllable tables, the wild-type genomes, the organ and receptacle shapes of species C, the starting forms and corallite shapes of species E, and final tuning of gene ranges so the whole range of every gene is stable and visibly different.
 

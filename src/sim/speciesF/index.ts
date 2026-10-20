@@ -144,8 +144,7 @@ function normalise(x: number, y: number, z: number): [number, number, number] | 
 export interface HyphaOptions {
   /**
    * The draft (clarification 28): tips grow DRAFT_STEP units per step for that fraction of the
-   * steps, with branching and persistence per step adjusted so they stay the same per unit of
-   * length, and the hyphae drawn with fewer sides.
+   * steps, with branching and persistence per step raised, and the hyphae drawn with fewer sides.
    */
   draft?: boolean;
 }
@@ -153,6 +152,9 @@ export interface HyphaOptions {
 /** Grows species F from decoded parameters. Yields progress from 0 to 1. */
 export function* growSpeciesF(full: SpeciesFParams, options: HyphaOptions = {}): Generator<number, HyphaGeometry> {
   const step = options.draft ? DRAFT_STEP : 1;
+  // A coarser step branches and turns a little more per step: a branch chance of 1 − (1 − p)² and a
+  // persistence of k². (Matching per unit of length at a step of 3 would be cubes; the squares keep
+  // the draft fast and still show the organism's character.)
   const p: SpeciesFParams = options.draft
     ? {
         ...full,

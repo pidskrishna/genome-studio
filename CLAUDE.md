@@ -2,7 +2,7 @@
 
 A browser tool that grows 3D organisms from a 160-base ATGC code, edited on a 3D double helix.
 
-- Current version: **v0.3**, adding species E (coral) and F (fungal fruit body); milestones 19 to 24. v0.1 (species A and B, milestones 0 to 13) and v0.2 (species C and D, milestones 14 to 18) are closed.
+- Current version: **v0.3**, closed on 20 October 2026: species E (coral) and F (fungal fruit body), milestones 19 to 24. v0.1 (species A and B, milestones 0 to 13) and v0.2 (species C and D, milestones 14 to 18) are closed.
 - `SPEC.md` is the source of truth for what to build. Do not change its decisions; if something in it is impossible or contradictory, stop and ask.
 - `PLAN.md` lists the milestones in order, each with the checks that prove it is done.
 - `DESIGN.md` is the agreed interface design (looks, glass, motion, every interaction); `dev/interaction-lab.html` is its working reference.

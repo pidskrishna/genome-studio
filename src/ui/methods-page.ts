@@ -1,6 +1,6 @@
 import { ALL_SPECIES, specimenName, speciesOfHeader } from '../genome';
 import { SPECIES_NAMES } from './gene-info';
-import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D, type ModelSection } from './methods-content';
+import { ENCODING_NOTES, geneRows, GROUNDING, SPECIES_A, SPECIES_B, SPECIES_C, SPECIES_D, SPECIES_E, SPECIES_F, type ModelSection } from './methods-content';
 import { button, el } from './shell';
 
 // The Methods page (spec section 10): inside the app, so it can show the current organism's code and
@@ -62,6 +62,8 @@ export class MethodsPage {
       modelSection(SPECIES_B),
       modelSection(SPECIES_C),
       modelSection(SPECIES_D),
+      modelSection(SPECIES_E),
+      modelSection(SPECIES_F),
       el('section', { className: 'methods-section' }, el('h3', { textContent: 'From code to organism' }), ...ENCODING_NOTES.map((n) => el('p', { textContent: n }))),
       ...genes,
     );

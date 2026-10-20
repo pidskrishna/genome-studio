@@ -36,8 +36,8 @@ Each species is its own growth model with its own 24-gene genome (23 parameter g
 | B: differential growth | Ruffled, buckled sheets, like lettuce or coral edges | Excess marginal growth: Nath et al. (2003); Sharon and Efrati (2010) |
 | C: phyllotaxis | Sunflower heads, pine cones, cacti, leafy shoots | Douady and Couder (1996); Prusinkiewicz and Lindenmayer (1990) |
 | D: seashell | Coiled shells with ribs, cords and pigment stripes | Raup (1966); Fowler, Meinhardt and Prusinkiewicz (1992) |
-| E: coral (planned, v0.3) | Branching, plate-like and encrusting colonies | Accretive growth in a nutrient field: Kaandorp and Sloot (2001); Merks et al. (2003); Kaandorp et al. (2005) |
-| F: fungal fruit body (planned, v0.3) | Cups, flasks and mushrooms grown from hyphae | The Neighbour-Sensing model: Meškauskas, McNulty and Moore (2004) |
+| E: coral | Branching, plate-like and encrusting colonies | Accretive growth in a nutrient field: Kaandorp and Sloot (2001); Merks et al. (2003); Kaandorp et al. (2005) |
+| F: fungal fruit body | Cups, flasks and mushrooms grown from hyphae | The Neighbour-Sensing model: Meškauskas, McNulty and Moore (2004) |
 
 ## How it works
 
@@ -138,4 +138,4 @@ TypeScript, Vite, Three.js, Vitest and the IBM Plex typefaces.
 
 ## Status
 
-Version 0.3: species A to D (v0.1 and v0.2) are done; species E and F are planned. See `PLAN.md` for progress.
+Version 0.3: six species, A to F. See `PLAN.md` for progress and `ACCEPTANCE.md` for the evidence.
