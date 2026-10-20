@@ -4,7 +4,7 @@ Done in order, one milestone per session. A milestone is done only when every ch
 
 - **v0.1**, milestones 0 to 13: closed on 19 October 2026 (species A and B). Four were closed by the owner without their last checks; each says what was not run.
 - **v0.2**, milestones 14 to 18: started on 19 October 2026 (species C, phyllotaxis, and D, seashell). Milestones 14 to 18 done; v0.2 is complete, with milestone 18 closed by the owner on a sample (see below).
-- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestone 19 done; next: milestone 20.
+- **v0.3**, milestones 19 to 24: planned on 20 October 2026 (species E, coral, and F, fungal fruit body, and a design pass for the species switch). Milestones 19 and 20 done; next: milestone 21.
 
 # v0.1
 
@@ -314,7 +314,7 @@ Checks (unit tests):
 
 ## Milestone 20: species E simulation (spec section 4c)
 
-- [ ] Done
+- [x] Done
 
 First: check every model statement in section 4c against Kaandorp and Sloot (2001), Merks et al. (2003) and Kaandorp et al. (2005), and against Kaandorp (1994) where available. Where they differ, stop and propose the spec edit (clarification 26). Done on 20 October 2026: clarification 32.
 
@@ -325,7 +325,7 @@ Checks:
 - Same code, same geometry hash; wild-type hash recorded.
 - With the curvature rule off, the wild type has more than one branch tip at maturity.
 - Compactness rises as growth to transport rises, over at least four values across its range (clarification 32).
-- Raising the polyp spacing lowers the number of branch tips and raises the mean distance between them.
+- Raising the polyp spacing gives thicker branches and a more compact colony (clarification 33).
 - With growth very slow against transport, the field matches the steady-state (Laplace) solution within a stated tolerance.
 - The vertex count never exceeds 120,000 and no triangle has zero area.
 - Every vertex carries all four gradient-driver attributes, with no NaN.
