@@ -335,7 +335,7 @@ Checks:
 
 - [ ] Done
 
-First: check every model statement in section 4d against Meškauskas, McNulty and Moore (2004) and Meškauskas, Fricker and Moore (2004). Where they differ, stop and propose the spec edit (clarification 26).
+First: check every model statement in section 4d against Meškauskas, McNulty and Moore (2004) and Meškauskas, Fricker and Moore (2004). Where they differ, stop and propose the spec edit (clarification 26). Done on 20 October 2026: clarification 34.
 
 Build: hyphal sections and tips, the density, long-range and parallel fields on a spatial grid (clarification 29), the tropism sum, persistence, branching, the five programmes with their phases, the caps, tube geometry, and the four gradient-driver attributes per node. Output in the species A geometry form (clarification 27). No rendering.
 
